@@ -48,6 +48,9 @@ public partial class MainWindow : Window
     private double _scrubStart;
     private long _scrubLastFrame;
     private int _scrubStartFrame;
+    // Frames que se descuentan del arrastre por lo que se arrastró de más contra el principio o el final: así, al
+    // cambiar de dirección, se vuelve a mover enseguida en vez de tener que deshacer lo que pasó del borde.
+    private long _scrubShift;
     // Velocidad a la que iba antes de arrastrar sobre la imagen (0 en pausa): al soltar se reanuda.
     private double _scrubResumeSpeed;
     private (WindowState State, WindowStyle Style, ResizeMode Resize)? _beforeFullscreen;
@@ -115,6 +118,7 @@ public partial class MainWindow : Window
             _scrubStart = _nav.CurrentTime;
             _scrubStartFrame = Zoom.Grid.FrameAt(_scrubStart);
             _scrubLastFrame = 0;
+            _scrubShift = 0;
         };
         _surface.DragEnded += () =>
         {
@@ -129,19 +133,34 @@ public partial class MainWindow : Window
         };
         _surface.DragMoved += dx =>
         {
-            long frames = dx / Math.Max(1, _store.Settings.ScrubPixelsPerFrame);
-            if (frames == _scrubLastFrame)
-                return;
-            _scrubLastFrame = frames;
+            long moved = dx / Math.Max(1, _store.Settings.ScrubPixelsPerFrame);
             // Con bucle (empezando dentro del tramo, el suyo), al pasar el último frame se sigue por el primero y al revés.
             if (LoopFrames(_scrubStartFrame) is { } loop)
             {
+                if (moved == _scrubLastFrame)
+                    return;
+                _scrubLastFrame = moved;
                 var count = loop.Last - loop.First + 1;
-                var n = loop.First + (int)(((_scrubStartFrame - loop.First + frames) % count + count) % count);
+                var n = loop.First + (int)(((_scrubStartFrame - loop.First + moved) % count + count) % count);
                 _nav.ScrubTo(Zoom.Grid.TimeOf(n));
                 return;
             }
-            _nav.ScrubTo(_scrubStart + frames / Fps);
+            // Sin bucle, se para en el primer y el último frame; lo que se arrastre de más no se acumula.
+            var frames = moved + _scrubShift;
+            if (_duration > 0)
+            {
+                var lastFrame = Zoom.Grid.FrameAt(_lastFrameStart > 0 ? _lastFrameStart : _duration - 1e-4);
+                var min = -(long)_scrubStartFrame;
+                var max = Math.Max(min, lastFrame - _scrubStartFrame);
+                var clamped = Math.Clamp(frames, min, max);
+                _scrubShift += clamped - frames;
+                frames = clamped;
+            }
+            if (frames == _scrubLastFrame)
+                return;
+            _scrubLastFrame = frames;
+            // Con la duración ya conocida, por la rejilla de frames: el tope casa justo con el primero y el último.
+            _nav.ScrubTo(_duration > 0 ? Zoom.Grid.TimeOf((int)(_scrubStartFrame + frames)) : _scrubStart + frames / Fps);
         };
         _surface.Resized += () => _engine?.Refresh();
         _surface.Wheel += OnVideoWheel;
