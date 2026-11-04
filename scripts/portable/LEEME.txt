@@ -1,0 +1,55 @@
+VideoSeeker (versión portable)
+==============================
+
+No se instala: descomprime el zip y abre VideoSeeker.exe. No hace falta ser
+administrador ni instalar .NET; todo lo necesario va en esta carpeta.
+
+Requisitos: Windows 10 u 11 de 64 bits y una tarjeta gráfica con DirectX 11
+(cualquier Intel, AMD o NVIDIA de los últimos años).
+
+
+Primer uso
+----------
+1. Si el zip llegó por internet, correo o Teams, antes de descomprimirlo:
+   clic derecho en el zip > Propiedades > marca "Desbloquear" > Aceptar.
+   Si no, Windows puede avisar al abrirlo ("Windows protegió su PC"):
+   pulsa "Más información" > "Ejecutar de todas formas".
+2. Descomprime en una carpeta tuya, por ejemplo Documentos\VideoSeeker o
+   C:\Users\<tu usuario>\Apps\VideoSeeker. Mejor no en Archivos de programa.
+3. Abre VideoSeeker.exe. Para tenerlo a mano: clic derecho > Anclar a inicio
+   (o a la barra de tareas).
+
+Abrir los vídeos con doble clic: Ajustes > General > Reproductor de vídeo
+predeterminado > "Elegir en Windows". Funciona sin administrador. Si mueves
+la carpeta después, la app corrige la ruta al arrancar.
+
+
+Tus datos
+---------
+Ajustes, bookmarks y caché se guardan en la carpeta "data" que aparece aquí
+al primer arranque (o en %LOCALAPPDATA%\VideoSeeker si esta carpeta no se
+puede escribir). En Ajustes puedes cambiar dónde se guardan.
+
+Para llevarte bookmarks de otro PC: exporta la colección desde la lista de
+bookmarks y arrastra el archivo sobre la ventana, o copia la carpeta
+data\bookmarks.
+
+
+Actualizar
+----------
+Descomprime la versión nueva en otra carpeta, copia en ella la carpeta "data"
+de la antigua y borra la antigua. (Si el doble clic estaba asociado, abre
+la nueva una vez y se corrige solo.)
+
+
+Quitar
+------
+Ajustes > General > "Quitar" (deshace el doble clic) y borra la carpeta.
+No deja nada más en el sistema, salvo %LOCALAPPDATA%\VideoSeeker si se usó.
+
+
+VideoSeeker es gratis y de código abierto (GPL v3). Si te resulta útil,
+puedes apoyarlo con el botón "Apoyar" que hay abajo en Ajustes.
+
+La versión exacta está en VERSION.txt. Licencia y componentes de terceros:
+LICENCIAS.txt y LICENSE.txt.

@@ -1,0 +1,37 @@
+VideoSeeker
+===========
+
+VideoSeeker es software libre: puedes redistribuirlo y modificarlo bajo los
+términos de la GNU General Public License versión 3 o posterior, publicada
+por la Free Software Foundation. Se distribuye SIN NINGUNA GARANTÍA. El texto
+completo de la licencia está en LICENSE.txt.
+
+  Código fuente: https://github.com/Thenend/VideoSeeker
+
+
+Componentes de terceros incluidos en VideoSeeker
+================================================
+
+libmpv (libmpv-2.dll)
+  Reproductor mpv, compilación de shinchiro/mpv-winbuild-cmake
+  (versión 20261021, git e471496c56).
+  Licencia: GPL v2 o posterior (esta compilación incluye partes GPL).
+  Código fuente: https://github.com/mpv-player/mpv
+                 https://github.com/shinchiro/mpv-winbuild-cmake
+
+FFmpeg (carpeta ffmpeg\)
+  Compilación "full_build-shared" de gyan.dev (versión 9.0.2).
+  Licencia: GPL v3 (esta compilación incluye partes GPL).
+  Código fuente: https://ffmpeg.org/download.html
+                 https://www.gyan.dev/ffmpeg/builds/
+
+.NET y WPF (resto de DLL de Microsoft)
+  Licencia: MIT. https://github.com/dotnet/runtime  https://github.com/dotnet/wpf
+
+FFmpeg.AutoGen (LGPL v3), Vortice.Windows (MIT),
+SharpGen.Runtime (MIT), System.IO.Hashing (MIT).
+
+Textos completos de las licencias:
+  GPL v2: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+  GPL v3: https://www.gnu.org/licenses/gpl-3.0.html
+  MIT:    https://opensource.org/license/mit

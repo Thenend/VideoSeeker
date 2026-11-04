@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" Version="9.0.1.1" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Descargadas por scripts/fetch-deps.ps1; solo las librerías que usa el decodificador -->
+    <None Include="..\..\deps\ffmpeg\avcodec-*.dll;..\..\deps\ffmpeg\avformat-*.dll;..\..\deps\ffmpeg\avutil-*.dll;..\..\deps\ffmpeg\swresample-*.dll;..\..\deps\ffmpeg\swscale-*.dll"
+          Link="ffmpeg\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+</Project>

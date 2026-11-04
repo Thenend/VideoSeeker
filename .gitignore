@@ -1,0 +1,44 @@
+# Vídeos de ejemplo para pruebas (no se suben al repo)
+samples/
+*.mkv
+*.mp4
+*.m4v
+*.avi
+*.wmv
+*.mov
+*.webm
+*.flv
+*.ts
+*.m2ts
+*.mts
+*.mpg
+*.mpeg
+*.vob
+*.3gp
+*.ogv
+
+# Subtítulos y audio sueltos de ejemplo
+*.srt
+*.ass
+*.ssa
+*.sub
+*.idx
+*.ac3
+*.dts
+
+# Build / IDE (Windows)
+bin/
+obj/
+build/
+dist/
+out/
+.vs/
+.vscode/
+*.user
+*.suo
+Thumbs.db
+desktop.ini
+
+# Dependencias nativas descargadas por scripts/fetch-deps.ps1
+deps/
+out/
