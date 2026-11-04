@@ -6,6 +6,12 @@ Es gratis y de código abierto (GPL v3). Si te resulta útil, puedes apoyar su d
 
 > *English:* VideoSeeker is a lightweight, free and open source (GPL v3) video player for Windows, built for frame-accurate inspection: fast scrubbing, bookmarks and regions, zoomed ranges and loops. The interface is in Spanish for now. If you find it useful, you can support it with the **Apoyar** (Support) button at the bottom of Settings or the **Sponsor** button on this page.
 
+## Descargar
+
+Descarga el zip de la [última versión](https://github.com/Thenend/VideoSeeker/releases/latest), descomprímelo y abre `VideoSeeker.exe`. No se instala ni pide permisos de administrador; funciona en Windows 10/11 de 64 bits. Si Windows avisa al abrirlo («Windows protegió su PC»), pulsa «Más información» > «Ejecutar de todas formas».
+
+*English:* download the zip from the [latest release](https://github.com/Thenend/VideoSeeker/releases/latest), unzip it and run `VideoSeeker.exe` (Windows 10/11 x64, no installation needed).
+
 ## Compilar y ejecutar
 
 Requisitos: Windows 10/11 x64 y .NET SDK 10.
