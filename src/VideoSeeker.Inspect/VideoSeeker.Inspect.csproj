@@ -16,7 +16,7 @@
   <ItemGroup>
     <!-- Descargadas por scripts/fetch-deps.ps1; solo las librerías que usa el decodificador -->
     <None Include="..\..\deps\ffmpeg\avcodec-*.dll;..\..\deps\ffmpeg\avformat-*.dll;..\..\deps\ffmpeg\avutil-*.dll;..\..\deps\ffmpeg\swresample-*.dll;..\..\deps\ffmpeg\swscale-*.dll"
-          Link="ffmpeg\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+          Link="ffmpeg\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" Visible="false" />
   </ItemGroup>
 
 </Project>

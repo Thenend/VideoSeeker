@@ -12,7 +12,10 @@ internal static class LibMpvLoader
 {
     private const string Dll = "libmpv-2.dll";
 
+    // CA2255 avisa de [ModuleInitializer] en una biblioteca; aquí es justo lo que hace falta (antes de cualquier llamada).
+#pragma warning disable CA2255
     [ModuleInitializer]
+#pragma warning restore CA2255
     internal static void Register() => NativeLibrary.SetDllImportResolver(typeof(LibMpvLoader).Assembly, Resolve);
 
     private static nint Resolve(string name, Assembly assembly, DllImportSearchPath? searchPath)

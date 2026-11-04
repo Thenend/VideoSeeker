@@ -24,7 +24,7 @@
   <ItemGroup>
     <!-- Para exportar clips: ffmpeg.exe usa las DLL del motor de inspección y, además, estas dos -->
     <None Include="..\..\deps\ffmpeg\ffmpeg.exe;..\..\deps\ffmpeg\avfilter-*.dll;..\..\deps\ffmpeg\avdevice-*.dll"
-          Link="ffmpeg\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+          Link="ffmpeg\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" Visible="false" />
   </ItemGroup>
 
 </Project>
