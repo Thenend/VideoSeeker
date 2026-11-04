@@ -73,7 +73,7 @@ public partial class MainWindow
         _store.SaveSettings();
         UpdatePinButton();
         ApplyControlsMode();
-        ShowToast(_store.Settings.PinFullscreenControls ? "Controles fijos" : "Controles ocultos: lleva el ratón abajo para verlos");
+        ShowToast(_store.Settings.PinFullscreenControls ? S.ControlsPinned : S.ControlsHidden);
     }
 
     private void UpdatePinButton()
@@ -81,7 +81,7 @@ public partial class MainWindow
         var pinned = _store.Settings.PinFullscreenControls;
         PinButton.Content = pinned ? "" : "";
         PinButton.Foreground = (Brush)FindResource(pinned ? "Accent" : "Fg");
-        PinButton.ToolTip = pinned ? "Controles fijos (Tab)" : "Fijar los controles (Tab)";
+        PinButton.ToolTip = pinned ? S.ControlsPinnedTip : S.PinControlsTip;
     }
 
     // Controles en su sitio (ventana, o fijos) o flotando sobre la imagen.

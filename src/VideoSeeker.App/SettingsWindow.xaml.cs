@@ -18,8 +18,6 @@ namespace VideoSeeker.App;
 /// </summary>
 public partial class SettingsWindow : Window
 {
-    private static readonly CultureInfo Spanish = CultureInfo.GetCultureInfo("es-ES");
-
     private readonly DataStore _store;
     private readonly Action _changed;
     private readonly Action _restart;
@@ -51,7 +49,7 @@ public partial class SettingsWindow : Window
         BindNumber(SeekCtrlBox, v => s.SeekSecondsCtrl = v);
         ScrubSlider.ValueChanged += (_, _) =>
         {
-            ScrubText.Text = $"{ScrubSlider.Value:0} px por frame";
+            ScrubText.Text = S.PixelsPerFrame((int)ScrubSlider.Value);
             Change(() => s.ScrubPixelsPerFrame = (int)Math.Round(ScrubSlider.Value));
         };
         WheelVolumeRadio.Checked += (_, _) => Change(() => s.WheelOnVideo = Settings.WheelVolume);
@@ -66,6 +64,7 @@ public partial class SettingsWindow : Window
         FillLanguages(SubLangCombo, v => s.SubtitleLanguages = v);
         Bind(SubsOnOpenCheck, v => s.SubtitlesOnOpen = v);
         Bind(HwdecCheck, v => s.HardwareDecoding = v);
+        FillUiLanguages();
 
         // Caché: de 512 MB hasta lo que tenga la tarjeta, en pasos de 256 MB. En el recomendado se guarda 0
         // (automático), para que siga a la tarjeta si se cambia.
@@ -77,7 +76,7 @@ public partial class SettingsWindow : Window
             UpdateCacheText();
             Change(() => s.FrameCacheMegabytes = CacheMegabytes == _recommendedCacheMegabytes ? 0 : CacheMegabytes);
         };
-        CacheLabel.ToolTip = "Cuanta más, más tiempo de vídeo se puede recorrer frame a frame al instante. Se aplica al abrir el siguiente vídeo.";
+        CacheLabel.ToolTip = S.CacheMemoryTip;
         Bind(ClipClipboardCheck, v => s.CopyClipToClipboard = v);
         LightClipSlider.ValueChanged += (_, _) =>
         {
@@ -92,7 +91,7 @@ public partial class SettingsWindow : Window
         {
             // Instalada desde la Store los tipos de vídeo vienen con la app y se quitan al desinstalarla.
             UnregisterButton.Visibility = Visibility.Collapsed;
-            DefaultFolderButton.ToolTip = "La carpeta de la app en Windows. Se borra al desinstalarla.";
+            DefaultFolderButton.ToolTip = S.DefaultFolderPackagedTip;
         }
         PreviewKeyDown += OnKeyDown;
         SourceInitialized += (_, _) =>
@@ -120,7 +119,7 @@ public partial class SettingsWindow : Window
             SetNumber(SeekShiftBox, s.SeekSecondsShift);
             SetNumber(SeekCtrlBox, s.SeekSecondsCtrl);
             ScrubSlider.Value = Math.Clamp(s.ScrubPixelsPerFrame, 1, 20);
-            ScrubText.Text = $"{ScrubSlider.Value:0} px por frame";
+            ScrubText.Text = S.PixelsPerFrame((int)ScrubSlider.Value);
             (s.WheelOnVideo == Settings.WheelVolume ? WheelVolumeRadio : WheelSpeedRadio).IsChecked = true;
             ResumeCheck.IsChecked = s.ResumePlayback;
             (s.TimeWithFrames ? TimeFramesRadio : TimeMsRadio).IsChecked = true;
@@ -130,6 +129,8 @@ public partial class SettingsWindow : Window
             SelectLanguage(AudioLangCombo, s.AudioLanguage);
             SelectLanguage(SubLangCombo, s.SubtitleLanguage);
             SubsOnOpenCheck.IsChecked = s.SubtitlesOnOpen;
+            UiLanguageCombo.SelectedItem = UiLanguageCombo.Items.OfType<ComboBoxItem>()
+                .FirstOrDefault(i => string.Equals((string?)i.Tag, s.UiLanguage, StringComparison.OrdinalIgnoreCase)) ?? UiLanguageCombo.Items[0];
             CacheSlider.Value = CacheSetting(s);
             HwdecCheck.IsChecked = s.HardwareDecoding;
             ClipClipboardCheck.IsChecked = s.CopyClipToClipboard;
@@ -146,19 +147,19 @@ public partial class SettingsWindow : Window
 
     // ---- Clips ----
 
-    private void UpdateLightClipText() => LightClipText.Text = $"{LightClipSlider.Value.ToString("0.##", Spanish)} MB/s";
+    private void UpdateLightClipText() => LightClipText.Text = S.MegabytesPerSecond(LightClipSlider.Value.ToString("0.##", Loc.Culture));
 
     private void UpdateClipFolderUi()
     {
         var folder = _store.Settings.ClipFolder;
-        ClipFolderText.Text = folder is { Length: > 0 } ? folder : "Junto a cada vídeo";
+        ClipFolderText.Text = folder is { Length: > 0 } ? folder : S.BesideEachVideo;
         ClipFolderText.ToolTip = folder;
         ClipFolderBesideButton.IsEnabled = folder is { Length: > 0 };
     }
 
     private void OnChangeClipFolderClick(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "Carpeta para los clips exportados" };
+        var dialog = new OpenFolderDialog { Title = S.ClipFolderDialogTitle };
         if (_store.Settings.ClipFolder is { Length: > 0 } current && Directory.Exists(current))
             dialog.InitialDirectory = current;
         if (dialog.ShowDialog(this) != true)
@@ -209,16 +210,40 @@ public partial class SettingsWindow : Window
         box.Unchecked += (_, _) => Change(() => set(false));
     }
 
-    // "Sin preferencia" y los idiomas por su nombre; se guarda el código.
+    // "Sin preferencia" y los idiomas por su nombre (en el idioma de la interfaz, por orden alfabético); se guarda el código.
     private void FillLanguages(ComboBox combo, Action<string> set)
     {
-        combo.Items.Add(new ComboBoxItem { Content = "Sin preferencia", Tag = "" });
-        foreach (var language in Languages.All)
+        combo.Items.Add(new ComboBoxItem { Content = S.NoPreference, Tag = "" });
+        foreach (var language in Languages.All.OrderBy(l => l.Name, StringComparer.Create(Loc.Culture, ignoreCase: true)))
             combo.Items.Add(new ComboBoxItem { Content = language.Name, Tag = language.Code });
         combo.SelectionChanged += (_, _) =>
         {
             if (combo.SelectedItem is ComboBoxItem { Tag: string code })
                 Change(() => set(code));
+        };
+    }
+
+    // Idioma de la interfaz: "Automático (el de Windows)" y cada idioma con su nombre en ese idioma. Se aplica al
+    // reiniciar: se guarda y se ofrece reiniciar ya.
+    private void FillUiLanguages()
+    {
+        var windows = Loc.Resolve(null).NativeName;
+        UiLanguageCombo.Items.Add(new ComboBoxItem { Content = S.AutomaticLanguage(windows), Tag = null });
+        foreach (var language in Loc.All)
+            UiLanguageCombo.Items.Add(new ComboBoxItem { Content = language.NativeName, Tag = language.Code });
+        UiLanguageCombo.SelectionChanged += (_, _) =>
+        {
+            if (_loading || UiLanguageCombo.SelectedItem is not ComboBoxItem item)
+                return;
+            var code = (string?)item.Tag;
+            if (string.Equals(code, _store.Settings.UiLanguage, StringComparison.OrdinalIgnoreCase))
+                return;
+            Change(() => _store.Settings.UiLanguage = code);
+            // Si con el cambio se queda el idioma que ya se ve (p. ej. "Automático" con Windows en ese idioma), no hace falta reiniciar.
+            if (Loc.Resolve(code).Code != Loc.Code
+                && Dialog.Confirm(this, Loc.Resolve(code).Create().LanguageChangedRestart + "\n\n" + S.LanguageChangedRestart,
+                    S.RestartNow, S.Later, S.LanguageCaption))
+                _restart();
         };
     }
 
@@ -234,7 +259,7 @@ public partial class SettingsWindow : Window
         {
             var valid = TryParse(box.Text, out var value) && value >= min && value <= max;
             box.Foreground = (Brush)FindResource(valid ? "Fg" : "Error");
-            box.ToolTip = valid ? null : "Entre 0,04 y 3600 segundos";
+            box.ToolTip = valid ? null : S.NumberRange;
             if (valid)
                 Change(() => set(value));
         };
@@ -246,12 +271,11 @@ public partial class SettingsWindow : Window
         };
     }
 
-    // Con coma (español) o con punto.
+    // Con coma o con punto decimal, sea cual sea el idioma.
     private static bool TryParse(string text, out double value) =>
-        double.TryParse(text.Trim(), NumberStyles.Float, Spanish, out value) && !text.Contains('.')
-        || double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        double.TryParse(text.Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
 
-    private static void SetNumber(TextBox box, double value) => box.Text = value.ToString("0.##", Spanish);
+    private static void SetNumber(TextBox box, double value) => box.Text = value.ToString("0.##", Loc.Culture);
 
     private int CacheSetting(Settings s) => s.FrameCacheMegabytes > 0 ? s.FrameCacheMegabytes : _recommendedCacheMegabytes;
 
@@ -262,15 +286,15 @@ public partial class SettingsWindow : Window
     {
         var mb = CacheMegabytes;
         var over = _vramMegabytes is { } vram && mb > vram * 0.9;
-        CacheText.Text = _vramMegabytes is { } total ? $"{Number(mb, "0.##")} de {Number(total, "0.#")} GB" : GigaBytes(mb);
+        CacheText.Text = _vramMegabytes is { } total ? S.CacheOfTotal(Number(mb, "0.##"), Number(total, "0.#")) : GigaBytes(mb);
         CacheText.Foreground = (Brush)FindResource(over ? "Error" : "FgMuted");
-        CacheSlider.ToolTip = over ? "Más del 90 % de la memoria de la tarjeta: puede faltar para otros programas." : null;
+        CacheSlider.ToolTip = over ? S.CacheTooBigTip : null;
     }
 
-    private static string Number(double megabytes, string format) => (megabytes / 1024).ToString(format, Spanish);
+    private static string Number(double megabytes, string format) => (megabytes / 1024).ToString(format, Loc.Culture);
 
     private static string GigaBytes(double megabytes) =>
-        megabytes >= 1024 ? $"{(megabytes / 1024).ToString("0.#", Spanish)} GB" : $"{megabytes:0} MB";
+        megabytes >= 1024 ? $"{(megabytes / 1024).ToString("0.#", Loc.Culture)} {S.GigabytesUnit}" : $"{megabytes:0} {S.MegabytesUnit}";
 
     // ---- Carpeta de datos ----
 
@@ -283,7 +307,7 @@ public partial class SettingsWindow : Window
         var next = location?.Folder is { Length: > 0 } folder ? folder : DataStore.DefaultFolder();
         if (!DataStore.SamePath(next, _store.Folder))
         {
-            PendingFolderText.Text = $"Al reiniciar se usará {next}" + (location?.CopyFrom != null ? ", con una copia de los datos actuales." : ".");
+            PendingFolderText.Text = location?.CopyFrom != null ? S.PendingFolderWithCopy(next) : S.PendingFolder(next);
             PendingFolderText.Visibility = Visibility.Visible;
         }
         else
@@ -295,7 +319,7 @@ public partial class SettingsWindow : Window
 
     private void OnChangeDataFolderClick(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "Carpeta para los datos de VideoSeeker" };
+        var dialog = new OpenFolderDialog { Title = S.DataFolderDialogTitle };
         if (Path.GetDirectoryName(_store.Folder) is { } parent && Directory.Exists(parent))
             dialog.InitialDirectory = parent;
         if (dialog.ShowDialog(this) == true)
@@ -310,7 +334,7 @@ public partial class SettingsWindow : Window
     /// </summary>
     private void ChooseDataFolder(string target)
     {
-        const string caption = "Carpeta de datos";
+        var caption = S.DataFolder;
         var current = _store.Folder;
         try
         {
@@ -323,7 +347,7 @@ public partial class SettingsWindow : Window
             }
             if (DataStore.Nested(target, current))
             {
-                Dialog.Inform(this, "La carpeta de datos no puede estar dentro de la actual ni contenerla.", caption);
+                Dialog.Inform(this, S.DataFolderNested, caption);
                 return;
             }
             Directory.CreateDirectory(target);
@@ -335,18 +359,14 @@ public partial class SettingsWindow : Window
             if (DataStore.HasData(target))
             {
                 // 0: usar los de allí; 1: copiar los actuales encima (los de allí se apartan).
-                var answer = Dialog.Choose(this,
-                    $"{target}\n\nya tiene datos de VideoSeeker. Si copias allí los actuales, los que había se guardan en su subcarpeta «anteriores».",
-                    caption, "Usar esos datos", "Copiar los actuales", "Cancelar");
+                var answer = Dialog.Choose(this, S.DataFolderHasData(target), caption, S.UseThatData, S.CopyCurrentData, S.Cancel);
                 if (answer is < 0 or 2)
                     return;
                 copyFrom = answer == 1 ? current : null;
             }
             else
             {
-                var answer = Dialog.Choose(this,
-                    $"¿Llevar tus datos (ajustes, bookmarks, posición de cada vídeo) a\n{target}?\n\nLa carpeta actual se queda como está.",
-                    caption, "Llevar los datos", "Empezar vacía", "Cancelar");
+                var answer = Dialog.Choose(this, S.MoveDataQuestion(target), caption, S.MoveData, S.StartEmpty, S.Cancel);
                 if (answer is < 0 or 2)
                     return;
                 copyFrom = answer == 0 ? current : null;
@@ -355,11 +375,11 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Dialog.Inform(this, $"No se puede usar esa carpeta:\n{ex.Message}", caption);
+            Dialog.Inform(this, S.CannotUseFolder(ex.Message), caption);
             return;
         }
         UpdateFolderUi();
-        if (Dialog.Confirm(this, "La nueva carpeta de datos se usará al reiniciar VideoSeeker.", "Reiniciar ahora", "Más tarde", caption))
+        if (Dialog.Confirm(this, S.DataFolderRestart, S.RestartNow, S.Later, caption))
             _restart();
     }
 
@@ -382,7 +402,7 @@ public partial class SettingsWindow : Window
             .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion;
         if (string.IsNullOrEmpty(info)) return "";
         int plus = info.IndexOf('+');
-        return "Versión " + (plus > 0 ? info[..plus] : info);
+        return S.Version(plus > 0 ? info[..plus] : info);
     }
 
     // ---- Abrir con doble clic ----
@@ -397,7 +417,7 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException or System.ComponentModel.Win32Exception)
         {
-            Dialog.Inform(this, $"No se pudieron registrar los tipos de vídeo:\n{ex.Message}", "Abrir con doble clic");
+            Dialog.Inform(this, S.RegisterFailed(ex.Message), S.OpenWithDoubleClick);
         }
     }
 
@@ -410,7 +430,7 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
         {
-            Dialog.Inform(this, $"No se pudo quitar el registro:\n{ex.Message}", "Abrir con doble clic");
+            Dialog.Inform(this, S.UnregisterFailed(ex.Message), S.OpenWithDoubleClick);
         }
     }
 
@@ -419,7 +439,7 @@ public partial class SettingsWindow : Window
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
         // Esc o Ctrl + , (el mismo atajo que la abre) la cierran; con un desplegable abierto, Esc solo lo cierra.
-        if ((e.Key == Key.Escape && !AudioLangCombo.IsDropDownOpen && !SubLangCombo.IsDropDownOpen)
+        if ((e.Key == Key.Escape && !AudioLangCombo.IsDropDownOpen && !SubLangCombo.IsDropDownOpen && !UiLanguageCombo.IsDropDownOpen)
             || (e.Key == Key.OemComma && Keyboard.Modifiers.HasFlag(ModifierKeys.Control)))
         {
             Close();
@@ -429,7 +449,7 @@ public partial class SettingsWindow : Window
 
     private void OnResetClick(object sender, RoutedEventArgs e)
     {
-        if (!Dialog.Confirm(this, "Se volverán a poner los valores por defecto de todos los ajustes.", "Restablecer", title: "Restablecer ajustes"))
+        if (!Dialog.Confirm(this, S.ResetQuestion, S.Reset, S.Cancel, S.ResetTitle))
             return;
         _store.Settings.ResetPreferences();
         _store.SaveSettings();

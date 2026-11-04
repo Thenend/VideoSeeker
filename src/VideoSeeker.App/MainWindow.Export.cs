@@ -64,7 +64,7 @@ public partial class MainWindow
     /// <summary>El submenú «Exportar clip» con las tres maneras, para un tramo de un vídeo.</summary>
     private void AddExportMenu(ItemsControl menu, string? video, double start, double end, string? name)
     {
-        var export = new MenuItem { Header = "Exportar clip", InputGestureText = "Ctrl+M" };
+        var export = new MenuItem { Header = S.ExportClip, InputGestureText = $"{S.KeyCtrl}+M" };
         if (video == null || !File.Exists(video) || end <= start)
         {
             export.IsEnabled = false;
@@ -78,36 +78,34 @@ public partial class MainWindow
     private void AddExportItems(ItemsControl menu, string video, double start, double end, string? name)
     {
         var keyframe = video == _currentPath ? KeyframeAtOrBefore(start) : null;
-        var exact = new MenuItem { Header = "Original exacto", ToolTip = "Mismo códec y bitrate, cortado en el frame exacto" };
+        var exact = new MenuItem { Header = S.ExactOriginal, ToolTip = S.ExactOriginalTip };
         exact.Click += (_, _) => ExportClip(video, start, end, name, ClipPreset.Exact, null);
         menu.Items.Add(exact);
-        var copy = new MenuItem { Header = $"Original sin recodificar · {CopyStartText(start, keyframe)}", ToolTip = "Copia directa: instantánea y sin pérdida, pero empieza en un keyframe" };
+        var copy = new MenuItem { Header = S.CopyOriginal(CopyStartText(start, keyframe)), ToolTip = S.CopyOriginalTip };
         copy.Click += (_, _) => ExportClip(video, start, end, name, ClipPreset.Copy, keyframe);
         menu.Items.Add(copy);
         var light = new MenuItem
         {
-            Header = $"Ligero · {_store.Settings.LightClipMegabytesPerSecond.ToString("0.##", Spanish)} MB/s",
-            ToolTip = "MP4 (H.264 y AAC) para chats y Jira, como mucho 1080p",
+            Header = S.LightClipMenu(_store.Settings.LightClipMegabytesPerSecond.ToString("0.##", Loc.Culture)),
+            ToolTip = S.LightClipMenuTip,
         };
         light.Click += (_, _) => ExportClip(video, start, end, name, ClipPreset.Light, null);
         menu.Items.Add(light);
     }
 
-    private static readonly System.Globalization.CultureInfo Spanish = System.Globalization.CultureInfo.GetCultureInfo("es-ES");
-
     // Cuánto antes empieza la copia directa, que solo puede empezar en un keyframe.
     private string CopyStartText(double start, double? keyframe)
     {
         if (keyframe is not { } k)
-            return "empieza en el keyframe anterior";
+            return S.StartsAtPreviousKeyframe;
         var early = start - k;
         var frame = Fps > 0 ? 1 / Fps : 0.04;
         if (early < frame / 2)
-            return "corte exacto";
+            return S.ExactCut;
         if (early >= 1)
-            return $"empieza {early.ToString("0.#", Spanish)} s antes";
+            return S.StartsSecondsEarlier(early.ToString("0.#", Loc.Culture));
         var frames = (int)Math.Round(early / frame);
-        return frames == 1 ? "empieza 1 frame antes" : $"empieza {frames} frames antes";
+        return S.StartsFramesEarlier(frames);
     }
 
     // El keyframe en o antes del instante, según el índice propio del vídeo (null mientras se construye).
@@ -126,11 +124,11 @@ public partial class MainWindow
     {
         if (ExportTarget() is not { } target)
         {
-            ShowToast("Para exportar un clip, elige una región o marca antes un tramo (I / O, Z o arrastrando con el botón derecho)");
+            ShowToast(S.ExportNeedsRange);
             return;
         }
         var menu = new ContextMenu { PlacementTarget = VideoArea, Placement = PlacementMode.MousePoint };
-        menu.Items.Add(new MenuItem { Header = $"Exportar {RangeLabel(target.Start, target.End, target.Name)}", IsEnabled = false });
+        menu.Items.Add(new MenuItem { Header = S.ExportWhat(RangeLabel(target.Start, target.End, target.Name)), IsEnabled = false });
         AddExportItems(menu, target.Video, target.Start, target.End, target.Name);
         menu.IsOpen = true;
     }
@@ -146,7 +144,7 @@ public partial class MainWindow
     }
 
     private string RangeLabel(double start, double end, string? name) =>
-        name is { Length: > 0 } ? $"«{name}»" : $"{TimeFormat.Short(start, Fps)} – {TimeFormat.Short(end, Fps)}";
+        name is { Length: > 0 } ? S.QuotedName(name) : $"{TimeFormat.Short(start, Fps)} – {TimeFormat.Short(end, Fps)}";
 
     private void ExportClip(string video, double start, double end, string? name, ClipPreset preset, double? keyframe)
     {
@@ -161,14 +159,14 @@ public partial class MainWindow
         };
         var queued = _exporter.Busy;
         _exporter.Enqueue(job);
-        ShowToast(queued ? "Clip en cola: se exporta al acabar el anterior" : "Exportando el clip…");
+        ShowToast(queued ? S.ClipQueued : S.ExportingClip);
     }
 
     private void OnClipFinished(ClipJob job, string? error)
     {
         if (job.Cancelled)
         {
-            ShowToast("Exportación cancelada");
+            ShowToast(S.ExportCancelled);
             UpdateExportButton();
             return;
         }
@@ -207,7 +205,7 @@ public partial class MainWindow
     private static string Megabytes(string path)
     {
         var size = new FileInfo(path).Length / (1024.0 * 1024);
-        return $"{size.ToString(size < 10 ? "0.#" : "0", Spanish)} MB";
+        return $"{size.ToString(size < 10 ? "0.#" : "0", Loc.Culture)} {S.MegabytesUnit}";
     }
 
     // ---- Aviso al acabar ----
@@ -218,14 +216,14 @@ public partial class MainWindow
         var ok = error == null;
         ClipPopupGlyph.Text = ok ? GlyphExported : GlyphExportFailed;
         ClipPopupGlyph.Foreground = ok ? ExportedGlyph : (Brush)FindResource("Error");
-        ClipPopupTitle.Text = ok ? "Clip guardado" : "No se pudo exportar el clip";
+        ClipPopupTitle.Text = ok ? S.ClipSaved : S.ClipFailed;
         ClipPopupName.Text = Path.GetFileName(job.Output) ?? ClipExporter.FileName(job);
         ClipPopupName.ToolTip = job.Output;
         ClipPopupDetail.Text = ok
-            ? $"En {Path.GetDirectoryName(job.Output)} · {Megabytes(job.Output!)}" + (copied ? "\nCopiado al portapapeles: Ctrl + V lo pega en un chat o en Jira" : "")
+            ? $"{S.InFolder(Path.GetDirectoryName(job.Output) ?? "")} · {Megabytes(job.Output!)}" + (copied ? "\n" + S.CopiedForChat : "")
             : error;
         ClipPopupButtons.Visibility = ok ? Visibility.Visible : Visibility.Collapsed;
-        ClipPopupSecond.Content = "Abrir";
+        ClipPopupSecond.Content = S.Open;
         _popupFile = (job.Output, CopyInsteadOfOpen: false);
         _clipPopupTimer.Interval = TimeSpan.FromSeconds(ok ? 15 : 30);
         _clipPopupTimer.Stop();
@@ -269,9 +267,9 @@ public partial class MainWindow
         ClipPopupTitle.Text = title;
         ClipPopupName.Text = Path.GetFileName(path);
         ClipPopupName.ToolTip = path;
-        ClipPopupDetail.Text = $"En {Path.GetDirectoryName(path)}" + detail;
+        ClipPopupDetail.Text = S.InFolder(Path.GetDirectoryName(path) ?? "") + detail;
         ClipPopupButtons.Visibility = Visibility.Visible;
-        ClipPopupSecond.Content = "Copiar";
+        ClipPopupSecond.Content = S.Copy;
         _popupFile = (path, CopyInsteadOfOpen: true);
         _clipPopupTimer.Interval = TimeSpan.FromSeconds(15);
         _clipPopupTimer.Stop();
@@ -293,7 +291,7 @@ public partial class MainWindow
             if (!_popupFile.CopyInsteadOfOpen)
                 OpenFile(path);
             else
-                ShowToast(CopyToClipboard(path) ? "Copiado al portapapeles: Ctrl + V lo pega en un chat o en una carpeta" : "No se pudo copiar al portapapeles");
+                ShowToast(CopyToClipboard(path) ? S.CopiedForFolder : S.CopyFailed);
         }
         CloseClipPopup();
     }
@@ -310,11 +308,11 @@ public partial class MainWindow
         {
             ExportGlyph.Text = GlyphExporting;
             ExportGlyph.Foreground = (Brush)FindResource("Fg");
-            ExportText.Text = $"Exportando {current.Progress * 100:0} %" + (pending > 0 ? $" (+{pending})" : "");
+            ExportText.Text = S.ExportingPercent((int)Math.Round(current.Progress * 100)) + (pending > 0 ? $" (+{pending})" : "");
             ExportFill.Background = ExportingFill;
             fill = current.Progress;
-            ExportButton.ToolTip = (Path.GetFileName(current.Output) ?? "Preparando el clip")
-                + (pending > 0 ? $"\ny {pending} más en cola" : "") + "\nClic para cancelar";
+            ExportButton.ToolTip = (Path.GetFileName(current.Output) ?? S.PreparingClip)
+                + (pending > 0 ? S.MoreQueued(pending) : "") + S.ClickToCancel;
             taskbar.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
             taskbar.ProgressValue = Math.Max(0.02, current.Progress);
         }
@@ -323,10 +321,10 @@ public partial class MainWindow
             var ok = last.Error == null;
             ExportGlyph.Text = ok ? GlyphExported : GlyphExportFailed;
             ExportGlyph.Foreground = ok ? ExportedGlyph : (Brush)FindResource("Error");
-            ExportText.Text = ok ? "Clip listo" : "Error al exportar";
+            ExportText.Text = ok ? S.ClipReady : S.ExportError;
             ExportFill.Background = ok ? ExportedFill : ExportFailedFill;
             fill = 1;
-            ExportButton.ToolTip = ok ? $"{Path.GetFileName(last.Job.Output)}\nClic para ir a él" : "Clic para ver por qué";
+            ExportButton.ToolTip = ok ? Path.GetFileName(last.Job.Output) + S.ClickToGo : S.ClickToSeeWhy;
             taskbar.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
         }
         else
@@ -344,12 +342,12 @@ public partial class MainWindow
         var menu = new ContextMenu { PlacementTarget = ExportButton, Placement = PlacementMode.Top };
         if (_exporter.Current is { } current)
         {
-            var cancel = new MenuItem { Header = $"Cancelar {Path.GetFileName(current.Output) ?? "el clip"}" };
+            var cancel = new MenuItem { Header = S.CancelClip(Path.GetFileName(current.Output) ?? S.TheClip) };
             cancel.Click += (_, _) => _exporter.CancelCurrent();
             menu.Items.Add(cancel);
             if (_exporter.Pending > 0)
             {
-                var all = new MenuItem { Header = $"Cancelar también los {_exporter.Pending} en cola" };
+                var all = new MenuItem { Header = S.CancelQueuedToo(_exporter.Pending) };
                 all.Click += (_, _) => _exporter.CancelAll();
                 menu.Items.Add(all);
             }
@@ -364,30 +362,30 @@ public partial class MainWindow
         if (_lastClip is { Job.Output: { } path } && File.Exists(path))
         {
             menu.Items.Add(new MenuItem { Header = $"{Path.GetFileName(path)} · {Megabytes(path)}", IsEnabled = false });
-            var reveal = new MenuItem { Header = "Mostrar en la carpeta" };
+            var reveal = new MenuItem { Header = S.ShowInFolder };
             reveal.Click += (_, _) => RevealInExplorer(path);
             menu.Items.Add(reveal);
-            var open = new MenuItem { Header = "Abrir" };
+            var open = new MenuItem { Header = S.Open };
             open.Click += (_, _) => OpenFile(path);
             menu.Items.Add(open);
-            var copy = new MenuItem { Header = "Copiar al portapapeles" };
-            copy.Click += (_, _) => ShowToast(CopyToClipboard(path) ? "Clip copiado al portapapeles" : "No se pudo copiar al portapapeles");
+            var copy = new MenuItem { Header = S.CopyToClipboard };
+            copy.Click += (_, _) => ShowToast(CopyToClipboard(path) ? S.ClipCopied : S.CopyFailed);
             menu.Items.Add(copy);
         }
         var older = _recentClips.Where(p => p != _lastClip?.Job.Output && File.Exists(p)).ToList();
         if (older.Count > 0)
         {
-            var previous = new MenuItem { Header = "Clips anteriores" };
+            var previous = new MenuItem { Header = S.PreviousClips };
             foreach (var clip in older)
             {
-                var item = new MenuItem { Header = Path.GetFileName(clip), ToolTip = "Mostrar en la carpeta" };
+                var item = new MenuItem { Header = Path.GetFileName(clip), ToolTip = S.ShowInFolder };
                 item.Click += (_, _) => RevealInExplorer(clip);
                 previous.Items.Add(item);
             }
             menu.Items.Add(previous);
         }
         menu.Items.Add(new Separator());
-        var hide = new MenuItem { Header = "Quitar de aquí" };
+        var hide = new MenuItem { Header = S.RemoveFromHere };
         hide.Click += (_, _) =>
         {
             _lastClip = null;
@@ -515,6 +513,6 @@ public partial class MainWindow
     {
         if (!_exporter.Busy)
             return true;
-        return Dialog.Confirm(this, "Se está exportando un clip. Si sales ahora, se cancela.", "Salir", "Esperar");
+        return Dialog.Confirm(this, S.ExportingOnExit, S.Quit, S.Wait);
     }
 }

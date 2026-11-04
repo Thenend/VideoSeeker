@@ -22,14 +22,14 @@ public partial class MainWindow
         var collection = _store.Settings.BookmarkCollection;
         if (!BookmarkSet.LoadAll(_store, collection).Any(f => f.Bookmarks.Count > 0))
         {
-            ShowToast($"La colección «{collection}» no tiene bookmarks");
+            ShowToast(S.CollectionHasNoBookmarks(collection));
             return;
         }
         var dialog = new SaveFileDialog
         {
-            Title = "Exportar la colección",
+            Title = S.ExportCollectionTitle,
             FileName = collection + ".collection.json",
-            Filter = "Colección de bookmarks|*.collection.json",
+            Filter = S.CollectionFileFilter,
             InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
         };
         if (dialog.ShowDialog(this) != true)
@@ -38,12 +38,11 @@ public partial class MainWindow
         try
         {
             var (videos, count) = WriteCollectionFile(path, collection);
-            ShowFileSavedPopup($"Colección «{collection}» exportada", path,
-                $" · {videos} {(videos == 1 ? "vídeo" : "vídeos")}, {count} {(count == 1 ? "bookmark" : "bookmarks")}");
+            ShowFileSavedPopup(S.CollectionExported(collection), path, $" · {S.VideoCount(videos)}, {S.BookmarkCount(count)}");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Dialog.Inform(this, $"No se pudo guardar la colección:\n{e.Message}");
+            Dialog.Inform(this, S.CollectionSaveFailed(e.Message));
         }
     }
 
@@ -67,8 +66,8 @@ public partial class MainWindow
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Importar una colección o los bookmarks de un vídeo",
-            Filter = "Colecciones y bookmarks|*.collection.json;*.bookmarks.json|Todos los JSON|*.json",
+            Title = S.ImportTitle,
+            Filter = S.ImportFileFilter,
             Multiselect = true,
         };
         if (dialog.ShowDialog(this) == true)
@@ -90,11 +89,11 @@ public partial class MainWindow
             else if (Has("bookmarks"))
                 ImportVideoBookmarks(path);
             else
-                ShowToast($"«{Path.GetFileName(path)}» no es un archivo de bookmarks");
+                ShowToast(S.NotBookmarksFile(Path.GetFileName(path)));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
         {
-            ShowToast($"No se pudo leer «{Path.GetFileName(path)}»: {e.Message}");
+            ShowToast(S.CannotReadNamed(Path.GetFileName(path), e.Message));
         }
     }
 
@@ -103,14 +102,14 @@ public partial class MainWindow
     {
         if (DataStore.LoadFile<BookmarkFile>(path) is not { } incoming || incoming.Bookmarks.Count == 0)
         {
-            ShowToast($"«{Path.GetFileName(path)}» no tiene bookmarks");
+            ShowToast(S.FileHasNoBookmarks(Path.GetFileName(path)));
             return;
         }
         // Uno escrito a mano puede no traer huella: entonces es del vídeo abierto.
         var fingerprint = string.IsNullOrEmpty(incoming.Fingerprint) ? _bookmarks?.Fingerprint : incoming.Fingerprint;
         if (fingerprint == null)
         {
-            ShowToast("No se sabe de qué vídeo son: abre el vídeo y vuelve a arrastrarlos");
+            ShowToast(S.UnknownVideo);
             return;
         }
         var collection = _store.Settings.BookmarkCollection;
@@ -124,18 +123,17 @@ public partial class MainWindow
             var labels = BookmarkSet.ImportLabels(_store, collection, incoming);
             var (before, after) = BookmarkFiles.Modify(file, fingerprint, File.Exists(file) ? "" : video,
                 data => added = BookmarkFiles.Merge(data, incoming.Bookmarks));
-            _history.Record("importar bookmarks", video, [new(file, before, after), .. labels is { } l ? [l] : Array.Empty<BookmarkHistory.Entry>()]);
+            _history.Record(S.StepImportBookmarks, video, [new(file, before, after), .. labels is { } l ? [l] : Array.Empty<BookmarkHistory.Entry>()]);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudieron importar: {e.Message}");
+            ShowToast(S.ImportFailed(e.Message));
             return;
         }
         AfterFilesChanged([file]);
         var thisVideo = fingerprint == _bookmarks?.Fingerprint;
-        ShowToast(added == 0 ? "Ya tenías estos bookmarks"
-            : (added == 1 ? "1 bookmark añadido" : $"{added} bookmarks añadidos")
-              + (thisVideo ? " a este vídeo" : $" a «{video}» en la colección «{collection}»"));
+        ShowToast(added == 0 ? S.AlreadyHadBookmarks
+            : thisVideo ? S.BookmarksAddedToThisVideo(added) : S.BookmarksAddedTo(added, video, collection));
     }
 
     // Una colección: se añade como nueva (con "(2)" si ya hay una con ese nombre) y pasa a ser la activa.
@@ -144,10 +142,10 @@ public partial class MainWindow
         if (DataStore.LoadFile<BookmarkCollectionFile>(path) is not { } incoming
             || incoming.Videos.Where(v => !string.IsNullOrEmpty(v.Fingerprint)).ToList() is not { Count: > 0 } videos)
         {
-            ShowToast($"«{Path.GetFileName(path)}» no tiene bookmarks");
+            ShowToast(S.FileHasNoBookmarks(Path.GetFileName(path)));
             return;
         }
-        var baseName = BookmarkCollections.Clean(incoming.Collection) ?? "Importada";
+        var baseName = BookmarkCollections.Clean(incoming.Collection) ?? S.ImportedCollectionName;
         var name = baseName;
         for (var i = 2; BookmarkCollections.Exists(_store, name); i++)
             name = $"{baseName} ({i})";
@@ -172,16 +170,16 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudo importar la colección: {e.Message}");
+            ShowToast(S.ImportCollectionFailed(e.Message));
             return;
         }
-        _history.Record($"importar la colección «{name}»", "", entries);
+        _history.Record(S.StepImportCollection(name), "", entries);
         _importedCollections[name] = _store.Settings.BookmarkCollection;
         SetCollection(name, announce: false, showAll: true);
         if (BookmarkPanel.Visibility != Visibility.Visible)
             ShowPanel(true);
         var count = videos.Sum(v => v.Bookmarks.Count);
-        ShowToast($"Colección «{name}» añadida: {videos.Count} {(videos.Count == 1 ? "vídeo" : "vídeos")}, {count} {(count == 1 ? "bookmark" : "bookmarks")}");
+        ShowToast(S.CollectionAdded(name, S.VideoCount(videos.Count), S.BookmarkCount(count)));
     }
 
     // Tras deshacer: una colección importada que se ha quedado vacía se quita (y vuelve la que estaba activa).

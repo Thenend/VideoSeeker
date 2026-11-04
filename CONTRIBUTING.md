@@ -7,7 +7,8 @@
 - **Fallos e ideas:** abre un [issue](https://github.com/Thenend/VideoSeeker/issues) contando qué pasa, con qué vídeo (formato, códec) y la versión que aparece abajo en Ajustes.
 - **Cambios:** haz un fork, crea una rama y abre un pull request. Mejor cambios pequeños y centrados en una cosa.
 - **Compilar:** las instrucciones están en el [README](README.md). Hace falta Windows 10/11 x64 y el .NET SDK 10; no hace falta Visual Studio.
-- **Estilo:** sigue el del código que tengas al lado. La interfaz está en español y es oscura y sobria: textos cortos, y las explicaciones en los tooltips.
+- **Estilo:** sigue el del código que tengas al lado. La interfaz es oscura y sobria: textos cortos, y las explicaciones en los tooltips.
+- **Textos de la interfaz:** nunca escritos directamente en el código ni en el XAML, sino en `src/VideoSeeker.App/Localization`: se declaran en `Strings.cs` y cada idioma les da valor en su `Strings.<idioma>.cs` (español, inglés, francés, alemán, italiano y portugués de Brasil). Si falta en alguno, no compila. En el código se usan con `S.Nombre` y en XAML con `{l:Tr Nombre}`.
 
 Al enviar un pull request aceptas que tu aportación se publique con la misma licencia que el proyecto, la [GPL v3](LICENSE) o posterior.
 

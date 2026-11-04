@@ -22,8 +22,14 @@
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
   </Dependencies>
 
+  <!-- Los idiomas de la interfaz (Localization/Loc.cs): la Store ofrece una ficha en cada uno. -->
   <Resources>
     <Resource Language="es-ES" />
+    <Resource Language="en-US" />
+    <Resource Language="fr-FR" />
+    <Resource Language="de-DE" />
+    <Resource Language="it-IT" />
+    <Resource Language="pt-BR" />
   </Resources>
 
   <Applications>

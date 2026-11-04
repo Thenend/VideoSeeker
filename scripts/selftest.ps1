@@ -6,6 +6,8 @@
 #      pwsh scripts/selftest.ps1 -Full              -> todas (varios minutos)
 #      -Video <ruta>   otro vídeo (por defecto samples\generated\h264-1080p60-gop250_aac.mp4)
 #      -NoBuild        sin compilar (la copia de out\selftest tal cual)
+#      -Idioma <código> la interfaz en otro idioma (en, fr, de, it, pt-BR; por defecto es). Solo tiene sentido con la
+#                      rápida, para ver si los textos caben: las demás buscan textos en español.
 #      Registro y capturas de cada una: out\selftest\data\resultados\<prueba>\
 #      -TimeoutSec     tiempo máximo de cada una (por defecto 300 s; pasado, se cierra y cuenta como fallo)
 #
@@ -15,6 +17,7 @@ param(
     [switch]$Full,
     [string]$Video,
     [switch]$NoBuild,
+    [string]$Idioma,
     [int]$TimeoutSec = 300
 )
 $ErrorActionPreference = 'Stop'
@@ -61,6 +64,7 @@ $results = @()
 foreach ($m in $modes) {
     Get-ChildItem $data -Filter 'selftest*' -File -ErrorAction SilentlyContinue | Remove-Item -Force
     $env:VIDEOSEEKER_SELFTEST = $m
+    if ($Idioma) { $env:VIDEOSEEKER_UILANG = $Idioma }
     $arguments = if ($m -eq 'inicio') { @() } else { @("`"$Video`"") }
     $clock = [Diagnostics.Stopwatch]::StartNew()
     $process = if ($arguments) { Start-Process $exe -ArgumentList $arguments -PassThru } else { Start-Process $exe -PassThru }
@@ -68,6 +72,7 @@ foreach ($m in $modes) {
     if (-not $finished) { $process.Kill(); $process.WaitForExit() }
     $seconds = $clock.Elapsed.TotalSeconds
     Remove-Item Env:VIDEOSEEKER_SELFTEST
+    Remove-Item Env:VIDEOSEEKER_UILANG -ErrorAction SilentlyContinue
 
     # Cada una escribe selftest.log (clips e historial, el suyo): las líneas «FALLO» son los fallos.
     $logs = @(Get-ChildItem $data -Filter 'selftest*.log' -File -ErrorAction SilentlyContinue)
@@ -77,7 +82,7 @@ foreach ($m in $modes) {
         elseif (-not $logs) { "cerró sin escribir el registro (código $($process.ExitCode); ¿se ha colgado o cerrado de golpe?)" }
         elseif ($failed) { "$($failed.Count) fallos" }
     # Registro y capturas de cada una en resultados\<prueba>, para mirarlos después (la siguiente borra los suyos).
-    $keep = Join-Path $data "resultados\$m"
+    $keep = Join-Path $data ("resultados\$m" + $(if ($Idioma) { "-$Idioma" }))
     if (Test-Path $keep) { Remove-Item $keep -Recurse -Force }
     New-Item -ItemType Directory -Force $keep | Out-Null
     Get-ChildItem $data -Filter 'selftest*' -File -ErrorAction SilentlyContinue | Copy-Item -Destination $keep

@@ -20,8 +20,7 @@ public partial class MainWindow : Window
     private const string GlyphVolume = "", GlyphMute = "";
     private const string GlyphFullscreen = "", GlyphBackToWindow = "";
 
-    private static readonly string VideoFilter =
-        "Vídeos|*.mkv;*.mp4;*.m4v;*.avi;*.wmv;*.mov;*.webm;*.flv;*.ts;*.m2ts;*.mts;*.mpg;*.mpeg;*.vob;*.3gp;*.ogv|Todos los archivos|*.*";
+    private static string VideoFilter => S.VideoFileFilter;
 
     private readonly DataStore _store;
     private readonly MpvPlayer _player;
@@ -416,7 +415,7 @@ public partial class MainWindow : Window
     {
         if (!File.Exists(path))
         {
-            Dialog.Inform(this, $"No se encuentra el archivo:\n{path}");
+            Dialog.Inform(this, S.FileNotFound(path));
             return;
         }
 
@@ -530,9 +529,9 @@ public partial class MainWindow : Window
         // iguales. La duración del contenedor acaba un frame (o más, si el audio dura más) después.
         var total = _lastFrameStart > 0 ? _lastFrameStart : _duration;
         TimeText.Text = $"{TimeFormat.Precise(_position, Fps)} / {TimeFormat.Precise(total, Fps)}";
-        FrameText.Text = _frameIndex is { } index ? $"frame {index.FrameNumber(_position)}"
+        FrameText.Text = _frameIndex is { } index ? S.FrameNumber(index.FrameNumber(_position))
             // Mientras se construye el índice, aproximado a partir del fps del contenedor.
-            : _fps > 0 ? $"frame ~{Math.Round(_position * _fps):0}" : "";
+            : _fps > 0 ? S.FrameNumberApprox($"{Math.Round(_position * _fps):0}") : "";
         BookmarkText.Text = CurrentBookmarkText();
         UpdateRangePosition();
     }
@@ -636,16 +635,16 @@ public partial class MainWindow : Window
     /// <summary>
     /// Cambia los extremos de la zona: con una región, la región (un paso de deshacer); si no, la zona libre.
     /// </summary>
-    private void EditZone(double start, double end, string what = "ajustar")
+    private void EditZone(double start, double end, Func<string, string>? what = null)
     {
         if (ZoneBookmark is { } b && _bookmarks != null)
-            _bookmarks.Update(b.Id, x => { x.Start = start; x.End = end; }, label: what);
+            _bookmarks.Update(b.Id, x => { x.Start = start; x.End = end; }, label: what ?? S.StepAdjust);
         else
             ApplyZone((start, end));
     }
 
-    /// <summary>"del tramo" o "de «Nombre»", para los menús y tooltips.</summary>
-    private string ZoneOf() => ZoneBookmark is { } b ? $"de «{b.Name}»" : "del tramo";
+    /// <summary>El nombre de la región que es la zona, o null con un tramo libre (para S.ZoneOf).</summary>
+    private string? ZoneRegionName() => ZoneBookmark?.Name;
 
     /// <summary>
     /// Arrastrando un extremo de un tramo: el otro hace de ancla. Si se lleva más allá de él, se intercambian (el frame
@@ -739,7 +738,7 @@ public partial class MainWindow : Window
         {
             ZoneName.Text = region.Name;
             ZoneName.Foreground = TimelineBar.LineBrushFor(ColorOf(region));
-            ZoneName.ToolTip = $"La zona es la región «{region.Name}»: I / O, ⇤ ⇥ y las banderitas la cambian";
+            ZoneName.ToolTip = S.ZoneNameTip(region.Name);
             ZoneName.Visibility = Visibility.Visible;
         }
         else
@@ -747,9 +746,9 @@ public partial class MainWindow : Window
             ZoneName.Visibility = Visibility.Collapsed;
         }
         SaveZoneButton.Visibility = region == null && _zoomRange != null ? Visibility.Visible : Visibility.Collapsed;
-        MarkFirstButton.ToolTip = $"Asignar el frame en pantalla al inicio {ZoneOf()} (I)";
-        MarkLastButton.ToolTip = $"Asignar el frame en pantalla al fin {ZoneOf()} (O)";
-        CloseZoomButton.ToolTip = region != null ? $"Cerrar zoom y deseleccionar «{region.Name}» (Esc)" : "Cerrar zoom (Esc)";
+        MarkFirstButton.ToolTip = S.MarkFirstTip(ZoneRegionName());
+        MarkLastButton.ToolTip = S.MarkLastTip(ZoneRegionName());
+        CloseZoomButton.ToolTip = region != null ? S.CloseZoomDeselectTip(region.Name) : S.CloseZoomTip;
         UpdateLoopButtons();
     }
 
@@ -803,7 +802,7 @@ public partial class MainWindow : Window
         _store.Settings.Loop = _loopVideo;
         _store.SaveSettings();
         ApplyLoop();
-        ShowToast(_loopVideo ? "Bucle del vídeo" : "Sin bucle del vídeo");
+        ShowToast(_loopVideo ? S.VideoLoopOn : S.VideoLoopOff);
     }
 
     // Bucle del tramo ampliado (Shift + R o el botón junto a la X del tramo). Se recuerda para los siguientes tramos;
@@ -817,7 +816,7 @@ public partial class MainWindow : Window
         // Si se está fuera del tramo, el bucle empieza por su principio.
         if (RangeLooping && _zoomRange is { } z && (_nav.CurrentTime < z.Start || _nav.CurrentTime > z.End))
             _nav.SeekTo(z.Start);
-        ShowToast(_loopRange ? "Bucle " + ZoneOf() : "Sin bucle " + ZoneOf());
+        ShowToast(_loopRange ? S.RangeLoopOn(ZoneRegionName()) : S.RangeLoopOff(ZoneRegionName()));
     }
 
     private void ApplyLoop()
@@ -836,9 +835,9 @@ public partial class MainWindow : Window
     private void UpdateLoopButtons()
     {
         LoopButton.Foreground = (Brush)FindResource(_loopVideo ? "Accent" : "Fg");
-        LoopButton.ToolTip = _loopVideo ? "Quitar el bucle del vídeo (R)" : "Bucle del vídeo (R)";
+        LoopButton.ToolTip = _loopVideo ? S.VideoLoopOffTip : S.VideoLoopTip;
         RangeLoopButton.Foreground = (Brush)FindResource(_loopRange ? "Accent" : "Fg");
-        RangeLoopButton.ToolTip = (_loopRange ? "Quitar el bucle " : "Bucle ") + ZoneOf() + " (Shift + R)";
+        RangeLoopButton.ToolTip = _loopRange ? S.RangeLoopOffTip(ZoneRegionName()) : S.RangeLoopTip(ZoneRegionName());
     }
 
     // Lo que repite el bucle que manda: el tramo con su bucle puesto o, si no, el vídeo entero con el suyo.
@@ -907,12 +906,12 @@ public partial class MainWindow : Window
         string Time(double seconds, bool unit = true, double? scale = null) => TimeFormat.UseFrames && Fps > 0 ? TimeFormat.Timecode(seconds, Fps)
             : (scale ?? seconds) < 60 ? seconds.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture) + (unit ? " s" : "")
             : TimeFormat.Format(seconds, withMilliseconds: true);
-        string Frames(int n) => n == 1 ? "1 frame" : $"{n} frames";
+        string Frames(int n) => S.Frames(n);
         RangePosText.Text = frame < first
             ? $"[−{Time(grid.TimeOf(first) - grid.TimeOf(frame))} · −{Frames(first - frame)}]"
             : frame > last
                 ? $"[+{Time(grid.TimeOf(frame) - grid.TimeOf(last))} · +{Frames(frame - last)}]"
-                : $"[{Time(grid.TimeOf(frame) - grid.TimeOf(first), unit: false, scale: z.End - z.Start)} / {Time(z.End - z.Start)} · frame {frame - first + 1}/{last - first + 1}]";
+                : $"[{Time(grid.TimeOf(frame) - grid.TimeOf(first), unit: false, scale: z.End - z.Start)} / {Time(z.End - z.Start)} · {S.FrameOfRange(frame - first + 1, last - first + 1)}]";
     }
 
     private void ShowTimelineMenu(UIElement target, double time)
@@ -920,14 +919,14 @@ public partial class MainWindow : Window
         var menu = new ContextMenu { PlacementTarget = target, Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint };
         AddBookmarkMenuItems(menu, time);
         menu.Items.Add(new Separator());
-        var zoom = new MenuItem { Header = "Ampliar sección (±5 s)", InputGestureText = "Z" };
+        var zoom = new MenuItem { Header = S.ZoomSection, InputGestureText = "Z" };
         zoom.Click += (_, _) => ZoomAround(time);
         menu.Items.Add(zoom);
         var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
-        var markFirst = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al inicio {ZoneOf()}", InputGestureText = "I" };
+        var markFirst = new MenuItem { Header = S.MarkFirstFromScreen(current, ZoneRegionName()), InputGestureText = "I" };
         markFirst.Click += (_, _) => MarkFirstFrame();
         menu.Items.Add(markFirst);
-        var markLast = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al fin {ZoneOf()}", InputGestureText = "O" };
+        var markLast = new MenuItem { Header = S.MarkLastFromScreen(current, ZoneRegionName()), InputGestureText = "O" };
         markLast.Click += (_, _) => MarkLastFrame();
         menu.Items.Add(markLast);
         if (_zoomRange != null)
@@ -938,20 +937,20 @@ public partial class MainWindow : Window
                 var grid = Zoom.Grid;
                 var frame = grid.FrameAt(time);
                 menu.Items.Add(new Separator());
-                var first = new MenuItem { Header = $"Asignar el frame bajo el cursor ({frame}) al inicio {ZoneOf()}" };
+                var first = new MenuItem { Header = S.MarkFirstFromCursor(frame, ZoneRegionName()) };
                 first.Click += (_, _) => SetZoomFirstFrame(frame);
                 menu.Items.Add(first);
-                var last = new MenuItem { Header = $"Asignar el frame bajo el cursor ({frame}) al fin {ZoneOf()}" };
+                var last = new MenuItem { Header = S.MarkLastFromCursor(frame, ZoneRegionName()) };
                 last.Click += (_, _) => SetZoomLastFrame(frame);
                 menu.Items.Add(last);
                 menu.Items.Add(new Separator());
             }
-            var loop = new MenuItem { Header = $"Bucle {ZoneOf()}", InputGestureText = "Shift+R", IsCheckable = true, IsChecked = _loopRange };
+            var loop = new MenuItem { Header = S.RangeLoopMenu(ZoneRegionName()), InputGestureText = $"{S.KeyShift}+R", IsCheckable = true, IsChecked = _loopRange };
             loop.Click += (_, _) => ToggleRangeLoop();
             menu.Items.Add(loop);
             var close = new MenuItem
             {
-                Header = ZoneBookmark is { } region ? $"Cerrar zoom y deseleccionar «{region.Name}»" : "Cerrar zoom", InputGestureText = "Esc",
+                Header = ZoneBookmark is { } region ? S.CloseZoomDeselect(region.Name) : S.CloseZoom, InputGestureText = S.KeyEsc,
             };
             close.Click += (_, _) => CloseZone();
             menu.Items.Add(close);
@@ -975,7 +974,7 @@ public partial class MainWindow : Window
             return;
         }
         var start = grid.TimeOf(frame);
-        EditZone(start, z.End > start + 1e-4 ? z.End : NextFrameStart(start), "asignar el inicio de");
+        EditZone(start, z.End > start + 1e-4 ? z.End : NextFrameStart(start), S.StepSetStartOf);
     }
 
     // El tramo acaba al final del frame (inicio del siguiente), así que el frame queda dentro. Con una región, se
@@ -989,7 +988,7 @@ public partial class MainWindow : Window
             SetFreeZoom((end - 10, end));
             return;
         }
-        EditZone(z.Start < end - 1e-4 ? z.Start : grid.TimeOf(frame), end, "asignar el fin de");
+        EditZone(z.Start < end - 1e-4 ? z.Start : grid.TimeOf(frame), end, S.StepSetEndOf);
     }
 
     // Con el frame que se ve: para ajustar el tramo sin apuntar con el ratón (en vídeos largos la banda de la
@@ -1077,7 +1076,7 @@ public partial class MainWindow : Window
         {
             if (preset == 0.25)
                 menu.Items.Add(new Separator());
-            var item = new MenuItem { Header = preset == 1 ? "1× (normal)" : SpeedLabel(preset), IsCheckable = true, IsChecked = preset == _nav.Rate };
+            var item = new MenuItem { Header = preset == 1 ? S.NormalSpeed : SpeedLabel(preset), IsCheckable = true, IsChecked = preset == _nav.Rate };
             item.Click += (_, _) => SetRate(preset);
             menu.Items.Add(item);
         }
@@ -1108,7 +1107,7 @@ public partial class MainWindow : Window
     private void SetRate(double rate)
     {
         _nav.SetRate(rate);
-        ShowToast($"Velocidad {SpeedLabel(_nav.Rate)}");
+        ShowToast(S.SpeedToast(SpeedLabel(_nav.Rate)));
     }
 
     // Rueda sobre el vídeo (la ventana nativa o, sin vídeo, el fondo): velocidad o volumen, según el ajuste.
@@ -1127,7 +1126,7 @@ public partial class MainWindow : Window
             {
                 var volume = Math.Clamp(Math.Round(_store.Settings.Volume / 5) * 5 + 5 * steps, 0, 100);
                 _player.SetVolume(volume);
-                ShowToast(_store.Settings.Mute ? $"Volumen {volume:0} % (silenciado)" : $"Volumen {volume:0} %");
+                ShowToast(_store.Settings.Mute ? S.VolumeMutedToast((int)volume) : S.VolumeToast((int)volume));
             });
         else
             WheelSteps(delta, steps => SetRate(Navigator.StepRate(_nav.Rate, steps)));
@@ -1202,7 +1201,7 @@ public partial class MainWindow : Window
                 if (!e.IsRepeat)
                 {
                     _nav.Backward();
-                    ShowToast($"Velocidad {SpeedLabel(_nav.Speed)}");
+                    ShowToast(S.SpeedToast(SpeedLabel(_nav.Speed)));
                 }
                 break;
             case Key.L:
@@ -1210,7 +1209,7 @@ public partial class MainWindow : Window
                 {
                     _nav.Forward();
                     if (_nav.Speed != 1)
-                        ShowToast($"Velocidad {SpeedLabel(_nav.Speed)}");
+                        ShowToast(S.SpeedToast(SpeedLabel(_nav.Speed)));
                 }
                 break;
             case Key.Up:
@@ -1358,7 +1357,7 @@ public partial class MainWindow : Window
 
     private void ShowOpenDialog()
     {
-        var dialog = new OpenFileDialog { Filter = VideoFilter, Title = "Abrir vídeo" };
+        var dialog = new OpenFileDialog { Filter = VideoFilter, Title = S.OpenVideoTitle };
         if (_current != null)
             dialog.InitialDirectory = Path.GetDirectoryName(_current.Path);
         if (dialog.ShowDialog(this) == true)
@@ -1468,9 +1467,9 @@ public partial class MainWindow : Window
     private void OnTracksClick(object sender, RoutedEventArgs e)
     {
         var menu = new ContextMenu { PlacementTarget = TracksButton };
-        AddTrackItems(menu, "audio", "Audio", allowNone: false);
+        AddTrackItems(menu, "audio", S.Audio, allowNone: false);
         menu.Items.Add(new Separator());
-        AddTrackItems(menu, "sub", "Subtítulos", allowNone: true);
+        AddTrackItems(menu, "sub", S.Subtitles, allowNone: true);
         menu.IsOpen = true;
     }
 
@@ -1480,19 +1479,24 @@ public partial class MainWindow : Window
         var tracks = _tracks.Where(t => t.Type == type).ToList();
         if (allowNone)
         {
-            var none = new MenuItem { Header = "Desactivados", IsCheckable = true, IsChecked = tracks.All(t => !t.Selected) };
+            var none = new MenuItem { Header = S.SubtitlesOff, IsCheckable = true, IsChecked = tracks.All(t => !t.Selected) };
             none.Click += (_, _) => _player.SelectTrack(type, null);
             menu.Items.Add(none);
         }
         foreach (var track in tracks)
         {
-            var item = new MenuItem { Header = track.Label, IsCheckable = true, IsChecked = track.Selected };
+            var item = new MenuItem { Header = TrackLabel(track), IsCheckable = true, IsChecked = track.Selected };
             item.Click += (_, _) => _player.SelectTrack(type, track.Id);
             menu.Items.Add(item);
         }
         if (tracks.Count == 0 && !allowNone)
-            menu.Items.Add(new MenuItem { Header = "Sin pistas", IsEnabled = false });
+            menu.Items.Add(new MenuItem { Header = S.NoTracks, IsEnabled = false });
     }
+
+    // "2: Comentarios · eng · aac"; sin datos, "Pista 2".
+    private static string TrackLabel(Track track) =>
+        string.Join(" · ", new[] { track.Title, track.Lang, track.Codec }.Where(s => !string.IsNullOrEmpty(s))) is { Length: > 0 } text
+            ? $"{track.Id}: {text}" : S.Track(track.Id);
 
     private void LogStartup(string message)
     {

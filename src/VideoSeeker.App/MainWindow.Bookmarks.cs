@@ -212,7 +212,7 @@ public partial class MainWindow
         _namingColor = bookmark.Color;
         _namingCreatedLabel = false;
         BuildNameChips();
-        SetNameCaption(isNew ? "Nuevo bookmark" : "Renombrar bookmark", RangeText(bookmark, withFrames: true));
+        SetNameCaption(isNew ? S.NewBookmark : S.RenameBookmark, RangeText(bookmark, withFrames: true));
         NameBox.Text = bookmark.Name;
         NamePopup.Placement = PlacementMode.Top;
         NamePopup.VerticalOffset = 0;
@@ -334,7 +334,7 @@ public partial class MainWindow
             else
             {
                 // (Si se creó una etiqueta con el cuadro abierto, el último paso ya es ese: este va aparte.)
-                _bookmarks.Update(naming.Id, Apply, label: name != bookmark.Name ? "renombrar" : label != bookmark.Label ? "etiqueta de" : "color de");
+                _bookmarks.Update(naming.Id, Apply, label: name != bookmark.Name ? S.StepRename : label != bookmark.Label ? S.StepLabelOf : S.StepColorOf);
             }
             if (styleChanged)
                 RememberChoice(label, color);
@@ -356,7 +356,7 @@ public partial class MainWindow
         if (_bookmarks?.Find(_selectedBookmark) is { } bookmark)
             BeginRename(bookmark, isNew: false);
         else
-            ShowToast("Selecciona antes un bookmark (clic en su marca o en el panel)");
+            ShowToast(S.SelectBookmarkFirst);
     }
 
     private void DeleteSelected()
@@ -371,7 +371,7 @@ public partial class MainWindow
         if (_bookmarks == null)
             return;
         _bookmarks.Remove(bookmark.Id);
-        ShowToast($"Borrado «{bookmark.Name}» · Ctrl + Z lo recupera");
+        ShowToast(S.BookmarkDeleted(bookmark.Name));
     }
 
     // Ctrl + Z / Ctrl + Y: el historial es de toda la app, así que puede deshacer en otro vídeo (lo dice el aviso).
@@ -384,18 +384,18 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudo {(redo ? "rehacer" : "deshacer")}: {e.Message}");
+            ShowToast(redo ? S.RedoFailed(e.Message) : S.UndoFailed(e.Message));
             return;
         }
         if (step == null)
         {
-            ShowToast(redo ? "Nada que rehacer" : "Nada que deshacer");
+            ShowToast(redo ? S.NothingToRedo : S.NothingToUndo);
             return;
         }
         AfterFilesChanged(step.Entries.Select(e => e.Path));
-        var where = step.Video.Length == 0 || _bookmarks?.VideoName == step.Video ? "" : $" (en «{step.Video}»)";
+        var where = step.Video.Length == 0 || _bookmarks?.VideoName == step.Video ? "" : S.InVideo(step.Video);
         RemoveUndoneImports();
-        ShowToast($"{(redo ? "Rehecho" : "Deshecho")}: {step.Label}{where}");
+        ShowToast((redo ? S.Redone(step.Label) : S.Undone(step.Label)) + where);
     }
 
     // Tras cambiar archivos por fuera del vídeo abierto (deshacer, o desde el panel): se releen.
@@ -430,7 +430,7 @@ public partial class MainWindow
         if (index < items.Count)
             JumpTo(items[index]);
         else
-            ShowToast(items.Count == 0 ? "Este vídeo no tiene bookmarks (B añade uno)" : $"No hay bookmark {index + 1} (hay {items.Count})");
+            ShowToast(items.Count == 0 ? S.VideoHasNoBookmarks : S.NoBookmarkNumber(index + 1, items.Count));
     }
 
     // [ / ]: el anterior o el siguiente. Reproduciendo, el anterior se salta el que acaba de pasar (como los
@@ -446,8 +446,8 @@ public partial class MainWindow
         if (target != null)
             JumpTo(target);
         else
-            ShowToast(items.Count == 0 ? "Este vídeo no tiene bookmarks (B añade uno)"
-                : direction > 0 ? "No hay más bookmarks por delante" : "No hay más bookmarks por detrás");
+            ShowToast(items.Count == 0 ? S.VideoHasNoBookmarks
+                : direction > 0 ? S.NoMoreBookmarksAhead : S.NoMoreBookmarksBehind);
     }
 
     // [ y ] llegan como texto: en el teclado español se escriben con AltGr y no tienen tecla propia.
@@ -503,9 +503,9 @@ public partial class MainWindow
                 Seek.EditingBookmark = Zoom.EditingBookmark = bookmark.Id;
             _bookmarks.BeginEdit(part switch
             {
-                BookmarkPart.Start => $"mover el inicio de «{bookmark.Name}»",
-                BookmarkPart.End => $"mover el fin de «{bookmark.Name}»",
-                _ => $"mover «{bookmark.Name}»",
+                BookmarkPart.Start => S.StepMoveStart(bookmark.Name),
+                BookmarkPart.End => S.StepMoveEnd(bookmark.Name),
+                _ => S.StepMove(bookmark.Name),
             });
         }
         var origin = _dragOrigin.Value;
@@ -776,12 +776,12 @@ public partial class MainWindow
     private void AddBookmarkMenuItems(ItemsControl menu, double time)
     {
         var free = _zoomRange is { } && _zoomBookmark == null;
-        var add = new MenuItem { Header = "Añadir bookmark aquí", InputGestureText = free ? "" : "B" };
+        var add = new MenuItem { Header = S.AddBookmarkHere, InputGestureText = free ? "" : "B" };
         add.Click += (_, _) => AddBookmarkAt(time);
         menu.Items.Add(add);
         if (free && _zoomRange is { } z)
         {
-            var region = new MenuItem { Header = "Bookmark del tramo ampliado", InputGestureText = "B" };
+            var region = new MenuItem { Header = S.BookmarkOfZoomedRange, InputGestureText = "B" };
             region.Click += (_, _) => AddRegion(z.Start, z.End);
             menu.Items.Add(region);
         }
@@ -806,14 +806,14 @@ public partial class MainWindow
         if (region != null || _zoomRange != null)
             menu.Items.Add(new Separator());
         if (region != null)
-            AddThumbnailItems(menu, region, $" de «{region.Name}»");
+            AddThumbnailItems(menu, region, region.Name);
         if (_zoomRange != null)
         {
             var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
-            var markFirst = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al inicio {ZoneOf()}", InputGestureText = "I" };
+            var markFirst = new MenuItem { Header = S.MarkFirstFromScreen(current, ZoneRegionName()), InputGestureText = "I" };
             markFirst.Click += (_, _) => MarkFirstFrame();
             menu.Items.Add(markFirst);
-            var markLast = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al fin {ZoneOf()}", InputGestureText = "O" };
+            var markLast = new MenuItem { Header = S.MarkLastFromScreen(current, ZoneRegionName()), InputGestureText = "O" };
             markLast.Click += (_, _) => MarkLastFrame();
             menu.Items.Add(markLast);
         }
@@ -823,7 +823,7 @@ public partial class MainWindow
         // Como el botón: abre o cierra sin más, con la marca si está abierto (desde el menú el teclado nunca está
         // en el panel, así que el Ctrl + B de TogglePanel nunca lo cerraría).
         var open = BookmarkPanel.Visibility == Visibility.Visible;
-        var panel = new MenuItem { Header = "Panel de bookmarks", InputGestureText = "Ctrl+B", IsCheckable = true, IsChecked = open };
+        var panel = new MenuItem { Header = S.BookmarksPanel, InputGestureText = $"{S.KeyCtrl}+B", IsCheckable = true, IsChecked = open };
         panel.Click += (_, _) => ToggleOpenPanel();
         menu.Items.Add(panel);
         return menu;
@@ -843,7 +843,7 @@ public partial class MainWindow
         AddLabelOrColorMenu(menu, _labels.Find(bookmark.Label)?.Id, bookmark.Color, mixedLabels: false,
             id => SetBookmarkLabel(bookmark, id), hex => SetBookmarkColor(bookmark, hex));
         AddMoveMenu(menu, collection => MoveToCollection([bookmark.Id], collection));
-        AddThumbnailItems(menu, bookmark, "");
+        AddThumbnailItems(menu, bookmark, null);
 
         menu.Items.Add(new Separator());
         AddExportMenu(menu, _bookmarks?.VideoPath, bookmark.Start, EndOf(bookmark), bookmark.Name);
@@ -851,10 +851,10 @@ public partial class MainWindow
             AddRevealItem(menu, _bookmarks.VideoPath);
 
         menu.Items.Add(new Separator());
-        var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
+        var rename = new MenuItem { Header = S.Rename, InputGestureText = "F2" };
         rename.Click += (_, _) => BeginRename(bookmark, isNew: false);
         menu.Items.Add(rename);
-        var delete = new MenuItem { Header = "Borrar", InputGestureText = bookmark.Id == _selectedBookmark ? "Supr" : "" };
+        var delete = new MenuItem { Header = S.Delete, InputGestureText = bookmark.Id == _selectedBookmark ? S.KeyDelete : "" };
         delete.Click += (_, _) => DeleteBookmark(bookmark);
         menu.Items.Add(delete);
         menu.IsOpen = true;
@@ -876,26 +876,26 @@ public partial class MainWindow
         return region;
     }
 
-    // "Usar el frame actual como miniatura" y, si tiene una elegida, volver a la del primer frame. "whose" es " de
-    // «Nombre»" donde no se sabe por el menú de qué bookmark es (el de la imagen).
-    private void AddThumbnailItems(ItemsControl menu, Bookmark bookmark, string whose)
+    // "Usar el frame actual como miniatura" y, si tiene una elegida, volver a la del primer frame. "whose" es el nombre
+    // del bookmark donde no se sabe por el menú de cuál es (el de la imagen); si no, null.
+    private void AddThumbnailItems(ItemsControl menu, Bookmark bookmark, string? whose)
     {
         var current = Zoom.Grid.Snap(_nav.CurrentTime);
-        var useFrame = new MenuItem { Header = $"Usar el frame actual ({Zoom.Grid.FrameAt(current)}) como miniatura{whose}" };
+        var useFrame = new MenuItem { Header = S.UseFrameAsThumbnail(Zoom.Grid.FrameAt(current), whose) };
         useFrame.Click += (_, _) =>
         {
             // Un frame de fuera de la región seguramente es un despiste: se pregunta antes.
             if ((current < bookmark.Start - 1e-4 || current >= EndOf(bookmark) - 1e-4)
                 && !Dialog.Confirm(this,
-                    $"El frame actual ({Zoom.Grid.FrameAt(current)}, {TimeFormat.Precise(current, Fps)}) está fuera de la región «{bookmark.Name}» " +
-                    $"({RangeText(bookmark, withFrames: true)}).\n\n¿Usarlo igualmente como miniatura?", "Usarlo"))
+                    S.FrameOutsideRegion(Zoom.Grid.FrameAt(current), TimeFormat.Precise(current, Fps), bookmark.Name, RangeText(bookmark, withFrames: true)),
+                    S.UseIt))
                 return;
             _bookmarks?.Update(bookmark.Id, b => b.Thumb = current);
         };
         menu.Items.Add(useFrame);
         if (bookmark.Thumb != null)
         {
-            var resetThumb = new MenuItem { Header = $"Volver a la miniatura del primer frame{whose}" };
+            var resetThumb = new MenuItem { Header = S.ResetThumbnail(whose) };
             resetThumb.Click += (_, _) => _bookmarks?.Update(bookmark.Id, b => b.Thumb = null);
             menu.Items.Add(resetThumb);
         }
@@ -910,11 +910,11 @@ public partial class MainWindow
             var path = _bookmarks.Export();
             var count = _bookmarks.Items.Count;
             // Como al exportar un clip: dónde está, para ir a la carpeta o copiar el archivo y mandarlo con el vídeo.
-            ShowFileSavedPopup(count == 1 ? "1 bookmark exportado" : $"{count} bookmarks exportados", path, "");
+            ShowFileSavedPopup(S.BookmarksExported(count), path, "");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Dialog.Inform(this, $"No se pudo escribir junto al vídeo:\n{e.Message}");
+            Dialog.Inform(this, S.CannotWriteBesideVideo(e.Message));
         }
     }
 
@@ -935,7 +935,7 @@ public partial class MainWindow
     {
         _store.Settings.ShowBookmarkMarks = !_store.Settings.ShowBookmarkMarks;
         ApplyMarksVisibility();
-        ShowToast(_store.Settings.ShowBookmarkMarks ? "Marcas de bookmarks visibles" : "Marcas de bookmarks ocultas (Ctrl + Shift + B las muestra)");
+        ShowToast(_store.Settings.ShowBookmarkMarks ? S.MarksShown : S.MarksHidden);
     }
 
     private void ApplyMarksVisibility()
@@ -949,15 +949,15 @@ public partial class MainWindow
         MarksIcon.Data = (Geometry)FindResource(show ? "MarksShownIcon" : "MarksHiddenIcon");
         MarksButton.Foreground = (Brush)FindResource(show ? "Fg" : "FgMuted");
         MarksButton.ToolTip = show
-            ? "Ocultar las marcas de bookmarks en las barras (Ctrl + Shift + B). El panel sigue funcionando."
-            : "Mostrar las marcas de bookmarks en las barras (Ctrl + Shift + B)";
+            ? S.HideMarksTip
+            : S.ShowMarksTip;
     }
 
     private void OnMarksButtonClick(object sender, RoutedEventArgs e) => ToggleMarks();
 
     // ---- Colecciones ----
 
-    private void UpdateCollectionText() => CollectionText.Text = $"Colección: {_store.Settings.BookmarkCollection}  ▾";
+    private void UpdateCollectionText() => CollectionText.Text = S.CollectionButton(_store.Settings.BookmarkCollection);
 
     private void OnCollectionClick(object sender, RoutedEventArgs e)
     {
@@ -970,35 +970,35 @@ public partial class MainWindow
             var item = new MenuItem
             {
                 Header = name, IsCheckable = true, IsChecked = name == active,
-                InputGestureText = bookmarks == 0 ? "vacía" : $"{bookmarks} en {videos} {(videos == 1 ? "vídeo" : "vídeos")}",
+                InputGestureText = bookmarks == 0 ? S.CollectionEmpty : S.BookmarksInVideos(bookmarks, videos),
             };
             var n = name;
             item.Click += (_, _) => SetCollection(n, showAll: true);
             menu.Items.Add(item);
         }
         menu.Items.Add(new Separator());
-        var create = new MenuItem { Header = "Nueva colección…" };
-        create.Click += (_, _) => PromptName("Nombre de la nueva colección", "", null, name =>
+        var create = new MenuItem { Header = S.NewCollection };
+        create.Click += (_, _) => PromptName(S.NewCollectionName, "", null, name =>
         {
             if (BookmarkCollections.Clean(name) is not { } clean)
                 return;
             if (BookmarkCollections.Exists(_store, clean))
             {
-                ShowToast($"Ya hay una colección «{clean}»");
+                ShowToast(S.CollectionExists(clean));
                 return;
             }
             BookmarkCollections.Create(_store, clean);
             SetCollection(clean, showAll: true);
         });
         menu.Items.Add(create);
-        var rename = new MenuItem { Header = $"Renombrar «{active}»…" };
-        rename.Click += (_, _) => PromptName($"Nuevo nombre para «{active}»", active, null, name =>
+        var rename = new MenuItem { Header = S.RenameCollection(active) };
+        rename.Click += (_, _) => PromptName(S.NewNameFor(active), active, null, name =>
         {
             if (BookmarkCollections.Clean(name) is not { } clean || clean == active)
                 return;
             if (!string.Equals(clean, active, StringComparison.OrdinalIgnoreCase) && BookmarkCollections.Exists(_store, clean))
             {
-                ShowToast($"Ya hay una colección «{clean}»");
+                ShowToast(S.CollectionExists(clean));
                 return;
             }
             try
@@ -1010,24 +1010,24 @@ public partial class MainWindow
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                ShowToast($"No se pudo renombrar: {ex.Message}");
+                ShowToast(S.RenameFailed(ex.Message));
                 return;
             }
             SetCollection(clean, announce: false);
-            ShowToast($"Colección renombrada a «{clean}»");
+            ShowToast(S.CollectionRenamed(clean));
         });
         menu.Items.Add(rename);
-        var delete = new MenuItem { Header = $"Borrar «{active}»…", IsEnabled = names.Count > 1 };
+        var delete = new MenuItem { Header = S.DeleteCollection(active), IsEnabled = names.Count > 1 };
         delete.Click += (_, _) => DeleteCollection(active, names);
         menu.Items.Add(delete);
         menu.Items.Add(new Separator());
         AddLabelsManageMenu(menu);
         // Compartir: lo mismo que arrastrar el archivo sobre la app o el botón de exportar en "Todos los vídeos".
         menu.Items.Add(new Separator());
-        var import = new MenuItem { Header = "Importar colección o bookmarks…" };
+        var import = new MenuItem { Header = S.ImportCollectionOrBookmarks };
         import.Click += (_, _) => ShowImportDialog();
         menu.Items.Add(import);
-        var export = new MenuItem { Header = $"Exportar «{active}»…" };
+        var export = new MenuItem { Header = S.ExportCollectionMenu(active) };
         export.Click += (_, _) => ExportCollection();
         menu.Items.Add(export);
         menu.IsOpen = true;
@@ -1036,8 +1036,8 @@ public partial class MainWindow
     private void DeleteCollection(string name, List<string> names)
     {
         var (videos, bookmarks) = BookmarkCollections.Count(_store, name);
-        var detail = bookmarks == 0 ? "Está vacía." : $"Tiene {bookmarks} bookmarks de {videos} {(videos == 1 ? "vídeo" : "vídeos")} y se perderán.";
-        if (!Dialog.Confirm(this, $"¿Borrar la colección «{name}»?\n{detail}", "Borrar"))
+        var detail = bookmarks == 0 ? S.CollectionIsEmpty : S.CollectionWillBeLost(bookmarks, videos);
+        if (!Dialog.Confirm(this, S.DeleteCollectionQuestion(name, detail), S.Delete))
             return;
         try
         {
@@ -1047,7 +1047,7 @@ public partial class MainWindow
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudo borrar: {ex.Message}");
+            ShowToast(S.DeleteFailed(ex.Message));
             return;
         }
         SetCollection(names.First(n => n != name), showAll: true);
@@ -1074,7 +1074,7 @@ public partial class MainWindow
         else
             RefreshRows();
         if (announce)
-            ShowToast($"Colección «{name}»");
+            ShowToast(S.CollectionToast(name));
     }
 
     // ---- Panel ----
@@ -1185,7 +1185,7 @@ public partial class MainWindow
         if (ExportBookmarksButton != null && ScopeAll != null)
         {
             var all = ScopeAll.IsChecked == true;
-            ExportBookmarksButton.ToolTip = all ? "Exportar la colección entera, para compartirla" : "Exportar los bookmarks de este vídeo, para compartirlos";
+            ExportBookmarksButton.ToolTip = all ? S.ExportCollectionTip : S.ExportVideoBookmarksTip;
             ExportIcon.Data = (Geometry)FindResource(all ? "ExportCollectionIcon" : "ExportBookmarksIcon");
         }
         _otherFiles = null;
@@ -1399,7 +1399,7 @@ public partial class MainWindow
         var videos = rows.Select(r => r.Fingerprint).Distinct().Count();
         menu.Items.Add(new MenuItem
         {
-            Header = rows.Count == 1 ? rows[0].Name : videos == 1 ? $"{rows.Count} bookmarks" : $"{rows.Count} bookmarks de {videos} vídeos",
+            Header = rows.Count == 1 ? rows[0].Name : videos == 1 ? S.BookmarkCount(rows.Count) : S.BookmarksFromVideos(rows.Count, videos),
             IsEnabled = false,
         });
         var labels = rows.Select(r => _labels.Find(r.Bookmark.Label)?.Id).Distinct().ToList();
@@ -1418,11 +1418,11 @@ public partial class MainWindow
         menu.Items.Add(new Separator());
         if (rows.Count == 1)
         {
-            var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
+            var rename = new MenuItem { Header = S.Rename, InputGestureText = "F2" };
             rename.Click += (_, _) => RenameRow(rows[0], fromMenu: true);
             menu.Items.Add(rename);
         }
-        var delete = new MenuItem { Header = rows.Count == 1 ? "Borrar" : $"Borrar los {rows.Count}", InputGestureText = "Supr" };
+        var delete = new MenuItem { Header = rows.Count == 1 ? S.Delete : S.DeleteCount(rows.Count), InputGestureText = S.KeyDelete };
         delete.Click += (_, _) => DeleteRows(rows);
         menu.Items.Add(delete);
         menu.IsOpen = true;
@@ -1434,7 +1434,7 @@ public partial class MainWindow
         var exists = videoPath != null && File.Exists(videoPath);
         var reveal = new MenuItem
         {
-            Header = exists ? "Mostrar el vídeo en el Explorador" : "Mostrar el vídeo en el Explorador (no se encuentra)",
+            Header = exists ? S.ShowVideoInExplorer : S.ShowVideoInExplorerMissing,
             IsEnabled = exists,
         };
         reveal.Click += (_, _) => System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{videoPath}\"");
@@ -1445,17 +1445,17 @@ public partial class MainWindow
     {
         if (rows.Count == 0)
             return;
-        EditRows(rows, rows.Count == 1 ? $"borrar «{rows[0].Name}»" : $"borrar {rows.Count} bookmarks", BookmarkFiles.RemoveIds);
-        ShowToast(rows.Count == 1 ? $"Borrado «{rows[0].Name}» · Ctrl + Z lo recupera" : $"Borrados {rows.Count} bookmarks · Ctrl + Z los recupera");
+        EditRows(rows, rows.Count == 1 ? S.StepDelete(rows[0].Name) : S.StepDeleteMany(rows.Count), BookmarkFiles.RemoveIds);
+        ShowToast(rows.Count == 1 ? S.BookmarkDeleted(rows[0].Name) : S.BookmarksDeleted(rows.Count));
     }
 
     private void MoveRows(List<BookmarkRow> rows, string collection)
     {
         if (rows.Count == 0 || collection == _store.Settings.BookmarkCollection)
             return;
-        EditRows(rows, rows.Count == 1 ? $"mover «{rows[0].Name}» a «{collection}»" : $"mover {rows.Count} bookmarks a «{collection}»",
+        EditRows(rows, rows.Count == 1 ? S.StepMoveTo(rows[0].Name, collection) : S.StepMoveManyTo(rows.Count, collection),
             (file, ids) => file.Bookmarks.RemoveAll(b => ids.Contains(b.Id)), moveTo: collection);
-        ShowToast(rows.Count == 1 ? $"Movido a «{collection}» · Ctrl + Z lo devuelve" : $"Movidos {rows.Count} a «{collection}» · Ctrl + Z los devuelve");
+        ShowToast(rows.Count == 1 ? S.MovedTo(collection) : S.MovedManyTo(rows.Count, collection));
     }
 
     // Desde el menú, el cuadro sale junto al ratón; con F2, bajo la fila.
@@ -1467,10 +1467,10 @@ public partial class MainWindow
             return;
         }
         var target = fromMenu ? null : BookmarkList.ItemContainerGenerator.ContainerFromItem(row) as UIElement ?? BookmarkList;
-        PromptName("Renombrar bookmark", row.Name, target, name =>
+        PromptName(S.RenameBookmark, row.Name, target, name =>
         {
             if (name != row.Name)
-                EditRows([row], $"renombrar «{row.Name}»",
+                EditRows([row], S.StepRename(row.Name),
                     (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id))) { b.Name = name; b.Modified = DateTime.Now; } });
         }, detail: row.VideoName);
     }
@@ -1514,10 +1514,10 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudo cambiar: {e.Message}");
+            ShowToast(S.ChangeFailed(e.Message));
         }
         var videos = rows.Select(r => r.Fingerprint).Distinct().Count();
-        var name = videos == 1 ? (rows[0].IsCurrentVideo && _bookmarks != null ? _bookmarks.VideoName : rows[0].VideoName) : $"{videos} vídeos";
+        var name = videos == 1 ? (rows[0].IsCurrentVideo && _bookmarks != null ? _bookmarks.VideoName : rows[0].VideoName) : S.VideosCountName(videos);
         _history.Record(label, name, entries);
         AfterFilesChanged(entries.Select(e => e.Path));
     }
@@ -1541,8 +1541,8 @@ public partial class MainWindow
             return;
         color.Items.Add(new Separator());
         if (current != null && ColorPicker.Parse(current) != null && !BookmarkColors.Palette.Any(p => Is(p.Hex)))
-            Add("Propio", current);
-        var other = new MenuItem { Header = "Otro color…" };
+            Add(S.OwnColor, current);
+        var other = new MenuItem { Header = S.OtherColor };
         other.Click += (_, _) =>
         {
             if (ColorPicker.Pick(this, current ?? BookmarkColors.Default) is { } hex)
@@ -1555,7 +1555,7 @@ public partial class MainWindow
     private void AddMoveMenu(ItemsControl menu, Action<string> moveTo)
     {
         var active = _store.Settings.BookmarkCollection;
-        var move = new MenuItem { Header = "Mover a la colección" };
+        var move = new MenuItem { Header = S.MoveToCollection };
         foreach (var name in BookmarkCollections.List(_store, active).Where(n => n != active))
         {
             var n = name;
@@ -1565,8 +1565,8 @@ public partial class MainWindow
         }
         if (move.Items.Count > 0)
             move.Items.Add(new Separator());
-        var create = new MenuItem { Header = "Nueva colección…" };
-        create.Click += (_, _) => PromptName("Nombre de la colección a la que moverlos", "", null, name =>
+        var create = new MenuItem { Header = S.NewCollection };
+        create.Click += (_, _) => PromptName(S.MoveToNewCollectionName, "", null, name =>
         {
             if (BookmarkCollections.Clean(name) is not { } clean || clean == active)
                 return;
@@ -1587,11 +1587,11 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudieron mover: {e.Message}");
+            ShowToast(S.MoveFailed(e.Message));
             return;
         }
         _otherFiles = null;
-        ShowToast(ids.Count == 1 ? $"Movido a «{collection}» · Ctrl + Z lo devuelve" : $"Movidos {ids.Count} a «{collection}» · Ctrl + Z los devuelve");
+        ShowToast(ids.Count == 1 ? S.MovedTo(collection) : S.MovedManyTo(ids.Count, collection));
     }
 
     private void OnBookmarkListKeyDown(object sender, KeyEventArgs e)
@@ -1676,9 +1676,9 @@ public partial class MainWindow
     private string? LocateVideo(BookmarkRow row)
     {
         var name = row.VideoName.Length > 0 ? row.VideoName : Path.GetFileName(row.VideoPath ?? "");
-        if (!Dialog.Confirm(this, $"No se encuentra el vídeo de este bookmark:\n{row.VideoPath ?? name}", "Buscarlo…"))
+        if (!Dialog.Confirm(this, S.BookmarkVideoNotFound(row.VideoPath ?? name), S.LocateIt))
             return null;
-        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = VideoFilter, Title = $"Buscar «{name}»", FileName = name };
+        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = VideoFilter, Title = S.LocateTitle(name), FileName = name };
         var folder = Path.GetDirectoryName(row.VideoPath ?? "");
         if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
             dialog.InitialDirectory = folder;
@@ -1692,16 +1692,13 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Dialog.Inform(this, $"No se pudo leer el archivo:\n{e.Message}");
+            Dialog.Inform(this, S.CannotReadFile(e.Message));
             return null;
         }
         if (key != row.Fingerprint)
         {
             if (!Dialog.Confirm(this,
-                    $"«{Path.GetFileName(chosen)}» no es el mismo vídeo que «{name}» (su contenido es distinto: otra copia, otra versión o " +
-                    "un vídeo diferente). Los tiempos de los bookmarks podrían no coincidir.\n\n" +
-                    "¿Usarlo igualmente? Los bookmarks de ese vídeo (en todas las colecciones) pasarán a este archivo; Ctrl + Z lo deshace.",
-                    "Usarlo igualmente"))
+                    S.NotSameVideo(Path.GetFileName(chosen), name), S.UseItAnyway))
                 return null;
             RekeyBookmarks(row.Fingerprint, key, name, Path.GetFileName(chosen));
             return chosen;
@@ -1737,9 +1734,9 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudieron pasar todos: {e.Message}");
+            ShowToast(S.NotAllMoved(e.Message));
         }
-        _history.Record($"pasar los bookmarks de «{fromName}» a «{toName}»", toName, entries);
+        _history.Record(S.StepRelink(fromName, toName), toName, entries);
         _otherFiles = null;
     }
 

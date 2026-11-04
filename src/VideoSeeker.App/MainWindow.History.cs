@@ -68,7 +68,7 @@ public partial class MainWindow
             _videoHistory.RemoveAt(index);
             if (index < _videoHistoryIndex)
                 _videoHistoryIndex--;
-            ShowToast($"Ya no está: {Path.GetFileName(entry.Path)}");
+            ShowToast(S.VideoGone(Path.GetFileName(entry.Path)));
             UpdateHistoryUi();
             return;
         }
@@ -79,19 +79,19 @@ public partial class MainWindow
     {
         HistoryBackButton.IsEnabled = _videoHistoryIndex > 0;
         HistoryForwardButton.IsEnabled = _videoHistoryIndex >= 0 && _videoHistoryIndex < _videoHistory.Count - 1;
-        HistoryBackButton.ToolTip = HistoryTip("Volver al vídeo que se abrió antes (Alt + ←)", _videoHistoryIndex - 1,
-            Math.Max(_videoHistoryIndex, 0), "anteriores");
-        HistoryForwardButton.ToolTip = HistoryTip("Ir al vídeo que se abrió después (Alt + →)", _videoHistoryIndex + 1,
-            _videoHistory.Count - 1 - _videoHistoryIndex, "siguientes");
+        HistoryBackButton.ToolTip = HistoryTip(S.HistoryBackTip, _videoHistoryIndex - 1,
+            Math.Max(_videoHistoryIndex, 0), S.HistoryAllBack);
+        HistoryForwardButton.ToolTip = HistoryTip(S.HistoryForwardTip, _videoHistoryIndex + 1,
+            _videoHistory.Count - 1 - _videoHistoryIndex, S.HistoryAllForward);
     }
 
     // Con destino: su nombre (y, si hay más de uno de ese lado, cómo verlos todos); sin él, solo la acción.
-    private string HistoryTip(string action, int index, int count, string side)
+    private string HistoryTip(string action, int index, int count, Func<int, string> all)
     {
         if (index < 0 || index >= _videoHistory.Count)
             return action;
         var tip = $"{action}\n{Path.GetFileName(_videoHistory[index].Path)}";
-        return count > 1 ? $"{tip}\nClic derecho: los {count} {side}" : tip;
+        return count > 1 ? $"{tip}\n{all(count)}" : tip;
     }
 
     private static string HistoryLabel(HistoryEntry entry) =>

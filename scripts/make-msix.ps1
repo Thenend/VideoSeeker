@@ -58,7 +58,7 @@ New-Item -ItemType Directory -Force $out | Out-Null
 # %TEMP% al arrancar.
 dotnet publish (Join-Path $root 'src\VideoSeeker.App') -c Release -r win-x64 --self-contained true `
     -p:PublishReadyToRun=true -p:DebugType=none -p:DebugSymbols=false `
-    -p:SatelliteResourceLanguages='es%3Ben' -p:InformationalVersion=$shown `
+    -p:SatelliteResourceLanguages='es%3Ben%3Bfr%3Bde%3Bit%3Bpt-BR' -p:InformationalVersion=$shown `
     -o $stage
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish ha fallado' }
 foreach ($file in 'VideoSeeker.exe', 'mpv\libmpv-2.dll', 'ffmpeg\ffmpeg.exe', 'ffmpeg\avcodec-63.dll') {
@@ -85,7 +85,7 @@ $pri = Join-Path $out 'pri'
 if (Test-Path $pri) { Remove-Item $pri -Recurse -Force }
 New-Item -ItemType Directory -Force $pri | Out-Null
 Copy-Item (Join-Path $msix 'Assets') (Join-Path $pri 'Assets') -Recurse
-& $makepri createconfig /cf (Join-Path $out 'priconfig.xml') /dq es-ES /pv 10.0.0 /o | Out-Null
+& $makepri createconfig /cf (Join-Path $out 'priconfig.xml') /dq es-ES_en-US_fr-FR_de-DE_it-IT_pt-BR /pv 10.0.0 /o | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'makepri createconfig ha fallado' }
 & $makepri new /pr $pri /cf (Join-Path $out 'priconfig.xml') /mn (Join-Path $stage 'AppxManifest.xml') /of (Join-Path $stage 'resources.pri') /o | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'makepri new ha fallado' }

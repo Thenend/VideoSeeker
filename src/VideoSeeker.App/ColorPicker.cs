@@ -14,11 +14,11 @@ namespace VideoSeeker.App;
 /// </summary>
 public static class ColorPicker
 {
-    private static readonly (string Name, Color Color)[] Reserved =
+    private static (string Name, Color Color)[] Reserved =>
     [
-        ("ámbar del tramo ampliado", Color.FromRgb(0xF0, 0xB4, 0x29)),
-        ("azul de lo reproducido", Color.FromRgb(0x4C, 0x9B, 0xFF)),
-        ("verde de la caché de frames", Color.FromRgb(0x3F, 0xB9, 0x50)),
+        (S.ReservedRangeAmber, Color.FromRgb(0xF0, 0xB4, 0x29)),
+        (S.ReservedPlayedBlue, Color.FromRgb(0x4C, 0x9B, 0xFF)),
+        (S.ReservedCacheGreen, Color.FromRgb(0x3F, 0xB9, 0x50)),
     ];
 
     /// <summary>El color elegido (#RRGGBB), o null si se cancela.</summary>
@@ -121,17 +121,17 @@ public static class ColorPicker
 
         var window = new Window
         {
-            Title = "Otro color", Owner = owner, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Title = S.OtherColorTitle, Owner = owner, WindowStartupLocation = WindowStartupLocation.CenterOwner,
             SizeToContent = SizeToContent.WidthAndHeight, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false,
             UseLayoutRounding = true, Background = R("Bg"),
         };
-        var ok = new Button { Content = "Usar este color", MinWidth = 88, IsDefault = true, Style = (Style)res.FindResource("AccentButton") };
-        var cancel = new Button { Content = "Cancelar", MinWidth = 88, Margin = new Thickness(8, 0, 0, 0), IsCancel = true, Style = (Style)res.FindResource("DarkButton") };
+        var ok = new Button { Content = S.UseThisColor, MinWidth = 88, IsDefault = true, Style = (Style)res.FindResource("AccentButton") };
+        var cancel = new Button { Content = S.Cancel, MinWidth = 88, Margin = new Thickness(8, 0, 0, 0), IsCancel = true, Style = (Style)res.FindResource("DarkButton") };
         ok.Click += (_, _) =>
         {
             var color = Parse(hexBox.Text) ?? FromHsv(h, s, v);
             if (Clash(color) is { } clash && !Dialog.Confirm(window,
-                    $"Este color se parece mucho al {clash} de las barras, y se confundirán.\n\n¿Usarlo igualmente?", "Usarlo"))
+                    S.ColorClash(clash), S.UseIt))
                 return;
             chosen(Hex(color));
             window.Close();

@@ -141,7 +141,7 @@ public sealed class ClipExporter : IDisposable
     private async Task Export(ClipJob job)
     {
         if (!File.Exists(FfmpegPath))
-            throw new FileNotFoundException("Falta ffmpeg.exe junto al programa.");
+            throw new FileNotFoundException(S.FfmpegMissing);
         var token = job.Cancel.Token;
         var source = job.Preset == ClipPreset.Copy ? null
             : await Task.Run(() => ClipProbe.Measure(job.Source, job.Start, job.End, token), token);
@@ -168,7 +168,7 @@ public sealed class ClipExporter : IDisposable
                 return;
             TryDelete(output);
         }
-        throw new IOException(lastError ?? "ffmpeg no pudo exportar el tramo.");
+        throw new IOException(lastError ?? S.FfmpegFailed);
     }
 
     /// <summary>Lanza ffmpeg y sigue su progreso; devuelve el error, o null si terminó bien.</summary>
@@ -184,7 +184,7 @@ public sealed class ClipExporter : IDisposable
             info.ArgumentList.Add(arg);
         info.ArgumentList.Add(output);
 
-        using var process = Process.Start(info) ?? throw new IOException("No se pudo lanzar ffmpeg.");
+        using var process = Process.Start(info) ?? throw new IOException(S.FfmpegNotStarted);
         // Que no le quite tiempo a la reproducción.
         try { process.PriorityClass = ProcessPriorityClass.BelowNormal; } catch (Exception e) when (e is InvalidOperationException or System.ComponentModel.Win32Exception) { }
         var errors = new List<string>();
@@ -220,7 +220,7 @@ public sealed class ClipExporter : IDisposable
         if (process.ExitCode == 0)
             return null;
         lock (errors)
-            return errors.Count > 0 ? string.Join("\n", errors) : $"ffmpeg terminó con el código {process.ExitCode}.";
+            return errors.Count > 0 ? string.Join("\n", errors) : S.FfmpegExitCode(process.ExitCode);
     }
 
     // ---- Qué se le pide a ffmpeg ----
@@ -388,7 +388,7 @@ public sealed class ClipExporter : IDisposable
         var video = Path.GetFileNameWithoutExtension(job.Source);
         var name = job.Name is { Length: > 0 } bookmark ? $"{video} - {bookmark}" : $"{video} {Stamp(job.Start)}-{Stamp(job.End)}";
         if (job.Preset == ClipPreset.Light)
-            name += " (ligero)";
+            name += S.LightClipSuffix;
         // «Jefe: fase 2/3?» → «Jefe. fase 2-3».
         var invalid = Path.GetInvalidFileNameChars();
         var clean = new string(name.Select(c => c switch { ':' => '.', '/' or '\\' or '|' => '-', _ => c })

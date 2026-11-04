@@ -1,7 +1,8 @@
 <Window x:Class="VideoSeeker.App.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Ajustes — VideoSeeker" Width="620" SizeToContent="Height" MinWidth="520" MinHeight="300"
+        xmlns:l="clr-namespace:VideoSeeker.App.Localization"
+        Title="{l:Tr SettingsTitle}" Width="620" SizeToContent="Height" MinWidth="520" MinHeight="300"
         Background="{StaticResource Bg}" Foreground="{StaticResource Fg}" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" ResizeMode="CanResize" UseLayoutRounding="True">
     <Window.Resources>
@@ -239,19 +240,19 @@
         <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="20,10">
             <DockPanel>
                 <Button x:Name="ResetButton" DockPanel.Dock="Right" Style="{StaticResource DarkButton}"
-                        Content="Restablecer valores por defecto" Click="OnResetClick" />
+                        Content="{l:Tr ResetDefaults}" Click="OnResetClick" />
                 <!-- Apoyar al autor y código fuente (enlaces en AppLinks.cs). -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="SupportButton" Style="{StaticResource DarkButton}" Click="OnSupportClick"
-                            ToolTip="VideoSeeker es gratis. Si te resulta útil, puedes invitar al autor a un café.">
+                            ToolTip="{l:Tr SupportTip}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontFamily="{StaticResource Icons}" Text="&#xEB52;" Foreground="#E5484D"
                                        FontSize="12" VerticalAlignment="Center" Margin="0,1,6,0" />
-                            <TextBlock Text="Apoyar" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Tr Support}" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Click="OnSourceClick" Margin="6,0,0,0"
-                            Content="Código fuente" ToolTip="Software libre, con licencia GPL v3." />
+                            Content="{l:Tr SourceCode}" ToolTip="{l:Tr SourceCodeTip}" />
                     <TextBlock x:Name="VersionText" Style="{StaticResource Small}" FontSize="11.5" Margin="10,0,0,0" />
                 </StackPanel>
             </DockPanel>
@@ -260,78 +261,78 @@
         <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
             <StackPanel Margin="20,16,20,4">
                 <!-- Barras -->
-                <TextBlock Style="{StaticResource Section}" Text="BARRAS" />
+                <TextBlock Style="{StaticResource Section}" Text="{l:Tr SectionBars}" />
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="MoveRegionsCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Arrastrar el centro del tramo ampliado o de una región de bookmark la desplaza entera. Desactivado, mueve el cursor de la barra." Text="Mover regiones enteras arrastrando su centro" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr MoveRegionsTip}" Text="{l:Tr MoveRegions}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="EdgeFrameCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Al arrastrar un extremo del tramo ampliado o de un bookmark. Desactivado, la imagen no cambia." Text="Ver el frame del extremo que se arrastra" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr EdgeFrameTip}" Text="{l:Tr EdgeFrame}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="HoverPreviewCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Para ver qué hay en un punto del vídeo sin ir a él." Text="Miniatura al pasar el ratón por las barras" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr HoverPreviewTip}" Text="{l:Tr HoverPreview}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="CachedLineCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Marca bajo las barras lo que ya está en la caché: ahí se salta al instante." Text="Línea verde de la caché de frames" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr CachedLineTip}" Text="{l:Tr CachedLine}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="MarksCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Atajo: Ctrl + Shift + B." Text="Marcas de los bookmarks" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr MarksTip}" Text="{l:Tr Marks}" />
                         </DockPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Navegación -->
-                <TextBlock Style="{StaticResource Section}" Text="NAVEGACIÓN" />
+                <TextBlock Style="{StaticResource Section}" Text="{l:Tr SectionNavigation}" />
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBox x:Name="SeekBox" Style="{StaticResource NumberBox}" />
-                                <TextBlock Style="{StaticResource Small}" Text="s" Margin="5,0,14,0" />
-                                <TextBlock Style="{StaticResource Small}" Text="Shift" Margin="0,0,6,0" />
+                                <TextBlock Style="{StaticResource Small}" Text="{l:Tr SecondsUnit}" Margin="5,0,14,0" />
+                                <TextBlock Style="{StaticResource Small}" Text="{l:Tr KeyShift}" Margin="0,0,6,0" />
                                 <TextBox x:Name="SeekShiftBox" Style="{StaticResource NumberBox}" />
-                                <TextBlock Style="{StaticResource Small}" Text="s" Margin="5,0,14,0" />
-                                <TextBlock Style="{StaticResource Small}" Text="Ctrl" Margin="0,0,6,0" />
+                                <TextBlock Style="{StaticResource Small}" Text="{l:Tr SecondsUnit}" Margin="5,0,14,0" />
+                                <TextBlock Style="{StaticResource Small}" Text="{l:Tr KeyCtrl}" Margin="0,0,6,0" />
                                 <TextBox x:Name="SeekCtrlBox" Style="{StaticResource NumberBox}" />
-                                <TextBlock Style="{StaticResource Small}" Text="s" Margin="5,0,0,0" />
+                                <TextBlock Style="{StaticResource Small}" Text="{l:Tr SecondsUnit}" Margin="5,0,0,0" />
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Segundos que salta cada flecha: sola, con Shift o con Ctrl." Text="Saltos con ← →" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr SeekTip}" Text="{l:Tr Seek}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <TextBlock DockPanel.Dock="Right" x:Name="ScrubText" Style="{StaticResource Small}" Width="92" Margin="10,0,0,0" />
                             <Slider DockPanel.Dock="Right" x:Name="ScrubSlider" Style="{StaticResource DarkSlider}" Width="200" Minimum="1" Maximum="20" TickFrequency="1"
                                     IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" VerticalAlignment="Center" Focusable="False" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Píxeles que hay que arrastrar sobre la imagen, con el botón pulsado, para avanzar un frame." Text="Sensibilidad del scrubbing" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr ScrubTip}" Text="{l:Tr Scrub}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <RadioButton x:Name="WheelVolumeRadio" Style="{StaticResource Segment}" GroupName="Wheel" Content="Volumen" />
-                                <RadioButton x:Name="WheelSpeedRadio" Style="{StaticResource Segment}" GroupName="Wheel" Content="Velocidad" Margin="4,0,0,0" />
+                                <RadioButton x:Name="WheelVolumeRadio" Style="{StaticResource Segment}" GroupName="Wheel" Content="{l:Tr WheelVolume}" />
+                                <RadioButton x:Name="WheelSpeedRadio" Style="{StaticResource Segment}" GroupName="Wheel" Content="{l:Tr WheelSpeed}" Margin="4,0,0,0" />
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Velocidad: ±0,1× (botón central: 1×). Volumen: ±5 %." Text="Rueda del ratón sobre el vídeo" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr WheelTip}" Text="{l:Tr Wheel}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="ResumeCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" Text="Reanudar cada vídeo donde se dejó" />
+                            <TextBlock Style="{StaticResource Label}" Text="{l:Tr Resume}" />
                         </DockPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Tiempo y bookmarks -->
-                <TextBlock Style="{StaticResource Section}" Text="TIEMPO Y BOOKMARKS" />
+                <TextBlock Style="{StaticResource Section}" Text="{l:Tr SectionTimeAndBookmarks}" />
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
@@ -339,112 +340,117 @@
                                 <RadioButton x:Name="TimeMsRadio" Style="{StaticResource Segment}" GroupName="Time" Content="01:23.456" />
                                 <RadioButton x:Name="TimeFramesRadio" Style="{StaticResource Segment}" GroupName="Time" Content="00:01:23:11" Margin="4,0,0,0" />
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Label}" ToolTip="En 00:01:23:11, el último número es el frame dentro de cada segundo." Text="Formato del tiempo" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr TimeFormatTip}" Text="{l:Tr TimeFormat}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" x:Name="ColorPanel" Orientation="Horizontal" VerticalAlignment="Center" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Sin etiqueta, mientras no se elija otro (o siempre, si no se repite lo último)." Text="Color de los bookmarks nuevos" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr NewColorTip}" Text="{l:Tr NewColor}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="RepeatLabelCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="El nuevo lleva la etiqueta o el color que se eligió la última vez; en el cuadro del nombre se cambia." Text="Repetir la última etiqueta o color" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr RepeatLabelTip}" Text="{l:Tr RepeatLabel}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <RadioButton x:Name="TimesPreviewRadio" Style="{StaticResource Segment}" GroupName="BookmarkTimes" Content="Vista previa" />
-                                <RadioButton x:Name="TimesListRadio" Style="{StaticResource Segment}" GroupName="BookmarkTimes" Content="Lista" Margin="4,0,0,0" />
+                                <RadioButton x:Name="TimesPreviewRadio" Style="{StaticResource Segment}" GroupName="BookmarkTimes" Content="{l:Tr TimesInPreview}" />
+                                <RadioButton x:Name="TimesListRadio" Style="{StaticResource Segment}" GroupName="BookmarkTimes" Content="{l:Tr TimesInList}" Margin="4,0,0,0" />
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Label}" ToolTip="En la lista se ven todos de un vistazo. En la vista previa, la lista deja más sitio al nombre." Text="Tiempos de los bookmarks" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr BookmarkTimesTip}" Text="{l:Tr BookmarkTimes}" />
                         </DockPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Audio y subtítulos -->
-                <TextBlock Style="{StaticResource Section}" Text="AUDIO Y SUBTÍTULOS" />
+                <TextBlock Style="{StaticResource Section}" Text="{l:Tr SectionAudioAndSubtitles}" />
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
                             <ComboBox DockPanel.Dock="Right" x:Name="AudioLangCombo" Style="{StaticResource DarkCombo}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Se elige esa pista si el vídeo trae varias. Se aplica al abrir el siguiente vídeo." Text="Idioma preferido del audio" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr AudioLanguageTip}" Text="{l:Tr AudioLanguage}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <ComboBox DockPanel.Dock="Right" x:Name="SubLangCombo" Style="{StaticResource DarkCombo}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Se elige esa pista al activar los subtítulos. Se aplica al abrir el siguiente vídeo." Text="Idioma preferido de los subtítulos" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr SubtitleLanguageTip}" Text="{l:Tr SubtitleLanguage}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="SubsOnOpenCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Se aplica al abrir el siguiente vídeo." Text="Activar los subtítulos al abrir un vídeo" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr AppliesOnNextVideo}" Text="{l:Tr SubtitlesOnOpen}" />
                         </DockPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Rendimiento -->
-                <TextBlock Style="{StaticResource Section}" Text="RENDIMIENTO" />
+                <TextBlock Style="{StaticResource Section}" Text="{l:Tr SectionPerformance}" />
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
                             <TextBlock DockPanel.Dock="Right" x:Name="CacheText" Style="{StaticResource Small}" Width="92" Margin="10,0,0,0" />
                             <Slider DockPanel.Dock="Right" x:Name="CacheSlider" Style="{StaticResource DarkSlider}" Width="200" Minimum="512" TickFrequency="256"
                                     IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" VerticalAlignment="Center" Focusable="False" />
-                            <TextBlock x:Name="CacheLabel" Style="{StaticResource Label}" Text="Memoria de la caché de frames" />
+                            <TextBlock x:Name="CacheLabel" Style="{StaticResource Label}" Text="{l:Tr CacheMemory}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="HwdecCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Reproduce con la tarjeta gráfica. Desactívala solo si un vídeo se ve mal." Text="Decodificación por hardware" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr HardwareDecodingTip}" Text="{l:Tr HardwareDecoding}" />
                         </DockPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Clips (Ctrl + M) -->
-                <TextBlock Style="{StaticResource Section}" Text="EXPORTAR CLIPS" />
+                <TextBlock Style="{StaticResource Section}" Text="{l:Tr SectionClips}" />
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Style="{StaticResource DarkButton}" Content="Cambiar…" Click="OnChangeClipFolderClick" Margin="10,0,0,0" />
-                                <Button x:Name="ClipFolderBesideButton" Style="{StaticResource DarkButton}" Content="Junto al vídeo"
+                                <Button Style="{StaticResource DarkButton}" Content="{l:Tr ChangeEllipsis}" Click="OnChangeClipFolderClick" Margin="10,0,0,0" />
+                                <Button x:Name="ClipFolderBesideButton" Style="{StaticResource DarkButton}" Content="{l:Tr BesideVideo}"
                                         Click="OnClipFolderBesideClick" Margin="6,0,0,0" />
                             </StackPanel>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Style="{StaticResource Label}" ToolTip="Dónde se guardan los clips exportados. Si no se puede escribir allí, van a Vídeos\VideoSeeker." Text="Carpeta de destino" />
+                                <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr ClipFolderTip}" Text="{l:Tr ClipFolder}" />
                                 <TextBlock x:Name="ClipFolderText" Style="{StaticResource Small}" FontSize="11.5" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="ClipClipboardCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Como archivo, para pegarlo directamente en un chat, en Jira o en una carpeta." Text="Copiar cada clip al portapapeles" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr ClipClipboardTip}" Text="{l:Tr ClipClipboard}" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <TextBlock DockPanel.Dock="Right" x:Name="LightClipText" Style="{StaticResource Small}" Width="92" Margin="10,0,0,0" />
                             <Slider DockPanel.Dock="Right" x:Name="LightClipSlider" Style="{StaticResource DarkSlider}" Width="200" Minimum="0.25" Maximum="4" TickFrequency="0.25"
                                     IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" VerticalAlignment="Center" Focusable="False" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Megas por cada segundo de clip, con el audio. Nunca más que el vídeo original." Text="Tamaño del clip ligero" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr LightClipTip}" Text="{l:Tr LightClip}" />
                         </DockPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- General -->
-                <TextBlock Style="{StaticResource Section}" Text="GENERAL" />
+                <TextBlock Style="{StaticResource Section}" Text="{l:Tr SectionGeneral}" />
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
+                            <ComboBox DockPanel.Dock="Right" x:Name="UiLanguageCombo" Style="{StaticResource DarkCombo}" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr InterfaceLanguageTip}" Text="{l:Tr InterfaceLanguage}" />
+                        </DockPanel>
+                        <Rectangle Style="{StaticResource Divider}" />
+                        <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Style="{StaticResource DarkButton}" Content="Abrir" Click="OnOpenDataFolderClick" Margin="10,0,0,0" />
-                                <Button Style="{StaticResource DarkButton}" Content="Cambiar…" Click="OnChangeDataFolderClick" Margin="6,0,0,0" />
-                                <Button x:Name="DefaultFolderButton" Style="{StaticResource DarkButton}" Content="Por defecto"
+                                <Button Style="{StaticResource DarkButton}" Content="{l:Tr Open}" Click="OnOpenDataFolderClick" Margin="10,0,0,0" />
+                                <Button Style="{StaticResource DarkButton}" Content="{l:Tr ChangeEllipsis}" Click="OnChangeDataFolderClick" Margin="6,0,0,0" />
+                                <Button x:Name="DefaultFolderButton" Style="{StaticResource DarkButton}" Content="{l:Tr DefaultFolder}"
                                         Click="OnDefaultDataFolderClick" Margin="6,0,0,0"
-                                        ToolTip="La carpeta data, junto al programa." />
+                                        ToolTip="{l:Tr DefaultFolderTip}" />
                             </StackPanel>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Style="{StaticResource Label}" ToolTip="Ajustes, bookmarks y posición de cada vídeo. El cambio se aplica al reiniciar." Text="Carpeta de datos" />
+                                <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr DataFolderTip}" Text="{l:Tr DataFolder}" />
                                 <TextBlock x:Name="DataFolderText" Style="{StaticResource Small}" FontSize="11.5" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                         </DockPanel>
@@ -453,11 +459,11 @@
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Style="{StaticResource DarkButton}" Content="Elegir en Windows" Click="OnChooseInWindowsClick" Margin="10,0,0,0" />
-                                <Button x:Name="UnregisterButton" Style="{StaticResource DarkButton}" Content="Quitar" Click="OnUnregisterClick" Margin="6,0,0,0" />
+                                <Button Style="{StaticResource DarkButton}" Content="{l:Tr ChooseInWindows}" Click="OnChooseInWindowsClick" Margin="10,0,0,0" />
+                                <Button x:Name="UnregisterButton" Style="{StaticResource DarkButton}" Content="{l:Tr Unregister}" Click="OnUnregisterClick" Margin="6,0,0,0" />
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Label}" Text="Reproductor de vídeo predeterminado"
-                                       ToolTip="Añade los tipos de vídeo a «Abrir con» y lleva a Aplicaciones predeterminadas de Windows, donde se elige para cuáles." />
+                            <TextBlock Style="{StaticResource Label}" Text="{l:Tr DefaultPlayer}"
+                                       ToolTip="{l:Tr DefaultPlayerTip}" />
                         </DockPanel>
                     </StackPanel>
                 </Border>

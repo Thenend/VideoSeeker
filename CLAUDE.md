@@ -1,6 +1,6 @@
 # Notas para agentes
 
-App de Windows (C# WPF + libmpv + motor de inspección propio con FFmpeg). Estado y decisiones: `docs/STATUS.md`; plan: `docs/PLAN.md`. Compilar: `README.md`. La interfaz está en español y no nombra nunca otros programas.
+App de Windows (C# WPF + libmpv + motor de inspección propio con FFmpeg). Estado y decisiones: `docs/STATUS.md`; plan: `docs/PLAN.md`. Compilar: `README.md`. La interfaz está en seis idiomas (es, en, fr, de, it, pt-BR) y no nombra nunca otros programas. Ningún texto de la interfaz va escrito en el código ni en el XAML: se declara en `src/VideoSeeker.App/Localization/Strings.cs` y se escribe en los seis `Strings.<idioma>.cs` (en el código `S.Nombre`, en XAML `{l:Tr Nombre}`; ver `CONTRIBUTING.md`).
 
 ## Autopruebas
 
@@ -30,5 +30,7 @@ Pruebas por parte:
 | Historial de vídeos (atrás / adelante) | `historial` |
 | Pasos de frame, caché, marcha atrás, bucles | `1`, `resume`, `reverse`, `loop`, `longdrag` |
 | Arranque, ventana sin vídeo | `inicio`, `arranque` |
+
+Textos nuevos o cambiados: además de la rápida en español, la rápida en los otros idiomas, `pwsh scripts/selftest.ps1 -Idioma de` (y `en`, `fr`, `it`, `pt-BR`; el alemán y el francés son los más largos), para ver que caben. Las demás pruebas van siempre en español.
 
 Otro vídeo: `-Video <ruta>` (por defecto `samples\generated\h264-1080p60-gop250_aac.mp4`; para códecs o resoluciones, repite con el que toque). Antes de culpar a tu cambio de un fallo, mira si también falla sin él: `settings` tiene fallos que ya estaban.

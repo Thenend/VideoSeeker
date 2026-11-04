@@ -16,6 +16,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Los textos de la interfaz, en el idioma elegido: S.Nombre (Localization/Loc.cs). -->
+    <Using Include="VideoSeeker.App.Localization" />
+    <Using Include="VideoSeeker.App.Localization.Loc" Static="true" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.IO.Hashing" Version="10.0.14" />
     <ProjectReference Include="..\VideoSeeker.Playback\VideoSeeker.Playback.csproj" />
     <ProjectReference Include="..\VideoSeeker.Inspect\VideoSeeker.Inspect.csproj" />

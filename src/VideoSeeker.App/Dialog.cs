@@ -15,11 +15,11 @@ public static class Dialog
 {
     /// <summary>Aviso con un solo botón.</summary>
     public static void Inform(Window owner, string message, string title = "VideoSeeker") =>
-        Choose(owner, message, title, "Aceptar");
+        Choose(owner, message, title, S.Ok);
 
     /// <summary>Pregunta con un botón para hacerlo y otro para no; true si se elige el primero.</summary>
-    public static bool Confirm(Window owner, string message, string yes, string no = "Cancelar", string title = "VideoSeeker") =>
-        Choose(owner, message, title, yes, no) == 0;
+    public static bool Confirm(Window owner, string message, string yes, string? no = null, string title = "VideoSeeker") =>
+        Choose(owner, message, title, yes, no ?? S.Cancel) == 0;
 
     /// <summary>Varias respuestas: el índice del botón elegido, o -1 si se cierra con Esc o la ×.</summary>
     public static int Choose(Window owner, string message, string title, params string[] buttons)

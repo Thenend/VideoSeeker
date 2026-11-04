@@ -162,7 +162,7 @@ public partial class MainWindow
             }
 
             // Arrastrando el fin dentro de la barra de zoom, la barra no se reencuadra hasta soltar; la zona sí sigue en vivo.
-            set.Update(b.Id, x => x.End = grid.TimeOf(f1 + 48), label: "alargar");
+            set.Update(b.Id, x => x.End = grid.TimeOf(f1 + 48), label: n => $"alargar «{n}»");
             b = set.Find(b.Id)!;
             Select(b.Id);
             UpdateLayout();
@@ -352,7 +352,7 @@ public partial class MainWindow
                 $"un bookmark antiguo sin fin se lee como región de un frame y el archivo no se toca ({(old != null ? Show(old) : "no está")})");
             JumpTo(old!);
             Check(ZoneIs(old!), "y se puede seleccionar como zona");
-            _bookmarks.Update("antiguo1", x => x.Name = "Antiguo editado", label: "renombrar");
+            _bookmarks.Update("antiguo1", x => x.Name = "Antiguo editado", label: n => $"renombrar «{n}»");
             var written = DataStore.LoadFile<BookmarkFile>(file)?.Bookmarks.SingleOrDefault();
             Check(written?.End is { } end && Near(end, grid.TimeOf(f2 + 1)), "al editar algo se guarda con su fin");
             CloseZone();

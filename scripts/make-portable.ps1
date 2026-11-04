@@ -25,11 +25,11 @@ New-Item -ItemType Directory -Force $dist | Out-Null
 # Self-contained: el runtime de .NET va dentro (instalar .NET pediría administrador).
 # Un solo archivo: .NET, WPF y la app van dentro de VideoSeeker.exe, para que la carpeta no se llene de DLL. Las
 # pocas DLL nativas de WPF se extraen la primera vez a %TEMP%\.net (después ya están). libmpv y FFmpeg van
-# aparte, en mpv\ y ffmpeg\. Sin .pdb y solo los recursos de WPF en español e inglés.
+# aparte, en mpv\ y ffmpeg\. Sin .pdb y solo los recursos de WPF en los idiomas de la interfaz.
 dotnet publish (Join-Path $root 'src\VideoSeeker.App') -c Release -r win-x64 --self-contained true `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:PublishReadyToRun=true -p:DebugType=none -p:DebugSymbols=false `
-    -p:SatelliteResourceLanguages='es%3Ben' -p:InformationalVersion=$version `
+    -p:SatelliteResourceLanguages='es%3Ben%3Bfr%3Bde%3Bit%3Bpt-BR' -p:InformationalVersion=$version `
     -o $stage
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish ha fallado' }
 

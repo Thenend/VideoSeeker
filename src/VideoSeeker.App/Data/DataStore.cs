@@ -95,7 +95,16 @@ public sealed class Settings
     /// <summary>Tamaño del clip ligero, en MB por segundo (vídeo y audio juntos).</summary>
     public double LightClipMegabytesPerSecond { get; set; } = 1;
 
-    /// <summary>Vuelve a los valores por defecto lo que se cambia en la ventana de ajustes (no el volumen ni la colección).</summary>
+    /// <summary>
+    /// Idioma de la interfaz (código de Localization.Loc.All, p. ej. "en"); null, el de Windows. Se aplica al
+    /// reiniciar; no vuelve al de por defecto al restablecer los ajustes.
+    /// </summary>
+    public string? UiLanguage { get; set; }
+
+    /// <summary>
+    /// Vuelve a los valores por defecto lo que se cambia en la ventana de ajustes (no el volumen, la colección ni el
+    /// idioma de la interfaz, que pediría reiniciar).
+    /// </summary>
     public void ResetPreferences()
     {
         var d = new Settings();
@@ -318,7 +327,7 @@ public sealed class DataStore
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             File.Copy(file, target, overwrite: true);
             if (new FileInfo(target).Length != new FileInfo(file).Length)
-                throw new IOException($"La copia de {relative} no salió entera");
+                throw new IOException(S.DataCopyIncomplete(relative));
         }
     }
 

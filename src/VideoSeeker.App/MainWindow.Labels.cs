@@ -102,8 +102,7 @@ public partial class MainWindow
             var label = _labels.Labels[i];
             var shortcut = ShortcutOf(i);
             var chip = MakeChip(label.Name, label.Color, _labelFilter.Contains(label.Id),
-                $"Ver solo los «{label.Name}» (clic en otras para sumarlas). Clic derecho: renombrar, color, borrar…"
-                + (shortcut.Length > 0 ? $"\n{shortcut} se la pone al bookmark seleccionado." : ""));
+                S.LabelChipTip(label.Name) + (shortcut.Length > 0 ? S.LabelChipShortcut(shortcut) : ""));
             chip.MouseLeftButtonUp += (_, _) => ToggleLabelFilter(label.Id);
             chip.MouseRightButtonUp += (_, e) =>
             {
@@ -114,12 +113,11 @@ public partial class MainWindow
         }
         if (_labels.Labels.Count > 0)
         {
-            var none = MakeChip("Sin etiqueta", null, _labelFilter.Contains(""), "Ver solo los que no tienen etiqueta");
+            var none = MakeChip(S.NoLabel, null, _labelFilter.Contains(""), S.NoLabelChipTip);
             none.MouseLeftButtonUp += (_, _) => ToggleLabelFilter("");
             LabelChips.Children.Add(none);
         }
-        var add = MakeChip(_labels.Labels.Count == 0 ? "+ Etiqueta" : "+", null, false,
-            "Nueva etiqueta (por ejemplo «Boss» o «Cinemática»), para saber de un vistazo qué marca cada bookmark");
+        var add = MakeChip(_labels.Labels.Count == 0 ? S.AddLabelChip : "+", null, false, S.AddLabelChipTip);
         add.MouseLeftButtonUp += (_, _) => PromptNewLabel(add, null);
         LabelChips.Children.Add(add);
     }
@@ -147,7 +145,7 @@ public partial class MainWindow
         NameLabels.Visibility = NameColors.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         if (!show)
             NewLabelRow.Visibility = Visibility.Collapsed;
-        NameHint.Text = show ? "Enter guarda · Esc cancela · Alt + número: etiqueta" : "Enter guarda · Esc deja el nombre como estaba";
+        NameHint.Text = show ? S.NameHintWithLabels : S.NameHint;
         if (!show)
             return;
         for (var i = 0; i < _labels.Labels.Count; i++)
@@ -157,12 +155,12 @@ public partial class MainWindow
             chip.MouseLeftButtonUp += (_, _) => ChooseNamingLabel(label.Id);
             NameLabels.Children.Add(chip);
         }
-        var add = MakeChip(_labels.Labels.Count == 0 ? "+ Nueva etiqueta" : "+ Nueva", null, false, "Crear una etiqueta y ponérsela");
+        var add = MakeChip(_labels.Labels.Count == 0 ? S.AddLabelChipLong : S.AddLabelChipShort, null, false, S.AddLabelChipNameTip);
         add.MouseLeftButtonUp += (_, _) => ShowNewLabelRow();
         NameLabels.Children.Add(add);
         foreach (var (name, hex) in BookmarkColors.Palette)
         {
-            var swatch = MakeColorSwatch(hex, _namingLabel == null && string.Equals(_namingColor, hex, StringComparison.OrdinalIgnoreCase), $"{name} (sin etiqueta)");
+            var swatch = MakeColorSwatch(hex, _namingLabel == null && string.Equals(_namingColor, hex, StringComparison.OrdinalIgnoreCase), S.ColorWithoutLabel(name));
             swatch.MouseLeftButtonUp += (_, _) => ChooseNamingColor(hex);
             NameColors.Children.Add(swatch);
         }
@@ -243,7 +241,7 @@ public partial class MainWindow
         var label = existing ?? new BookmarkLabel { Id = BookmarkLabels.NewId(), Name = name, Color = BookmarkLabels.NextColor(_labels) };
         if (existing == null)
         {
-            if (!ChangeLabels($"crear la etiqueta «{name}»", f => f.Labels.Add(label)))
+            if (!ChangeLabels(S.StepCreateLabel(name), f => f.Labels.Add(label)))
                 return;
             _namingCreatedLabel = true;
         }
@@ -285,28 +283,28 @@ public partial class MainWindow
             return true;
         if (_labels.Labels.Count == 0)
         {
-            ShowToast("Esta colección no tiene etiquetas: «+ Etiqueta» en el panel de bookmarks (Ctrl + B)");
+            ShowToast(S.NoLabelsInCollection);
             return true;
         }
         if (index >= _labels.Labels.Count)
         {
-            ShowToast($"No hay etiqueta {index + 1} (hay {_labels.Labels.Count})");
+            ShowToast(S.NoLabelNumber(index + 1, _labels.Labels.Count));
             return true;
         }
         var label = _labels.Labels[index];
         if (BookmarkList.IsKeyboardFocusWithin && BookmarkList.SelectedItems.Count > 0)
         {
             SetRowsLabel(BookmarkList.SelectedItems.OfType<BookmarkRow>().ToList(), label.Id);
-            ShowToast($"Etiqueta «{label.Name}»");
+            ShowToast(S.LabelToast(label.Name));
         }
         else if (_bookmarks?.Find(_selectedBookmark) is { } bookmark)
         {
             SetBookmarkLabel(bookmark, label.Id);
-            ShowToast($"«{bookmark.Name}»: {label.Name}");
+            ShowToast(S.BookmarkWithLabel(bookmark.Name, label.Name));
         }
         else
         {
-            ShowToast("Selecciona antes un bookmark (clic en su marca o en el panel)");
+            ShowToast(S.SelectBookmarkFirst);
         }
         return true;
     }
@@ -315,7 +313,7 @@ public partial class MainWindow
     {
         if (bookmark.Label == id || _bookmarks == null)
             return;
-        _bookmarks.Update(bookmark.Id, b => b.Label = id, label: "etiqueta de");
+        _bookmarks.Update(bookmark.Id, b => b.Label = id, label: S.StepLabelOf);
         RememberChoice(id, bookmark.Color);
     }
 
@@ -324,7 +322,7 @@ public partial class MainWindow
     {
         if (_bookmarks == null || (bookmark.Label == null && string.Equals(bookmark.Color, hex, StringComparison.OrdinalIgnoreCase)))
             return;
-        _bookmarks.Update(bookmark.Id, b => { b.Label = null; b.Color = hex; }, label: "color de");
+        _bookmarks.Update(bookmark.Id, b => { b.Label = null; b.Color = hex; }, label: S.StepColorOf);
         RememberChoice(null, hex);
     }
 
@@ -332,7 +330,7 @@ public partial class MainWindow
     {
         if (rows.Count == 0)
             return;
-        EditRows(rows, rows.Count == 1 ? $"etiqueta de «{rows[0].Name}»" : $"etiqueta de {rows.Count} bookmarks",
+        EditRows(rows, rows.Count == 1 ? S.StepLabelOf(rows[0].Name) : S.StepLabelOfMany(rows.Count),
             (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id) && b.Label != id)) { b.Label = id; b.Modified = DateTime.Now; } });
         RememberChoice(id, rows.Select(r => r.Bookmark.Color).Distinct().Count() == 1 ? rows[0].Bookmark.Color : null);
     }
@@ -341,7 +339,7 @@ public partial class MainWindow
     {
         if (rows.Count == 0)
             return;
-        EditRows(rows, rows.Count == 1 ? $"color de «{rows[0].Name}»" : $"color de {rows.Count} bookmarks",
+        EditRows(rows, rows.Count == 1 ? S.StepColorOf(rows[0].Name) : S.StepColorOfMany(rows.Count),
             (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id) && (b.Label != null || b.Color != hex))) { b.Label = null; b.Color = hex; b.Modified = DateTime.Now; } });
         RememberChoice(null, hex);
     }
@@ -386,7 +384,7 @@ public partial class MainWindow
     /// </summary>
     private void AddLabelOrColorMenu(ItemsControl menu, string? label, string? color, bool mixedLabels, Action<string?> applyLabel, Action<string> applyColor)
     {
-        var item = new MenuItem { Header = "Etiqueta o color" };
+        var item = new MenuItem { Header = S.LabelOrColor };
         for (var i = 0; i < _labels.Labels.Count; i++)
         {
             var l = _labels.Labels[i];
@@ -411,7 +409,7 @@ public partial class MainWindow
             item.Items.Add(choice);
         }
         item.Items.Add(new Separator());
-        var create = new MenuItem { Header = "Nueva etiqueta…" };
+        var create = new MenuItem { Header = S.NewLabel };
         create.Click += (_, _) => PromptNewLabel(null, applyLabel);
         item.Items.Add(create);
         menu.Items.Add(item);
@@ -427,16 +425,16 @@ public partial class MainWindow
     /// <summary>Pide el nombre de una etiqueta nueva (con el primer color libre); "then" se la pone a lo que se estaba editando.</summary>
     private void PromptNewLabel(UIElement? target, Action<string?>? then)
     {
-        PromptName("Nombre de la nueva etiqueta", "", target, name =>
+        PromptName(S.NewLabelName, "", target, name =>
         {
             if (_labels.Labels.FirstOrDefault(l => string.Equals(l.Name, name, StringComparison.CurrentCultureIgnoreCase)) is { } existing)
             {
-                ShowToast($"Ya hay una etiqueta «{existing.Name}»");
+                ShowToast(S.LabelExists(existing.Name));
                 then?.Invoke(existing.Id);
                 return;
             }
             var label = new BookmarkLabel { Id = BookmarkLabels.NewId(), Name = name, Color = BookmarkLabels.NextColor(_labels) };
-            if (ChangeLabels($"crear la etiqueta «{name}»", f => f.Labels.Add(label)))
+            if (ChangeLabels(S.StepCreateLabel(name), f => f.Labels.Add(label)))
                 then?.Invoke(label.Id);
         });
     }
@@ -451,7 +449,7 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudieron cambiar las etiquetas: {e.Message}");
+            ShowToast(S.LabelsChangeFailed(e.Message));
             return false;
         }
         AfterFilesChanged([LabelsPath, .. (extra ?? []).Select(x => x.Path)]);
@@ -475,51 +473,50 @@ public partial class MainWindow
             menu.Items.Add(new MenuItem
             {
                 Header = label.Name, IsEnabled = false,
-                InputGestureText = uses == 0 ? "sin bookmarks" : uses == 1 ? "1 bookmark" : $"{uses} bookmarks",
+                InputGestureText = uses == 0 ? S.NoBookmarks : S.BookmarkCount(uses),
             });
-        var rename = new MenuItem { Header = "Renombrar…" };
-        rename.Click += (_, _) => PromptName($"Nuevo nombre para «{label.Name}»", label.Name, null, name =>
+        var rename = new MenuItem { Header = S.RenameEllipsis };
+        rename.Click += (_, _) => PromptName(S.NewNameFor(label.Name), label.Name, null, name =>
         {
             if (name == label.Name)
                 return;
             if (_labels.Labels.Any(l => l.Id != label.Id && string.Equals(l.Name, name, StringComparison.CurrentCultureIgnoreCase)))
             {
-                ShowToast($"Ya hay una etiqueta «{name}»");
+                ShowToast(S.LabelExists(name));
                 return;
             }
-            ChangeLabels($"renombrar la etiqueta «{label.Name}»", f => { if (f.Find(label.Id) is { } l) l.Name = name; });
+            ChangeLabels(S.StepRenameLabel(label.Name), f => { if (f.Find(label.Id) is { } l) l.Name = name; });
         });
         menu.Items.Add(rename);
-        var color = new MenuItem { Header = "Color" };
-        AddColorItems(color, label.Color, hex => ChangeLabels($"color de la etiqueta «{label.Name}»", f => { if (f.Find(label.Id) is { } l) l.Color = hex; }), allowOther: true);
+        var color = new MenuItem { Header = S.Color };
+        AddColorItems(color, label.Color, hex => ChangeLabels(S.StepLabelColor(label.Name), f => { if (f.Find(label.Id) is { } l) l.Color = hex; }), allowOther: true);
         menu.Items.Add(color);
         // El orden es el de Alt + 1…9.
-        var left = new MenuItem { Header = "Mover a la izquierda", IsEnabled = index > 0 };
-        left.Click += (_, _) => ChangeLabels($"mover la etiqueta «{label.Name}»", f => Swap(f.Labels, index, index - 1));
+        var left = new MenuItem { Header = S.MoveLeft, IsEnabled = index > 0 };
+        left.Click += (_, _) => ChangeLabels(S.StepMoveLabel(label.Name), f => Swap(f.Labels, index, index - 1));
         menu.Items.Add(left);
-        var right = new MenuItem { Header = "Mover a la derecha", IsEnabled = index >= 0 && index < _labels.Labels.Count - 1 };
-        right.Click += (_, _) => ChangeLabels($"mover la etiqueta «{label.Name}»", f => Swap(f.Labels, index, index + 1));
+        var right = new MenuItem { Header = S.MoveRight, IsEnabled = index >= 0 && index < _labels.Labels.Count - 1 };
+        right.Click += (_, _) => ChangeLabels(S.StepMoveLabel(label.Name), f => Swap(f.Labels, index, index + 1));
         menu.Items.Add(right);
         // Para los bookmarks de antes de las etiquetas, que solo tenían un color.
         var sameColor = files.Sum(f => f.Bookmarks.Count(b => b.Label == null && string.Equals(b.Color, label.Color, StringComparison.OrdinalIgnoreCase)));
         if (sameColor > 0)
         {
-            var colorName = BookmarkColors.Palette.FirstOrDefault(p => string.Equals(p.Hex, label.Color, StringComparison.OrdinalIgnoreCase)).Name?.ToLowerInvariant() ?? "de su color";
-            var adopt = new MenuItem { Header = $"Ponérsela a los de color {colorName} sin etiqueta ({sameColor})" };
-            adopt.Click += (_, _) => EditCollection($"poner la etiqueta «{label.Name}» a {sameColor} bookmarks",
+            var colorName = BookmarkColors.Palette.FirstOrDefault(p => string.Equals(p.Hex, label.Color, StringComparison.OrdinalIgnoreCase)).Name;
+            var adopt = new MenuItem { Header = colorName != null ? S.AdoptLabelColor(colorName, sameColor) : S.AdoptLabelSameColor(sameColor) };
+            adopt.Click += (_, _) => EditCollection(S.StepAdoptLabel(label.Name, sameColor),
                 b => b.Label == null && string.Equals(b.Color, label.Color, StringComparison.OrdinalIgnoreCase), b => b.Label = label.Id, null);
             menu.Items.Add(adopt);
         }
         menu.Items.Add(new Separator());
-        var delete = new MenuItem { Header = "Borrar…" };
+        var delete = new MenuItem { Header = S.DeleteEllipsis };
         delete.Click += (_, _) =>
         {
             if (uses > 0 && !Dialog.Confirm(this,
-                    $"¿Borrar la etiqueta «{label.Name}»?\n{(uses == 1 ? "La lleva 1 bookmark: se queda" : $"La llevan {uses} bookmarks: se quedan")} sin etiqueta, con su color.",
-                    "Borrar"))
+                    S.DeleteLabelQuestion(label.Name, uses), S.Delete))
                 return;
             // Se quedan con el color que tenían: así no cambia lo que se ve.
-            EditCollection($"borrar la etiqueta «{label.Name}»", b => b.Label == label.Id, b => { b.Label = null; b.Color = label.Color; },
+            EditCollection(S.StepDeleteLabel(label.Name), b => b.Label == label.Id, b => { b.Label = null; b.Color = label.Color; },
                 f => { f.Labels.RemoveAll(l => l.Id == label.Id); if (f.Last == label.Id) f.Last = null; });
         };
         menu.Items.Add(delete);
@@ -559,7 +556,7 @@ public partial class MainWindow
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            ShowToast($"No se pudo cambiar: {e.Message}");
+            ShowToast(S.ChangeFailed(e.Message));
         }
         if (labels != null)
         {
@@ -573,7 +570,7 @@ public partial class MainWindow
     /// <summary>"Etiquetas ▸" en el menú de colecciones: cada una con su menú, y una nueva.</summary>
     private void AddLabelsManageMenu(ItemsControl menu)
     {
-        var labels = new MenuItem { Header = "Etiquetas" };
+        var labels = new MenuItem { Header = S.Labels };
         foreach (var label in _labels.Labels)
         {
             var item = new MenuItem { Header = label.Name, Icon = Swatch(label.Color) };
@@ -590,7 +587,7 @@ public partial class MainWindow
         }
         if (labels.Items.Count > 0)
             labels.Items.Add(new Separator());
-        var create = new MenuItem { Header = "Nueva etiqueta…" };
+        var create = new MenuItem { Header = S.NewLabel };
         create.Click += (_, _) => PromptNewLabel(null, null);
         labels.Items.Add(create);
         menu.Items.Add(labels);

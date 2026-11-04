@@ -166,11 +166,11 @@ public static class BookmarkColors
     public const string Default = "#E5539B";
 
     /// <summary>Paleta del menú: no repite el ámbar del tramo, el azul de lo reproducido ni el verde de la caché.</summary>
-    public static readonly (string Name, string Hex)[] Palette =
+    public static (string Name, string Hex)[] Palette =>
     [
-        ("Rosa", "#E5539B"), ("Rojo", "#E5484D"), ("Naranja", "#F76B15"),
-        ("Violeta", "#8E6CEF"), ("Cian", "#2EC8D6"), ("Lima", "#A8D84E"), ("Marrón", "#B07A52"), ("Gris", "#8B8D98"),
-        ("Blanco", "#E6E8EB"),
+        (S.ColorPink, "#E5539B"), (S.ColorRed, "#E5484D"), (S.ColorOrange, "#F76B15"),
+        (S.ColorViolet, "#8E6CEF"), (S.ColorCyan, "#2EC8D6"), (S.ColorLime, "#A8D84E"), (S.ColorBrown, "#B07A52"), (S.ColorGray, "#8B8D98"),
+        (S.ColorWhite, "#E6E8EB"),
     ];
 }
 
@@ -268,7 +268,7 @@ public sealed class BookmarkSet
     public static string SidecarPath(string videoPath) =>
         Path.Combine(Path.GetDirectoryName(videoPath) ?? "", Path.GetFileNameWithoutExtension(videoPath) + ".bookmarks.json");
 
-    public string NextName() => $"Bookmark {_data.Bookmarks.Count + 1}";
+    public string NextName() => S.DefaultBookmarkName(_data.Bookmarks.Count + 1);
 
     /// <summary>Sin "end" (o si no pasa del inicio), región de un frame.</summary>
     public Bookmark Add(string name, double start, double? end, string? color = null, string? label = null)
@@ -282,7 +282,7 @@ public sealed class BookmarkSet
             Color = color ?? BookmarkColors.Default, Label = label, Created = now, Modified = now,
         };
         _data.Bookmarks.Add(bookmark);
-        Commit($"añadir «{name}»", before);
+        Commit(S.StepAdd(name), before);
         return bookmark;
     }
 
@@ -290,7 +290,7 @@ public sealed class BookmarkSet
     /// Cambia un bookmark. Con "dragging" es un paso de un arrastre: no se guarda hasta EndEdit, que lo apunta
     /// entero como un solo paso (o, sin BeginEdit, lo suma al paso anterior: el nombre de uno recién creado).
     /// </summary>
-    public void Update(string id, Action<Bookmark> change, bool dragging = false, string label = "editar")
+    public void Update(string id, Action<Bookmark> change, bool dragging = false, Func<string, string>? label = null)
     {
         if (Find(id) is not { } bookmark)
             return;
@@ -307,7 +307,7 @@ public sealed class BookmarkSet
             Changed?.Invoke();
             return;
         }
-        Commit($"{label} «{bookmark.Name}»", before);
+        Commit((label ?? (name => S.StepEdit(name)))(bookmark.Name), before);
     }
 
     /// <summary>Empieza un arrastre: deshacerlo vuelve a como estaba ahora.</summary>
@@ -333,7 +333,7 @@ public sealed class BookmarkSet
             return;
         var before = DiskText();
         BookmarkFiles.RemoveIds(_data, ids);
-        Commit(removing.Count == 1 ? $"borrar «{removing[0].Name}»" : $"borrar {removing.Count} bookmarks", before);
+        Commit(removing.Count == 1 ? S.StepDelete(removing[0].Name) : S.StepDeleteMany(removing.Count), before);
     }
 
     /// <summary>
@@ -355,7 +355,7 @@ public sealed class BookmarkSet
         _data.Bookmarks.RemoveAll(b => moving.Contains(b));
         Normalize();
         Save();
-        _history.Record(moving.Count == 1 ? $"mover «{moving[0].Name}» a «{collection}»" : $"mover {moving.Count} bookmarks a «{collection}»",
+        _history.Record(moving.Count == 1 ? S.StepMoveTo(moving[0].Name, collection) : S.StepMoveManyTo(moving.Count, collection),
             _data.Video, [new(FilePath, before, DiskText()), new(target, targetBefore, targetAfter), .. labels is { } l ? [l] : Array.Empty<BookmarkHistory.Entry>()]);
         Changed?.Invoke();
     }

@@ -82,6 +82,10 @@ public partial class App : Application
 
         var store = new DataStore();
         Mark("datos cargados");
+        // El idioma de la interfaz, antes de crear ninguna ventana. Las autopruebas comprueban textos en español.
+        // Las autopruebas, en español salvo que se pida otro idioma (selftest.ps1 -Idioma en), para ver si sus textos caben.
+        Localization.Loc.Initialize(Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") != null
+            ? Environment.GetEnvironmentVariable("VIDEOSEEKER_UILANG") ?? "es" : store.Settings.UiLanguage);
         var player = new MpvPlayer();
         // mpv tarda en cargar su DLL e inicializarse: lo hacemos en paralelo mientras se crea la ventana.
         var playerReady = Task.Run(() =>

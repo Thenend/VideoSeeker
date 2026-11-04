@@ -2,9 +2,11 @@
 
 Reproductor ligero de vídeos locales para Windows: arranque rápido, soporte para los formatos habituales (MKV, MP4, AVI; H.264, HEVC, AV1; AC3, DTS…) y sistemas ágiles de bookmarks y scrubbing para navegar e inspeccionar cualquier parte del vídeo.
 
+La interfaz está en español, inglés, francés, alemán, italiano y portugués de Brasil: por defecto, en el idioma de Windows; se cambia en Ajustes → General → Idioma.
+
 Es gratis y de código abierto (GPL v3). Si te resulta útil, puedes apoyar su desarrollo con el botón **Apoyar** que hay abajo en Ajustes o con el botón **Sponsor** de esta página.
 
-> *English:* VideoSeeker is a lightweight, free and open source (GPL v3) video player for Windows, built for frame-accurate inspection: fast scrubbing, bookmarks and regions, zoomed ranges and loops. The interface is in Spanish for now. If you find it useful, you can support it with the **Apoyar** (Support) button at the bottom of Settings or the **Sponsor** button on this page.
+> *English:* VideoSeeker is a lightweight, free and open source (GPL v3) video player for Windows, built for frame-accurate inspection: fast scrubbing, bookmarks and regions, zoomed ranges and loops. The interface is available in English, Spanish, French, German, Italian and Brazilian Portuguese: it follows the Windows language by default and can be changed in Settings → General → Language. If you find it useful, you can support it with the **Support** button at the bottom of Settings or the **Sponsor** button on this page.
 
 ## Descargar
 

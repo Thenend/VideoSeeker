@@ -76,7 +76,7 @@ public sealed class ZoomBar : TimelineBar
     protected override string HoverLabel(double time)
     {
         var frame = FrameAt(time);
-        return $"{TimeFormat.Precise(_grid.TimeOf(frame), _grid.Fps)} · frame {frame}";
+        return $"{TimeFormat.Precise(_grid.TimeOf(frame), _grid.Fps)} · {S.FrameNumber(frame)}";
     }
 
     protected override void RenderBar(DrawingContext dc)

@@ -56,7 +56,7 @@ public static partial class FileAssociations
         using (var capabilities = Registry.CurrentUser.CreateSubKey(CapabilitiesKey))
         {
             capabilities.SetValue("ApplicationName", AppName);
-            capabilities.SetValue("ApplicationDescription", "Reproductor de vídeo");
+            capabilities.SetValue("ApplicationDescription", S.AppDescription);
             capabilities.SetValue("ApplicationIcon", icon);
         }
         Registry.CurrentUser.DeleteSubKeyTree(CapabilitiesKey + @"\FileAssociations", throwOnMissingSubKey: false);
@@ -72,7 +72,7 @@ public static partial class FileAssociations
             var progId = ProgId(extension);
             using (var type = Registry.CurrentUser.CreateSubKey($@"{Classes}\{progId}"))
             {
-                type.SetValue("", $"Vídeo {extension[1..].ToUpperInvariant()}");
+                type.SetValue("", S.VideoFileType(extension[1..].ToUpperInvariant()));
                 using (var defaultIcon = type.CreateSubKey("DefaultIcon"))
                     defaultIcon.SetValue("", icon);
                 using var command = type.CreateSubKey(@"shell\open\command");
