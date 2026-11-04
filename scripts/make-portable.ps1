@@ -22,15 +22,18 @@ $version = (Get-Date -Format 'yyyy.MM.dd') + "-$commit$dirty"
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force $dist | Out-Null
 
-# Self-contained: el runtime de .NET va en la carpeta (instalar .NET pediría administrador).
-# Sin .pdb y solo los recursos de WPF en español e inglés.
+# Self-contained: el runtime de .NET va dentro (instalar .NET pediría administrador).
+# Un solo archivo: .NET, WPF y la app van dentro de VideoSeeker.exe, para que la carpeta no se llene de DLL. Las
+# pocas DLL nativas de WPF se extraen la primera vez a %TEMP%\.net (después ya están). libmpv y FFmpeg van
+# aparte, en mpv\ y ffmpeg\. Sin .pdb y solo los recursos de WPF en español e inglés.
 dotnet publish (Join-Path $root 'src\VideoSeeker.App') -c Release -r win-x64 --self-contained true `
+    -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:PublishReadyToRun=true -p:DebugType=none -p:DebugSymbols=false `
     -p:SatelliteResourceLanguages='es%3Ben' -p:InformationalVersion=$version `
     -o $stage
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish ha fallado' }
 
-foreach ($file in 'VideoSeeker.exe', 'libmpv-2.dll', 'ffmpeg\ffmpeg.exe', 'ffmpeg\avcodec-63.dll', 'coreclr.dll', 'PresentationFramework.dll') {
+foreach ($file in 'VideoSeeker.exe', 'mpv\libmpv-2.dll', 'ffmpeg\ffmpeg.exe', 'ffmpeg\avcodec-63.dll') {
     if (-not (Test-Path (Join-Path $stage $file))) { throw "Falta $file en la carpeta publicada" }
 }
 # Por si alguna vez se cuela: los datos (ajustes, bookmarks, caché) se crean en el primer arranque.

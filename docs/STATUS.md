@@ -194,6 +194,7 @@ Actualizado el 2 de noviembre de 2026. Plan completo en [PLAN.md](PLAN.md); medi
 
 ### Versión portable (para llevar a otro PC)
 - `pwsh scripts/make-portable.ps1` genera `out\dist\VideoSeeker-<fecha>-<commit>-win-x64.zip` (~195 MB; ~480 MB descomprimido): publicación self-contained (lleva .NET, así que no hace falta instalar nada ni ser administrador), ReadyToRun, sin .pdb, recursos de WPF solo es/en, sin carpeta `data`, con `LEEME.txt`, `LICENCIAS.txt` (mpv y FFmpeg son compilaciones GPL; uso interno sin problema) y `VERSION.txt`. Plantillas en `scripts/portable/`.
+- **Carpeta limpia:** se publica en un solo archivo (`PublishSingleFile` con `IncludeNativeLibrariesForSelfExtract`): .NET, WPF y la app van dentro de `VideoSeeker.exe` (las DLL nativas de WPF se extraen la primera vez a `%TEMP%\.net\VideoSeeker`). `libmpv-2.dll` va en `mpv\` (la carga `LibMpvLoader` en VideoSeeker.Playback) y FFmpeg en `ffmpeg\`. En la raíz quedan solo el exe y los .txt.
 - Los datos van en `data\` junto al exe (o `%LOCALAPPDATA%\VideoSeeker` si la carpeta no se puede escribir); el doble clic se asocia por usuario (HKCU), sin administrador.
 - Comprobado descomprimiendo el zip en otra carpeta con `DOTNET_ROOT` falso y sin dotnet en el PATH: carga coreclr, WPF, libmpv y FFmpeg de su carpeta; selftest `1` (HEVC 10 bits + DTS) y `clips` correctos.
 - Sin firma de código: si el zip llega por internet hay que «Desbloquearlo» o aceptar el aviso de SmartScreen. En empresas con lista blanca (AppLocker/WDAC) haría falta firmarlo o que IT lo apruebe.

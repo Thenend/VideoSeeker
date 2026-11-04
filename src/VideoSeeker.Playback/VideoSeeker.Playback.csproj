@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Descargada por scripts/fetch-deps.ps1 -->
-    <None Include="..\..\deps\mpv\libmpv-2.dll" Link="libmpv-2.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <!-- Descargada por scripts/fetch-deps.ps1. Va en la subcarpeta mpv\ (la carga LibMpvLoader) -->
+    <None Include="..\..\deps\mpv\libmpv-2.dll" Link="mpv\libmpv-2.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
 </Project>

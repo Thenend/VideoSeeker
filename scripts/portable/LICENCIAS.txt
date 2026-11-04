@@ -12,7 +12,7 @@ completo de la licencia está en LICENSE.txt.
 Componentes de terceros incluidos en VideoSeeker
 ================================================
 
-libmpv (libmpv-2.dll)
+libmpv (mpv\libmpv-2.dll)
   Reproductor mpv, compilación de shinchiro/mpv-winbuild-cmake
   (versión 20261021, git e471496c56).
   Licencia: GPL v2 o posterior (esta compilación incluye partes GPL).
