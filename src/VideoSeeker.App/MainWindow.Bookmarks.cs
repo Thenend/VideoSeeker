@@ -198,7 +198,7 @@ public partial class MainWindow
             BeginRename(existing, isNew: false);
             return;
         }
-        var bookmark = _bookmarks.Add(_bookmarks.NextName(), start, end, _store.Settings.NewBookmarkColor, NewBookmarkLabel());
+        var bookmark = _bookmarks.Add(_bookmarks.NextName(), start, end, NewBookmarkColor(), NewBookmarkLabel());
         Select(bookmark.Id);
         BeginRename(bookmark, isNew: true);
     }
@@ -211,6 +211,8 @@ public partial class MainWindow
         HoverPopup.IsOpen = false;
         _naming = (bookmark.Id, isNew);
         _namingLabel = bookmark.Label;
+        _namingColor = bookmark.Color;
+        _namingCreatedLabel = false;
         BuildNameChips();
         NameCaption.Text = (isNew ? "Nuevo bookmark" : "Renombrar bookmark") + " · " + RangeText(bookmark, withFrames: true);
         NameBox.Text = bookmark.Name;
@@ -300,23 +302,36 @@ public partial class MainWindow
             return;
         _naming = null;
         NamePopup.IsOpen = false;
+        NewLabelRow.Visibility = Visibility.Collapsed;
         var name = NameBox.Text.Trim();
-        var label = _namingLabel;
-        if (commit && _bookmarks?.Find(naming.Id) is { } bookmark && ((name.Length > 0 && name != bookmark.Name) || label != bookmark.Label))
+        var (label, color) = (_namingLabel, _namingColor);
+        if (commit && _bookmarks?.Find(naming.Id) is { } bookmark
+            && ((name.Length > 0 && name != bookmark.Name) || label != bookmark.Label || (label == null && color != bookmark.Color)))
         {
             if (name.Length == 0)
                 name = bookmark.Name;
-            if (naming.IsNew)
+            var styleChanged = label != bookmark.Label || (label == null && color != bookmark.Color);
+            // Sin etiqueta, su color; con etiqueta, el propio se queda como estaba (manda el de la etiqueta).
+            void Apply(Bookmark b)
+            {
+                b.Name = name;
+                b.Label = label;
+                if (label == null)
+                    b.Color = color;
+            }
+            if (naming.IsNew && !_namingCreatedLabel)
             {
                 // Mismo paso de deshacer que su creación.
-                _bookmarks.Update(naming.Id, b => { b.Name = name; b.Label = label; }, dragging: true);
+                _bookmarks.Update(naming.Id, Apply, dragging: true);
                 _bookmarks.EndEdit();
             }
             else
             {
-                _bookmarks.Update(naming.Id, b => { b.Name = name; b.Label = label; }, label: name != bookmark.Name ? "renombrar" : "etiqueta de");
+                // (Si se creó una etiqueta con el cuadro abierto, el último paso ya es ese: este va aparte.)
+                _bookmarks.Update(naming.Id, Apply, label: name != bookmark.Name ? "renombrar" : label != bookmark.Label ? "etiqueta de" : "color de");
             }
-            RememberLabel(label);
+            if (styleChanged)
+                RememberChoice(label, color);
         }
         ReturnFocusToVideo();
     }
@@ -777,10 +792,9 @@ public partial class MainWindow
         var header = new MenuItem { Header = bookmark.Name, IsEnabled = false };
         menu.Items.Add(header);
 
-        AddLabelMenu(menu, bookmark.Label, mixed: false, id => SetBookmarkLabel(bookmark, id));
-        // Con etiqueta se pinta con el color de ella: el propio solo cuenta sin etiqueta.
-        if (_labels.Find(bookmark.Label) == null)
-            AddColorMenu(menu, bookmark.Color, hex => _bookmarks?.Update(bookmark.Id, b => b.Color = hex));
+        // O etiqueta o color propio (con etiqueta manda su color; elegir un color se la quita).
+        AddLabelOrColorMenu(menu, _labels.Find(bookmark.Label)?.Id, bookmark.Color, mixedLabels: false,
+            id => SetBookmarkLabel(bookmark, id), hex => SetBookmarkColor(bookmark, hex));
         AddMoveMenu(menu, collection => MoveToCollection([bookmark.Id], collection));
         var current = Zoom.Grid.Snap(_nav.CurrentTime);
         var useFrame = new MenuItem { Header = $"Usar el frame actual como miniatura (frame {Zoom.Grid.FrameAt(current)})" };
@@ -1317,11 +1331,9 @@ public partial class MainWindow
             IsEnabled = false,
         });
         var labels = rows.Select(r => _labels.Find(r.Bookmark.Label)?.Id).Distinct().ToList();
-        AddLabelMenu(menu, labels[0], mixed: labels.Count > 1, id => SetRowsLabel(rows, id));
-        if (labels.Contains(null))
-            AddColorMenu(menu, rows.Select(r => r.Bookmark.Color).Distinct().Count() == 1 ? rows[0].Bookmark.Color : null,
-            hex => EditRows(rows, rows.Count == 1 ? $"color de «{rows[0].Name}»" : $"color de {rows.Count} bookmarks",
-                (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id))) { b.Color = hex; b.Modified = DateTime.Now; } }));
+        var colors = rows.Select(r => r.Bookmark.Color).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        AddLabelOrColorMenu(menu, labels[0], colors.Count == 1 ? colors[0] : null, mixedLabels: labels.Count > 1,
+            id => SetRowsLabel(rows, id), hex => SetRowsColor(rows, hex));
         AddMoveMenu(menu, collection => MoveRows(rows, collection));
         if (rows.Count == 1)
         {
@@ -1436,14 +1448,6 @@ public partial class MainWindow
         var name = videos == 1 ? (rows[0].IsCurrentVideo && _bookmarks != null ? _bookmarks.VideoName : rows[0].VideoName) : $"{videos} vídeos";
         _history.Record(label, name, entries);
         AfterFilesChanged(entries.Select(e => e.Path));
-    }
-
-    // Color propio de un bookmark: solo los de la paleta (uno concreto se le pone a una etiqueta).
-    private void AddColorMenu(ItemsControl menu, string? current, Action<string> apply)
-    {
-        var color = new MenuItem { Header = "Color" };
-        AddColorItems(color, current, apply, allowOther: false);
-        menu.Items.Add(color);
     }
 
     /// <summary>

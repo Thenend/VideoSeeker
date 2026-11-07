@@ -21,8 +21,12 @@ public partial class MainWindow
     private LabelFile _labels = new();
     // Etiquetas por las que filtra el panel ("" = sin etiqueta); vacío, sin filtro.
     private readonly HashSet<string> _labelFilter = [];
-    // Etiqueta elegida en el cuadro del nombre (se guarda con el nombre al aceptarlo).
+    // Etiqueta y color propio elegidos en el cuadro del nombre (se guardan con el nombre al aceptarlo). O etiqueta o
+    // color: con etiqueta, manda su color.
     private string? _namingLabel;
+    private string _namingColor = BookmarkColors.Default;
+    // Se creó una etiqueta con el cuadro abierto: ya no es el último paso de deshacer el de crear el bookmark.
+    private bool _namingCreatedLabel;
 
     private void InitLabels()
     {
@@ -132,13 +136,18 @@ public partial class MainWindow
     private bool PassesLabelFilter(Bookmark b) =>
         _labelFilter.Count == 0 || _labelFilter.Contains(_labels.Find(b.Label)?.Id ?? "");
 
-    // Las del cuadro del nombre: una sola (o ninguna); clic en la elegida la quita.
+    // Las del cuadro del nombre de un bookmark: sus etiquetas, «+ Nueva» y, debajo, los colores sueltos. O etiqueta o color:
+    // lo activo se ve siempre marcado (pincharlo otra vez no hace nada) y se aplica al guardar. Elegir un color es la
+    // manera de quitar la etiqueta.
     private void BuildNameChips()
     {
         NameLabels.Children.Clear();
-        var show = _naming != null && _labels.Labels.Count > 0;
-        NameLabels.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        NameHint.Text = show ? "Enter guarda · Esc lo deja como estaba · Alt + número: etiqueta" : "Enter guarda · Esc deja el nombre como estaba";
+        NameColors.Children.Clear();
+        var show = _naming != null;
+        NameLabels.Visibility = NameColors.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        if (!show)
+            NewLabelRow.Visibility = Visibility.Collapsed;
+        NameHint.Text = show ? "Enter guarda · Esc cancela · Alt + número: etiqueta" : "Enter guarda · Esc deja el nombre como estaba";
         if (!show)
             return;
         for (var i = 0; i < _labels.Labels.Count; i++)
@@ -148,28 +157,111 @@ public partial class MainWindow
             chip.MouseLeftButtonUp += (_, _) => ChooseNamingLabel(label.Id);
             NameLabels.Children.Add(chip);
         }
+        var add = MakeChip(_labels.Labels.Count == 0 ? "+ Nueva etiqueta" : "+ Nueva", null, false, "Crear una etiqueta y ponérsela");
+        add.MouseLeftButtonUp += (_, _) => ShowNewLabelRow();
+        NameLabels.Children.Add(add);
+        foreach (var (name, hex) in BookmarkColors.Palette)
+        {
+            var swatch = MakeColorSwatch(hex, _namingLabel == null && string.Equals(_namingColor, hex, StringComparison.OrdinalIgnoreCase), $"{name} (sin etiqueta)");
+            swatch.MouseLeftButtonUp += (_, _) => ChooseNamingColor(hex);
+            NameColors.Children.Add(swatch);
+        }
     }
 
-    private void ChooseNamingLabel(string? id)
+    /// <summary>Muestra de un color suelto para el cuadro del nombre; la elegida, con un anillo claro.</summary>
+    private Border MakeColorSwatch(string hex, bool selected, string tip)
     {
-        _namingLabel = _namingLabel == id ? null : id;
+        var swatch = new Border
+        {
+            Width = 18, Height = 18, CornerRadius = new CornerRadius(9), Margin = new Thickness(0, 0, 5, 2), Cursor = Cursors.Hand, ToolTip = tip,
+            Background = BrushOf(hex), BorderThickness = new Thickness(2),
+            BorderBrush = selected ? (Brush)FindResource("Fg") : Brushes.Transparent,
+        };
+        if (!selected)
+        {
+            swatch.MouseEnter += (_, _) => swatch.BorderBrush = (Brush)FindResource("Line");
+            swatch.MouseLeave += (_, _) => swatch.BorderBrush = Brushes.Transparent;
+        }
+        return swatch;
+    }
+
+    private void ChooseNamingLabel(string id)
+    {
+        _namingLabel = id;
         BuildNameChips();
         Keyboard.Focus(NameBox);
     }
 
-    /// <summary>Alt + 1…9 en el cuadro del nombre (Alt + 0 la quita). Devuelve si era eso.</summary>
+    // Un color suelto: sin etiqueta y con ese color.
+    private void ChooseNamingColor(string hex)
+    {
+        _namingLabel = null;
+        _namingColor = hex;
+        BuildNameChips();
+        Keyboard.Focus(NameBox);
+    }
+
+    // «+ Nueva»: un campo dentro del mismo cuadro para el nombre de la etiqueta.
+    private void ShowNewLabelRow()
+    {
+        NewLabelBox.Text = "";
+        NewLabelRow.Visibility = Visibility.Visible;
+        Dispatcher.BeginInvoke(() => Keyboard.Focus(NewLabelBox), System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    private void HideNewLabelRow()
+    {
+        NewLabelRow.Visibility = Visibility.Collapsed;
+        Keyboard.Focus(NameBox);
+    }
+
+    // Enter crea la etiqueta (con el primer color libre) y la elige; Esc vuelve al nombre del bookmark.
+    private void OnNewLabelBoxKeyDown(object sender, KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Enter:
+                CreateNamingLabel(NewLabelBox.Text.Trim());
+                e.Handled = true;
+                break;
+            case Key.Escape:
+                HideNewLabelRow();
+                e.Handled = true;
+                break;
+        }
+    }
+
+    /// <summary>Crea (o reutiliza, si ya hay una con ese nombre) una etiqueta desde el cuadro del nombre y la elige.</summary>
+    private void CreateNamingLabel(string name)
+    {
+        if (name.Length == 0)
+        {
+            HideNewLabelRow();
+            return;
+        }
+        var existing = _labels.Labels.FirstOrDefault(l => string.Equals(l.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        var label = existing ?? new BookmarkLabel { Id = BookmarkLabels.NewId(), Name = name, Color = BookmarkLabels.NextColor(_labels) };
+        if (existing == null)
+        {
+            if (!ChangeLabels($"crear la etiqueta «{name}»", f => f.Labels.Add(label)))
+                return;
+            _namingCreatedLabel = true;
+        }
+        NewLabelRow.Visibility = Visibility.Collapsed;
+        ChooseNamingLabel(label.Id);
+    }
+
+    /// <summary>Alt + 1…9 en el cuadro del nombre. Devuelve si era eso (Alt + 0 no hace nada).</summary>
     private bool HandleNameLabelKey(KeyEventArgs e)
     {
-        if (_naming == null || _labels.Labels.Count == 0 || LabelIndexOf(e) is not { } index)
+        if (_naming == null || LabelIndexOf(e) is not { } index)
             return false;
-        if (index < 0)
-            ChooseNamingLabel(null);
-        else if (index < _labels.Labels.Count)
+        if (index >= 0 && index < _labels.Labels.Count)
             ChooseNamingLabel(_labels.Labels[index].Id);
         return true;
     }
 
-    /// <summary>Alt + 1…9 → 0…8, Alt + 0 → -1 (quitarla); null si no es eso.</summary>
+    /// <summary>Alt + 1…9 → 0…8, Alt + 0 → -1 (no es ninguna); null si no es eso.</summary>
     private static int? LabelIndexOf(KeyEventArgs e)
     {
         if (Keyboard.Modifiers != ModifierKeys.Alt)
@@ -182,13 +274,15 @@ public partial class MainWindow
     // ---- Poner etiquetas ----
 
     /// <summary>
-    /// Alt + 1…9 (Alt + 0 la quita): a los elegidos en el panel si la lista tiene el teclado, o al seleccionado. Si ya
-    /// la llevan, se la quita.
+    /// Alt + 1…9: esa etiqueta a los elegidos en el panel si la lista tiene el teclado, o al seleccionado (sustituye su
+    /// color). Para quitarla se elige un color (menú o cuadro del nombre).
     /// </summary>
     private bool LabelShortcut(KeyEventArgs e)
     {
         if (LabelIndexOf(e) is not { } index)
             return false;
+        if (index < 0)
+            return true;
         if (_labels.Labels.Count == 0)
         {
             ShowToast("Esta colección no tiene etiquetas: «+ Etiqueta» en el panel de bookmarks (Ctrl + B)");
@@ -199,19 +293,16 @@ public partial class MainWindow
             ShowToast($"No hay etiqueta {index + 1} (hay {_labels.Labels.Count})");
             return true;
         }
-        var label = index < 0 ? null : _labels.Labels[index];
+        var label = _labels.Labels[index];
         if (BookmarkList.IsKeyboardFocusWithin && BookmarkList.SelectedItems.Count > 0)
         {
-            var rows = BookmarkList.SelectedItems.OfType<BookmarkRow>().ToList();
-            var id = label != null && rows.All(r => r.Bookmark.Label == label.Id) ? null : label?.Id;
-            SetRowsLabel(rows, id);
-            ShowToast(id == null ? "Sin etiqueta" : $"Etiqueta «{label!.Name}»");
+            SetRowsLabel(BookmarkList.SelectedItems.OfType<BookmarkRow>().ToList(), label.Id);
+            ShowToast($"Etiqueta «{label.Name}»");
         }
         else if (_bookmarks?.Find(_selectedBookmark) is { } bookmark)
         {
-            var id = label != null && bookmark.Label == label.Id ? null : label?.Id;
-            SetBookmarkLabel(bookmark, id);
-            ShowToast(id == null ? $"«{bookmark.Name}» sin etiqueta" : $"«{bookmark.Name}»: {label!.Name}");
+            SetBookmarkLabel(bookmark, label.Id);
+            ShowToast($"«{bookmark.Name}»: {label.Name}");
         }
         else
         {
@@ -225,7 +316,16 @@ public partial class MainWindow
         if (bookmark.Label == id || _bookmarks == null)
             return;
         _bookmarks.Update(bookmark.Id, b => b.Label = id, label: "etiqueta de");
-        RememberLabel(id);
+        RememberChoice(id, bookmark.Color);
+    }
+
+    // Un color suelto: le quita la etiqueta y le pone ese color, en un solo paso de deshacer.
+    private void SetBookmarkColor(Bookmark bookmark, string hex)
+    {
+        if (_bookmarks == null || (bookmark.Label == null && string.Equals(bookmark.Color, hex, StringComparison.OrdinalIgnoreCase)))
+            return;
+        _bookmarks.Update(bookmark.Id, b => { b.Label = null; b.Color = hex; }, label: "color de");
+        RememberChoice(null, hex);
     }
 
     private void SetRowsLabel(List<BookmarkRow> rows, string? id)
@@ -234,55 +334,85 @@ public partial class MainWindow
             return;
         EditRows(rows, rows.Count == 1 ? $"etiqueta de «{rows[0].Name}»" : $"etiqueta de {rows.Count} bookmarks",
             (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id) && b.Label != id)) { b.Label = id; b.Modified = DateTime.Now; } });
-        RememberLabel(id);
+        RememberChoice(id, rows.Select(r => r.Bookmark.Color).Distinct().Count() == 1 ? rows[0].Bookmark.Color : null);
     }
 
-    // La última que se puso: la llevan los nuevos (si el ajuste lo pide). No es un paso de deshacer.
-    private void RememberLabel(string? id)
+    private void SetRowsColor(List<BookmarkRow> rows, string hex)
     {
-        if (id == null || _labels.Last == id)
+        if (rows.Count == 0)
+            return;
+        EditRows(rows, rows.Count == 1 ? $"color de «{rows[0].Name}»" : $"color de {rows.Count} bookmarks",
+            (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id) && (b.Label != null || b.Color != hex))) { b.Label = null; b.Color = hex; b.Modified = DateTime.Now; } });
+        RememberChoice(null, hex);
+    }
+
+    /// <summary>
+    /// Lo último que se eligió, etiqueta o color suelto: lo llevan los nuevos (si el ajuste lo pide). Sin etiqueta y sin
+    /// color conocido (varios con colores distintos), se queda el último color. No es un paso de deshacer.
+    /// </summary>
+    private void RememberChoice(string? label, string? color)
+    {
+        var lastColor = label != null ? null : color ?? _labels.LastColor;
+        if (_labels.Last == label && _labels.LastColor == lastColor)
             return;
         try
         {
-            BookmarkLabels.Modify(_store, _store.Settings.BookmarkCollection, f => f.Last = id);
-            _labels.Last = id;
+            BookmarkLabels.Modify(_store, _store.Settings.BookmarkCollection, f => { f.Last = label; f.LastColor = lastColor; });
+            _labels.Last = label;
+            _labels.LastColor = lastColor;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
         }
     }
 
-    /// <summary>La etiqueta con la que nace un bookmark: la última que se puso, si el ajuste lo pide y sigue existiendo.</summary>
+    /// <summary>La etiqueta con la que nace un bookmark: la última que se eligió, si el ajuste lo pide y sigue existiendo.</summary>
     private string? NewBookmarkLabel() =>
         _store.Settings.RepeatLastLabel && _labels.Find(_labels.Last) is { } last ? last.Id : null;
 
     /// <summary>
-    /// Submenú "Etiqueta ▸": las de la colección (con su atajo), "Sin etiqueta" y "Nueva etiqueta…". "current" es la que
-    /// llevan (null si ninguna o si son varios con distintas).
+    /// El color propio con el que nace: si lo último que se eligió fue un color suelto (y el ajuste pide repetirlo), ese;
+    /// si no, el de los nuevos de los ajustes.
     /// </summary>
-    private void AddLabelMenu(ItemsControl menu, string? current, bool mixed, Action<string?> apply)
+    private string NewBookmarkColor() =>
+        _store.Settings.RepeatLastLabel && NewBookmarkLabel() == null && _labels.LastColor is { } hex
+            && BookmarkColors.Palette.Any(p => string.Equals(p.Hex, hex, StringComparison.OrdinalIgnoreCase))
+            ? hex : _store.Settings.NewBookmarkColor;
+
+    /// <summary>
+    /// Submenú "Etiqueta o color ▸": las etiquetas de la colección (con su atajo), los colores sueltos y
+    /// "Nueva etiqueta…". O etiqueta o color: elegir un color quita la etiqueta. "label" y "color" son lo que llevan
+    /// (null si son varios con distintos).
+    /// </summary>
+    private void AddLabelOrColorMenu(ItemsControl menu, string? label, string? color, bool mixedLabels, Action<string?> applyLabel, Action<string> applyColor)
     {
-        var item = new MenuItem { Header = "Etiqueta" };
+        var item = new MenuItem { Header = "Etiqueta o color" };
         for (var i = 0; i < _labels.Labels.Count; i++)
         {
-            var label = _labels.Labels[i];
+            var l = _labels.Labels[i];
             var choice = new MenuItem
             {
-                Header = label.Name, Icon = Swatch(label.Color), InputGestureText = ShortcutOf(i).Replace(" ", ""),
-                IsCheckable = true, IsChecked = !mixed && current == label.Id,
+                Header = l.Name, Icon = Swatch(l.Color), InputGestureText = ShortcutOf(i).Replace(" ", ""),
+                IsCheckable = true, IsChecked = !mixedLabels && label == l.Id,
             };
-            choice.Click += (_, _) => apply(label.Id);
+            choice.Click += (_, _) => applyLabel(l.Id);
             item.Items.Add(choice);
         }
         if (_labels.Labels.Count > 0)
-        {
-            var none = new MenuItem { Header = "Sin etiqueta", InputGestureText = "Alt+0", IsCheckable = true, IsChecked = !mixed && current == null };
-            none.Click += (_, _) => apply(null);
-            item.Items.Add(none);
             item.Items.Add(new Separator());
+        foreach (var (name, hex) in BookmarkColors.Palette)
+        {
+            var choice = new MenuItem
+            {
+                Header = name, Icon = Swatch(hex), IsCheckable = true,
+                IsChecked = !mixedLabels && label == null && string.Equals(color, hex, StringComparison.OrdinalIgnoreCase),
+            };
+            choice.Click += (_, _) => applyColor(hex);
+            item.Items.Add(choice);
         }
+        item.Items.Add(new Separator());
         var create = new MenuItem { Header = "Nueva etiqueta…" };
-        create.Click += (_, _) => PromptNewLabel(null, apply);
+        create.Click += (_, _) => PromptNewLabel(null, applyLabel);
         item.Items.Add(create);
         menu.Items.Add(item);
     }

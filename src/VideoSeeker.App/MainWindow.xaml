@@ -334,8 +334,16 @@
                 <StackPanel Width="260">
                     <TextBlock x:Name="NameCaption" Foreground="{StaticResource FgMuted}" FontSize="11.5" Margin="0,0,0,4" />
                     <TextBox x:Name="NameBox" Style="{StaticResource DarkTextBox}" PreviewKeyDown="OnNameBoxKeyDown" />
-                    <!-- Etiquetas para elegir con clic o Alt + número (solo con un bookmark y si la colección tiene). -->
+                    <!-- Solo con un bookmark: etiquetas (clic o Alt + número), «Sin etiqueta», «+ Nueva» y los colores sueltos.
+                         O etiqueta o color: elegir un color quita la etiqueta. -->
                     <WrapPanel x:Name="NameLabels" Margin="0,6,0,0" Visibility="Collapsed" />
+                    <DockPanel x:Name="NewLabelRow" Margin="0,2,0,4" Visibility="Collapsed">
+                        <TextBlock DockPanel.Dock="Left" Text="Nueva etiqueta" Foreground="{StaticResource FgMuted}" FontSize="11.5"
+                                   VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBox x:Name="NewLabelBox" Style="{StaticResource DarkTextBox}" PreviewKeyDown="OnNewLabelBoxKeyDown"
+                                 ToolTip="Enter la crea y la pone · Esc vuelve" />
+                    </DockPanel>
+                    <WrapPanel x:Name="NameColors" Margin="0,0,0,0" Visibility="Collapsed" />
                     <TextBlock x:Name="NameHint" Text="Enter guarda · Esc deja el nombre como estaba" Foreground="{StaticResource FgMuted}"
                                FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap" />
                 </StackPanel>

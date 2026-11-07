@@ -74,6 +74,8 @@ public sealed class LabelFile
     public List<BookmarkLabel> Labels { get; set; } = [];
     /// <summary>La última que se puso a un bookmark: la llevan los nuevos si el ajuste lo pide.</summary>
     public string? Last { get; set; }
+    /// <summary>Si lo último que se eligió fue un color suelto (sin etiqueta), ese color; entonces Last es null.</summary>
+    public string? LastColor { get; set; }
 
     public BookmarkLabel? Find(string? id) => id == null ? null : Labels.FirstOrDefault(l => l.Id == id);
 }

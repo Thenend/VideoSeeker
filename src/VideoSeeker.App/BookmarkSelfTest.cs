@@ -524,15 +524,73 @@ public partial class MainWindow
         _store.Settings.RepeatLastLabel = true;
         AddBookmarkAt(_nav.CurrentTime);
         var added = set.Find(_selectedBookmark)!;
-        check(added.Label == boss.Id && NameLabels.Visibility == Visibility.Visible && NameLabels.Children.Count == 2,
-            "un bookmark nuevo lleva la última etiqueta y el cuadro las enseña");
+        check(added.Label == boss.Id && NameLabels.Visibility == Visibility.Visible && NameLabels.Children.Count == 3
+                && NameColors.Children.Count == BookmarkColors.Palette.Length,
+            "un bookmark nuevo lleva la última etiqueta; el cuadro enseña las etiquetas, «+ Nueva» y los colores");
+        SaveElementSnapshot((FrameworkElement)NamePopup.Child, Path.Combine(_store.Folder, "selftest-nombre.png"));
         ChooseNamingLabel(puzzle.Id);
+        ChooseNamingLabel(puzzle.Id);
+        check(_namingLabel == puzzle.Id, "volver a pinchar la etiqueta marcada no la quita");
         NameBox.Text = "Sala de los espejos";
         CloseNaming(commit: true);
         check(set.Find(added.Id) is { Label: var l, Name: "Sala de los espejos" } && l == puzzle.Id, "elegir otra en el cuadro del nombre");
         UndoBookmarks(redo: false);
         check(set.Find(added.Id) == null, "Ctrl + Z quita el nuevo con su etiqueta de una vez");
         UndoBookmarks(redo: true);
+
+        // Menú «Etiqueta o color»: etiquetas y colores en un solo submenú (captura en selftest-menu-etiqueta.png).
+        var probe = new System.Windows.Controls.ContextMenu();
+        AddLabelOrColorMenu(probe, boss.Id, first.Color, mixedLabels: false, _ => { }, _ => { });
+        var submenu = (System.Windows.Controls.MenuItem)probe.Items[0];
+        var entries = submenu.Items.OfType<System.Windows.Controls.MenuItem>().ToList();
+        check((string)submenu.Header == "Etiqueta o color" && entries.Count == 2 + BookmarkColors.Palette.Length + 1
+                && entries[0].IsChecked && entries.Skip(1).All(e => !e.IsChecked),
+            $"«Etiqueta o color»: {entries.Count} opciones, la etiqueta puesta marcada");
+        var shown = new System.Windows.Controls.ContextMenu { PlacementTarget = Seek };
+        foreach (var entry in submenu.Items.Cast<object>().ToList())
+        {
+            submenu.Items.Remove(entry);
+            shown.Items.Add(entry);
+        }
+        shown.IsOpen = true;
+        await Task.Delay(300);
+        SaveElementSnapshot(shown, Path.Combine(_store.Folder, "selftest-menu-etiqueta.png"));
+        shown.IsOpen = false;
+
+        // Con etiqueta puesta, elegir un color se la quita y pone ese color, en un paso de deshacer.
+        var withLabel = set.Find(first.Id)!;
+        SetBookmarkColor(withLabel, "#2EC8D6");
+        check(set.Find(first.Id) is { Label: null, Color: "#2EC8D6" }, "con etiqueta, elegir un color la quita y pone ese color");
+        UndoBookmarks(redo: false);
+        check(set.Find(first.Id)!.Label == boss.Id, "y un Ctrl + Z lo deshace");
+        // Lo último que se eligió fue ese color: el nuevo va sin etiqueta y con él.
+        _nav.SeekTo(Math.Min(_duration - 1, first.Start + 5));
+        await Task.Delay(300);
+        AddBookmarkAt(_nav.CurrentTime);
+        var colored = set.Find(_selectedBookmark)!;
+        check(colored.Label == null && colored.Color == "#2EC8D6", $"el nuevo repite lo último elegido: un color suelto ({colored.Label ?? "sin etiqueta"}, {colored.Color})");
+        // Crear una etiqueta desde el cuadro del nombre: queda puesta y pasa a ser lo que llevan los nuevos.
+        ShowNewLabelRow();
+        check(NewLabelRow.Visibility == Visibility.Visible, "«+ Nueva» abre el campo en el mismo cuadro");
+        NewLabelBox.Text = "Jefe";
+        CreateNamingLabel(NewLabelBox.Text);
+        var jefe = _labels.Labels.FirstOrDefault(x => x.Name == "Jefe");
+        check(jefe != null && _namingLabel == jefe.Id && NewLabelRow.Visibility != Visibility.Visible && NamePopup.IsOpen,
+            "Enter la crea, la elige y vuelve al nombre");
+        NameBox.Text = "Con etiqueta nueva";
+        CloseNaming(commit: true);
+        check(set.Find(colored.Id) is { Name: "Con etiqueta nueva" } c && c.Label == jefe?.Id, "al guardar, el bookmark lleva la etiqueta nueva");
+        check(NewBookmarkLabel() == jefe?.Id, "y los nuevos la repiten");
+        // Un color en el cuadro: sin etiqueta y con ese color.
+        _nav.SeekTo(Math.Min(_duration - 1, first.Start + 6));
+        await Task.Delay(300);
+        AddBookmarkAt(_nav.CurrentTime);
+        var lime = set.Find(_selectedBookmark)!;
+        ChooseNamingColor("#A8D84E");
+        CloseNaming(commit: true);
+        check(set.Find(lime.Id) is { Label: null, Color: "#A8D84E" }, "un color en el cuadro del nombre: sin etiqueta y con ese color");
+        set.Remove(lime.Id);
+        set.Remove(colored.Id);
         _store.Settings.RepeatLastLabel = repeat;
 
         // Panel: filtrar y buscar.
@@ -552,7 +610,7 @@ public partial class MainWindow
         ChangeLabels("color", f => f.Find(boss.Id)!.Color = "#8B8D98");
         check(ColorOf(set.Find(first.Id)!) == "#8B8D98" && _rows.First(r => r.Id == first.Id).ColorHex == "#8B8D98", "cambiar el color de la etiqueta");
         EditCollection("borrar", b => b.Label == boss.Id, b => { b.Label = null; b.Color = "#8B8D98"; }, f => f.Labels.RemoveAll(x => x.Id == boss.Id));
-        check(_labels.Labels.Count == 1 && set.Find(first.Id)!.Label == null && ColorOf(set.Find(first.Id)!) == "#8B8D98", "borrar la etiqueta deja su color");
+        check(_labels.Find(boss.Id) == null && set.Find(first.Id)!.Label == null && ColorOf(set.Find(first.Id)!) == "#8B8D98", "borrar la etiqueta deja su color");
         UndoBookmarks(redo: false);
         check(_labels.Find(boss.Id) != null && set.Find(first.Id)!.Label == boss.Id, "y Ctrl + Z la devuelve con sus bookmarks");
 

@@ -1198,7 +1198,7 @@ public partial class MainWindow : Window
                 break;
             // 1–9 y 0: a los diez primeros bookmarks. Re Pág / Av Pág, como los capítulos de mpv: al anterior / siguiente
             // (también [ y ], que llegan como texto).
-            // Alt + 1…9: la etiqueta 1…9 al bookmark seleccionado (o a los elegidos en el panel); Alt + 0 la quita.
+            // Alt + 1…9: la etiqueta 1…9 al bookmark seleccionado (o a los elegidos en el panel); sustituye su color.
             case (>= Key.D0 and <= Key.D9) or (>= Key.NumPad0 and <= Key.NumPad9) when Keyboard.Modifiers == ModifierKeys.Alt:
                 LabelShortcut(e);
                 break;

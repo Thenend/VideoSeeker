@@ -339,12 +339,12 @@
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" x:Name="ColorPanel" Orientation="Horizontal" VerticalAlignment="Center" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="El de los que no llevan etiqueta." Text="Color de los bookmarks nuevos" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="Sin etiqueta, mientras no se elija otro (o siempre, si no se repite lo último)." Text="Color de los bookmarks nuevos" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="RepeatLabelCheck" Style="{StaticResource Switch}" />
-                            <TextBlock Style="{StaticResource Label}" ToolTip="Al crear un bookmark ya lleva la etiqueta del anterior; en el cuadro del nombre se cambia o se quita." Text="Repetir la última etiqueta en los nuevos" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="El nuevo lleva la etiqueta o el color que se eligió la última vez; en el cuadro del nombre se cambia." Text="Repetir la última etiqueta o color" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
