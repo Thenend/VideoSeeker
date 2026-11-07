@@ -111,14 +111,17 @@
         <Border x:Name="ZoomRow" Margin="8,2,8,2" Background="{StaticResource Panel}" CornerRadius="4"
                 Visibility="Collapsed">
             <DockPanel>
-                <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" FontFamily="{StaticResource Icons}"
+                <Button x:Name="CloseZoomButton" DockPanel.Dock="Right" Style="{StaticResource ToolButton}" FontFamily="{StaticResource Icons}"
                         Content="&#xE711;" ToolTip="Cerrar zoom (Esc)" Click="OnCloseZoomClick" />
                 <Button x:Name="RangeLoopButton" DockPanel.Dock="Right" Style="{StaticResource ToolButton}"
                         FontFamily="{StaticResource Icons}" Content="&#xE8EE;" ToolTip="Bucle del tramo (Shift + R)"
                         Click="OnRangeLoopClick" />
-                <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" FontFamily="Segoe UI Symbol" Content="⇥"
+                <Button x:Name="MarkLastButton" DockPanel.Dock="Right" Style="{StaticResource ToolButton}" FontFamily="Segoe UI Symbol" Content="⇥"
                         ToolTip="Asignar el frame en pantalla al fin del tramo (O)" Click="OnMarkLastClick" />
-                <Button DockPanel.Dock="Left" Style="{StaticResource ToolButton}" FontFamily="Segoe UI Symbol" Content="⇤"
+                <!-- Con una región seleccionada, el tramo es ella: su nombre con su color (sin nombre, tramo libre). -->
+                <TextBlock x:Name="ZoneName" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="8,0,2,0" FontSize="12.5"
+                           FontWeight="SemiBold" MaxWidth="180" TextTrimming="CharacterEllipsis" Visibility="Collapsed" />
+                <Button x:Name="MarkFirstButton" DockPanel.Dock="Left" Style="{StaticResource ToolButton}" FontFamily="Segoe UI Symbol" Content="⇤"
                         ToolTip="Asignar el frame en pantalla al inicio del tramo (I)" Click="OnMarkFirstClick" />
                 <c:ZoomBar x:Name="Zoom" />
             </DockPanel>
@@ -174,7 +177,7 @@
             <!-- Bookmarks a la derecha del todo, como su panel: el del panel en el extremo y el ojo de las marcas a su
                  izquierda, separados del resto. -->
             <Button DockPanel.Dock="Right" x:Name="BookmarksButton" Style="{StaticResource ToolButton}"
-                    ToolTip="Panel de bookmarks (Ctrl + B) · añadir: B · región: Shift + B" Click="OnBookmarksButtonClick">
+                    ToolTip="Panel de bookmarks (Ctrl + B) · añadir: B" Click="OnBookmarksButtonClick">
                 <Path Style="{StaticResource IconPath}" Data="{StaticResource PanelIcon}" />
             </Button>
             <Button DockPanel.Dock="Right" x:Name="MarksButton" Style="{StaticResource ToolButton}" Click="OnMarksButtonClick">
@@ -264,7 +267,7 @@
                     <!-- Instrucciones de fondo, apagadas, detrás de la lista; se ocultan en cuanto los bookmarks llegan a su altura. -->
                     <TextBlock x:Name="PanelHint" Foreground="{StaticResource FgMuted}" FontSize="11.5" Opacity="0.55"
                                TextWrapping="Wrap" Margin="2,6,2,0" VerticalAlignment="Bottom" IsHitTestVisible="False"
-                               Text="B añade un bookmark en el frame actual; Shift + B, uno de región con el tramo ampliado. Clic: ir. Doble clic o Enter: ir y ampliar la región. Ctrl / Shift + clic: varios. F2 renombra, Supr borra, Ctrl + Z deshace." />
+                               Text="B crea una región con el tramo ampliado o, sin él, de un frame (O fija su fin). Clic o Enter: ir y ampliarla. Ctrl / Shift + clic: varios. F2 renombra, Supr borra, Ctrl + Z deshace." />
                     <ListBox x:Name="BookmarkList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
                              ItemContainerStyle="{StaticResource BookmarkItem}"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True"

@@ -187,6 +187,7 @@ public partial class MainWindow
             CloseNaming(commit: true);
             var point = set.Items.FirstOrDefault(b => b.Name == "Jefe final ÁÉ");
             Check(point != null && Math.Abs(point.Start - grid.Snap(t0)) < 1e-3, $"creado y renombrado en su frame ({point?.Start:0.000} s)");
+            Check(point != null && Math.Abs(EndOf(point) - NextFrameStart(point.Start)) < 1e-3, $"sin zona, B crea una región de un frame (fin {point?.End:0.000} s)");
             Check(!NamePopup.IsOpen && IsKeyboardFocusWithin && Keyboard.FocusedElement is not System.Windows.Controls.TextBox, "el foco vuelve al vídeo");
             Check(File.Exists(file), "guardado en data\\bookmarks");
 
@@ -196,36 +197,37 @@ public partial class MainWindow
             CloseNaming(commit: false);
             Check(set.Items.Count == before + 1, "B en el mismo frame no duplica");
 
-            // Shift + B con un tramo ampliado: región; Esc deja el nombre por defecto.
-            SetZoom((t0 + 2, t0 + 4));
-            AddRegionBookmark();
+            // B con una zona libre: región con ella; Esc deja el nombre por defecto.
+            SetFreeZoom((t0 + 2, t0 + 4));
+            AddBookmark();
             await Task.Delay(100);
             CloseNaming(commit: false);
-            var region = set.Items.FirstOrDefault(b => b.IsRegion);
-            Check(region != null && Math.Abs(region.Start - (t0 + 2)) < 1e-3 && Math.Abs(region.End!.Value - (t0 + 4)) < 1e-3, "Shift + B crea la región del tramo");
-            SetZoom(null);
+            var region = set.Items.FirstOrDefault(b => Math.Abs(b.Start - (t0 + 2)) < 1e-3);
+            Check(region != null && Math.Abs(EndOf(region) - (t0 + 4)) < 1e-3, "B con la zona libre crea la región de la zona");
+            CloseZone();
 
-            // Arrastrar el asa del fin del bookmark de un frame lo convierte en región; deshacer lo devuelve.
+            // Arrastrar el fin de la región de un frame la estira; deshacer la devuelve.
             Select(point!.Id);
             OnBookmarkPressed(point, BookmarkPart.End);
             OnBookmarkDragged(point, BookmarkPart.End, point.Start + 0.5);
             OnBookmarkDragged(point, BookmarkPart.End, point.Start + 1.01);
             OnBookmarkReleased(point, moved: true);
             point = set.Find(point.Id)!;
-            Check(point.IsRegion && Math.Abs(point.End!.Value - grid.Snap(point.Start + 1.01 + 0.5 / Fps)) < 1e-3,
-                $"arrastrar el fin lo hace región ({point.Start:0.000}–{point.End:0.000})");
+            Check(Math.Abs(EndOf(point) - grid.Snap(point.Start + 1.01 + 0.5 / Fps)) < 1e-3,
+                $"arrastrar el fin la estira ({point.Start:0.000}–{point.End:0.000})");
             UndoBookmarks(redo: false);
             point = set.Find(point.Id)!;
-            Check(!point.IsRegion, "Ctrl + Z deshace el arrastre entero de una vez");
+            Check(Math.Abs(EndOf(point) - NextFrameStart(point.Start)) < 1e-3, "Ctrl + Z deshace el arrastre entero de una vez (vuelve a un frame)");
             UndoBookmarks(redo: true);
-            Check(set.Find(point.Id)!.IsRegion, "Ctrl + Y lo rehace");
+            Check(EndOf(set.Find(point.Id)!) > point.Start + 0.5, "Ctrl + Y lo rehace");
             UndoBookmarks(redo: false);
 
-            // Mover la marca del inicio.
+            // Arrastrar el inicio hacia atrás la alarga (el fin se queda).
+            var endBefore = EndOf(point);
             OnBookmarkDragged(point, BookmarkPart.Start, point.Start - 1);
             OnBookmarkReleased(point, moved: true);
             point = set.Find(point.Id)!;
-            Check(Math.Abs(point.Start - grid.Snap(t0 - 1)) < 1e-3, "arrastrar la marca la mueve a otro frame");
+            Check(Math.Abs(point.Start - grid.Snap(t0 - 1)) < 1e-3 && Math.Abs(EndOf(point) - endBefore) < 1e-3, "arrastrar el inicio lo lleva a otro frame");
             await Task.Delay(300);
 
             // Teclas: 1 y 2 por orden de inicio; ] y [.
@@ -235,10 +237,9 @@ public partial class MainWindow
             JumpAdjacent(1);
             await Task.Delay(500);
             Check(Math.Abs(_nav.CurrentTime - set.Items[Math.Min(1, set.Items.Count - 1)].Start) < 0.5 / Fps + 1e-3, "] va al siguiente");
-            Check(_zoomRange is { } zr && set.Find(_selectedBookmark)?.IsRegion == true && Math.Abs(zr.Start - set.Find(_selectedBookmark)!.Start) < 1e-3,
-                "ir a una región la amplía");
-            SetZoom(null);
-            Check(JumpToSelected() && _zoomRange != null, "Enter con una región seleccionada la amplía (no cambia a pantalla completa)");
+            Check(_zoomRange is { } zr && set.Find(_selectedBookmark) is { } jumped && Math.Abs(zr.Start - jumped.Start) < 1e-3 && Math.Abs(zr.End - EndOf(jumped)) < 1e-3,
+                "ir a una región la hace la zona ampliada");
+            Check(JumpToSelected() && _zoomRange != null && _beforeFullscreen == null, "Enter con una región seleccionada va a ella (no cambia a pantalla completa)");
             JumpAdjacent(-1);
             await Task.Delay(500);
             Check(Math.Abs(_nav.CurrentTime - set.Items[0].Start) < 0.5 / Fps + 1e-3, "[ vuelve al anterior");
@@ -279,15 +280,14 @@ public partial class MainWindow
             await Task.Delay(100);
             Check(_rows.Count >= 1, $"«todos los vídeos» ({_rows.Count})");
             BookmarkSearch.Text = "";
-            // Clic en el panel: solo va y selecciona; doble clic: amplía la región.
-            if (_rows.FirstOrDefault(r => r.IsCurrentVideo && r.Bookmark.IsRegion) is { } regionRow)
+            // Clic en el panel: va, la selecciona y es la zona ampliada.
+            if (_rows.FirstOrDefault(r => r.IsCurrentVideo) is { } regionRow)
             {
-                SetZoom(null);
-                OpenRow(regionRow, zoom: false);
-                Check(_zoomRange == null && _selectedBookmark == regionRow.Id, "clic en una región del panel la selecciona sin ampliarla");
-                OpenRow(regionRow, zoom: true);
-                Check(_zoomRange is { } rz && Math.Abs(rz.Start - regionRow.Bookmark.Start) < 1e-3, "doble clic la amplía");
-                SetZoom(null);
+                CloseZone();
+                OpenRow(regionRow);
+                Check(_selectedBookmark == regionRow.Id && _zoomRange is { } rz && Math.Abs(rz.Start - regionRow.Bookmark.Start) < 1e-3,
+                    "clic en una región del panel la selecciona y la amplía");
+                CloseZone();
             }
             // En «todos», por nombre de vídeo con el abierto en su sitio (no el primero).
             var folder = BookmarkCollections.PathOf(_store, collection);
@@ -351,12 +351,11 @@ public partial class MainWindow
 
             // Captura de la interfaz WPF (sin la imagen del vídeo, que es una ventana nativa) para revisar el dibujo.
             ShowPanel(true);
-            SetZoom((set.Items[0].Start - 1, set.Items[0].Start + 3));
             Select(set.Items[0].Id);
             await Task.Delay(500);
             SaveSnapshot(Path.Combine(_store.Folder, "selftest.png"));
             ShowPanel(false);
-            SetZoom(null);
+            CloseZone();
 
             // Exportar y mezclar: un bookmark escrito a mano sin id entra una sola vez.
             var hadSidecar = File.Exists(sidecar);

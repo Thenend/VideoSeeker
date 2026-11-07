@@ -6,14 +6,15 @@ using VideoSeeker.App.Data;
 
 namespace VideoSeeker.App.Controls;
 
-/// <summary>Qué parte de un bookmark hay bajo el ratón: su marca (inicio), el asa del fin o el cuerpo de la región.</summary>
+/// <summary>Qué parte de un bookmark hay bajo el ratón: su inicio, su fin o el cuerpo de la región.</summary>
 public enum BookmarkPart { Start, End, Body }
 
 /// <summary>
 /// Base de las dos líneas de tiempo (la principal y la de zoom): muestra un tramo del vídeo, pide seeks al
 /// hacer clic o arrastrar con el botón izquierdo y, con el derecho, selecciona un tramo arrastrando o pide
-/// el menú contextual si no se arrastra. Debajo de la pista, una franja con los bookmarks: marcas para los de un
-/// frame y bandas para las regiones; se pulsan para ir a ellos y se arrastran para moverlos.
+/// el menú contextual si no se arrastra. Debajo de la pista, una franja con los bookmarks (todos son regiones): una
+/// banda con un triángulo en el inicio y una marca en el fin; las que miden muy pocos píxeles, solo el triángulo,
+/// que agarra su fin. Se pulsan para ir a ellos y se arrastran para cambiarlos.
 /// </summary>
 public abstract class TimelineBar : FrameworkElement
 {
@@ -21,6 +22,8 @@ public abstract class TimelineBar : FrameworkElement
     private const double SelectThreshold = 4;
     protected const double LaneHeight = 9;
     private const double PinHalfWidth = 4.5, PinHeight = 7;
+    // Por debajo de este ancho en píxeles una región se pinta solo con el triángulo (si no, no se vería ni se podría pinchar).
+    private const double TinyWidth = 6;
     private static readonly TimeSpan DragSeekInterval = TimeSpan.FromMilliseconds(15);
 
     protected static readonly Brush TrackBrush = Frozen(Color.FromRgb(0x3A, 0x3F, 0x47));
@@ -34,7 +37,6 @@ public abstract class TimelineBar : FrameworkElement
     protected static readonly Brush ZoomBrush = Frozen(Color.FromRgb(0xF0, 0xB4, 0x29));
     protected static readonly Brush ZoomFillBrush = Frozen(Color.FromArgb(0x55, 0xF0, 0xB4, 0x29));
     protected static readonly Typeface LabelFace = new("Segoe UI");
-    private static readonly Pen SelectedPen = FrozenPen(Colors.White, 1.5);
     // Contorno doble del seleccionado, como los anillos de foco: oscuro pegado a la forma y claro por fuera. Destaca
     // igual con un color oscuro (marrón, etiquetas propias) que con uno claro (blanco), y sobre el fondo oscuro.
     private static readonly Color HaloLight = Color.FromRgb(0xE6, 0xE8, 0xEB); // el blanco de los textos
@@ -91,8 +93,6 @@ public abstract class TimelineBar : FrameworkElement
     public event Action<Bookmark, BookmarkPart, double>? BookmarkDragged;
     /// <summary>Se suelta el bookmark pulsado: true si se arrastró.</summary>
     public event Action<Bookmark, bool>? BookmarkReleased;
-    /// <summary>Doble clic sobre un bookmark (para ir a él y, si es una región, ampliarla).</summary>
-    public event Action<Bookmark>? BookmarkDoubleClicked;
     /// <summary>Clic derecho sobre un bookmark.</summary>
     public event Action<Bookmark>? BookmarkMenuRequested;
     /// <summary>El ratón pasa por encima de un bookmark (null al salir), con la x de su marca (o del centro de la región) en la barra.</summary>
@@ -176,6 +176,14 @@ public abstract class TimelineBar : FrameworkElement
     /// <summary>Posición x de un instante en la barra (para colocar ventanas encima).</summary>
     public double XOf(double time) => XAt(time);
 
+    /// <summary>Si se está pulsando (sin soltar) un bookmark de esta barra.</summary>
+    public bool HoldingBookmark => _bookmarkPress != null;
+
+    /// <summary>Si la región mide tan pocos píxeles que se pinta solo con el triángulo (que agarra su fin).</summary>
+    public bool IsTiny(Bookmark b) => XAt(EndOf(b)) - XAt(b.Start) < TinyWidth;
+
+    private static double EndOf(Bookmark b) => b.End is { } e && e > b.Start ? e : b.Start;
+
     /// <summary>Tramo del vídeo que ocupa la barra de lado a lado.</summary>
     protected abstract double ViewStart { get; }
     protected abstract double ViewEnd { get; }
@@ -251,7 +259,7 @@ public abstract class TimelineBar : FrameworkElement
         dc.PushClip(new RectangleGeometry(new Rect(left, 0, right - left, ActualHeight)));
         Bookmark? selected = null;
         // La banda de la región seleccionada, debajo de todo: los bookmarks que caen dentro se siguen viendo.
-        if (_bookmarks.FirstOrDefault(b => b.Id == _selectedBookmark) is { IsRegion: true } region)
+        if (_bookmarks.FirstOrDefault(b => b.Id == _selectedBookmark) is { } region && !IsTiny(region))
             DrawSelectedBand(dc, region, lane, left, right);
         foreach (var b in _bookmarks)
         {
@@ -271,10 +279,12 @@ public abstract class TimelineBar : FrameworkElement
     {
         var (solid, faded) = BrushesFor(ColorFor(b));
         var x0 = XAt(b.Start);
-        var x1 = b.IsRegion ? XAt(b.End!.Value) : x0;
+        var x1 = XAt(EndOf(b));
         if (x1 < left || x0 > right)
             return;
-        if (b.IsRegion)
+        // Muy corta: solo el triángulo, como un instante, para que se vea y se pueda pinchar.
+        var tiny = x1 - x0 < TinyWidth;
+        if (!tiny)
         {
             var a = Math.Max(x0, left);
             var c = Math.Min(x1, right);
@@ -296,11 +306,8 @@ public abstract class TimelineBar : FrameworkElement
             var line = LineBrushFor(ColorFor(b));
             if (x0 >= TrackLeft)
                 dc.DrawRectangle(line, null, new Rect(Math.Round(x0), TrackTop, 1, lane - TrackTop));
-            if (b.IsRegion && x1 <= TrackLeft + TrackWidth)
+            if (!tiny && x1 <= TrackLeft + TrackWidth)
                 dc.DrawRectangle(line, null, new Rect(Math.Round(x1), TrackTop, 1, lane - TrackTop));
-            else
-                // Asa del fin, a la derecha de la marca: arrastrarla convierte el bookmark en región.
-                dc.DrawRectangle(null, SelectedPen, new Rect(x0 + PinHalfWidth + 2, lane + 2, 4, LaneHeight - 4));
         }
         if (x0 >= left && x0 <= right)
         {
@@ -327,7 +334,7 @@ public abstract class TimelineBar : FrameworkElement
     private void DrawSelectedBand(DrawingContext dc, Bookmark b, double lane, double left, double right)
     {
         var a = Math.Max(XAt(b.Start), left);
-        var c = Math.Min(XAt(b.End!.Value), right);
+        var c = Math.Min(XAt(EndOf(b)), right);
         if (c <= a)
             return;
         var band = new Rect(a, lane + 2, c - a, LaneHeight - 4);
@@ -348,8 +355,8 @@ public abstract class TimelineBar : FrameworkElement
 
     private static readonly Dictionary<string, Brush> LineBrushes = [];
 
-    // El color del bookmark, mezclado con blanco si es oscuro, hasta que se vea sobre la pista.
-    private static Brush LineBrushFor(string hex)
+    // El color del bookmark, mezclado con blanco si es oscuro, hasta que se vea sobre la pista (y como texto).
+    internal static Brush LineBrushFor(string hex)
     {
         if (LineBrushes.TryGetValue(hex, out var brush))
             return brush;
@@ -376,7 +383,7 @@ public abstract class TimelineBar : FrameworkElement
         return SelectedBands[hex] = Frozen(Color.FromArgb(0xC8, color.R, color.G, color.B));
     }
 
-    private static (Brush Solid, Brush Faded) BrushesFor(string hex)
+    protected static (Brush Solid, Brush Faded) BrushesFor(string hex)
     {
         if (BookmarkBrushes.TryGetValue(hex, out var brushes))
             return brushes;
@@ -393,25 +400,23 @@ public abstract class TimelineBar : FrameworkElement
             return null;
         if (p.X < TrackLeft - PinHalfWidth - 2 || p.X > TrackLeft + TrackWidth + PinHalfWidth + 2)
             return null;
-        // Primero el asa del fin del seleccionado.
-        if (_bookmarks.FirstOrDefault(b => b.Id == _selectedBookmark) is { } sel)
-        {
-            var x0 = XAt(sel.Start);
-            if (sel.IsRegion ? Math.Abs(p.X - XAt(sel.End!.Value)) <= 4 : p.X >= x0 + PinHalfWidth && p.X <= x0 + PinHalfWidth + 9)
-                return (sel, BookmarkPart.End);
-        }
-        // La marca de inicio o de fin (de cualquier región) más cercana; a igual distancia, la del seleccionado.
+        // Primero el fin del seleccionado.
+        if (_bookmarks.FirstOrDefault(b => b.Id == _selectedBookmark) is { } sel && !IsTiny(sel) && Math.Abs(p.X - XAt(EndOf(sel))) <= 4)
+            return (sel, BookmarkPart.End);
+        // La marca de inicio o de fin más cercana; a igual distancia, la del seleccionado. El triángulo de una región
+        // muy corta agarra su fin: arrastrándolo hacia atrás, crece hacia atrás (el inicio hace de ancla).
         Bookmark? nearest = null;
         var nearestPart = BookmarkPart.Start;
         var best = PinHalfWidth + 1;
         foreach (var b in _bookmarks)
         {
+            var tiny = IsTiny(b);
             var d = Math.Abs(p.X - XAt(b.Start));
             if (d < best || (d == best && b.Id == _selectedBookmark))
-                (nearest, nearestPart, best) = (b, BookmarkPart.Start, d);
-            if (b.IsRegion)
+                (nearest, nearestPart, best) = (b, tiny ? BookmarkPart.End : BookmarkPart.Start, d);
+            if (!tiny)
             {
-                d = Math.Abs(p.X - XAt(b.End!.Value)) + 0.5; // en empate con un inicio, gana el inicio
+                d = Math.Abs(p.X - XAt(EndOf(b))) + 0.5; // en empate con un inicio, gana el inicio
                 if (d <= 4.5 && d < best)
                     (nearest, nearestPart, best) = (b, BookmarkPart.End, d);
             }
@@ -419,8 +424,8 @@ public abstract class TimelineBar : FrameworkElement
         if (nearest != null)
             return (nearest, nearestPart);
         // Dentro de una región: la más corta que lo contiene.
-        var region = _bookmarks.Where(b => b.IsRegion && p.X >= XAt(b.Start) && p.X <= XAt(b.End!.Value))
-            .OrderBy(b => b.End!.Value - b.Start).FirstOrDefault();
+        var region = _bookmarks.Where(b => !IsTiny(b) && p.X >= XAt(b.Start) && p.X <= XAt(EndOf(b)))
+            .OrderBy(b => EndOf(b) - b.Start).FirstOrDefault();
         return region != null ? (region, BookmarkPart.Body) : null;
     }
 
@@ -481,11 +486,6 @@ public abstract class TimelineBar : FrameworkElement
             return false;
         if (HitBookmark(point) is { } hit)
         {
-            if (clickCount == 2)
-            {
-                BookmarkDoubleClicked?.Invoke(hit.Bookmark);
-                return true;
-            }
             if (hit.Part == BookmarkPart.Body && !MoveWholeRegions)
             {
                 // No se puede mover entera: hasta saber si es un clic o un arrastre de la pista, nada.
@@ -577,11 +577,13 @@ public abstract class TimelineBar : FrameworkElement
     }
 
     /// <summary>Para las autopruebas: un arrastre con el botón izquierdo de un punto a otro, por los mismos caminos que el ratón.</summary>
-    internal void SimulateLeftDrag(Point from, Point to, int steps = 8)
+    /// <param name="beforeRelease">Se llama con el botón aún pulsado, al final del recorrido (para mirar cómo va).</param>
+    internal void SimulateLeftDrag(Point from, Point to, int steps = 8, Action? beforeRelease = null)
     {
         LeftDown(from, 1);
         for (var i = 1; i <= steps; i++)
             MouseMoved(new Point(from.X + (to.X - from.X) * i / steps, from.Y + (to.Y - from.Y) * i / steps), left: true, right: false);
+        beforeRelease?.Invoke();
         LeftUp();
     }
 
@@ -599,10 +601,8 @@ public abstract class TimelineBar : FrameworkElement
     // Dónde colocar la miniatura: sobre la marca, o en el centro de la parte visible de una región.
     private double AnchorX(Bookmark bookmark)
     {
-        if (!bookmark.IsRegion)
-            return XAt(bookmark.Start);
         var (left, right) = (TrackLeft, TrackLeft + TrackWidth);
-        return (Math.Clamp(XAt(bookmark.Start), left, right) + Math.Clamp(XAt(bookmark.End!.Value), left, right)) / 2;
+        return (Math.Clamp(XAt(bookmark.Start), left, right) + Math.Clamp(XAt(EndOf(bookmark)), left, right)) / 2;
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)

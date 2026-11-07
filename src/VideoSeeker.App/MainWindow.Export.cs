@@ -121,12 +121,12 @@ public partial class MainWindow
         return i >= 0 ? keys[i] : null;
     }
 
-    /// <summary>Ctrl + M: el menú de exportar para el tramo ampliado o, sin él, la región seleccionada.</summary>
+    /// <summary>Ctrl + M: el menú de exportar para la zona ampliada (libre o la región seleccionada).</summary>
     private void ShowExportMenu()
     {
         if (ExportTarget() is not { } target)
         {
-            ShowToast("Para exportar un clip, marca antes un tramo (I / O, Z o arrastrando con el botón derecho) o elige una región");
+            ShowToast("Para exportar un clip, elige una región o marca antes un tramo (I / O, Z o arrastrando con el botón derecho)");
             return;
         }
         var menu = new ContextMenu { PlacementTarget = VideoArea, Placement = PlacementMode.MousePoint };
@@ -135,20 +135,15 @@ public partial class MainWindow
         menu.IsOpen = true;
     }
 
+    // La zona ampliada; si es una región, el clip se llama como ella.
     private (string Video, double Start, double End, string? Name)? ExportTarget()
     {
         if (_currentPath == null)
             return null;
-        if (_zoomRange is { } z)
-            return (_currentPath, z.Start, z.End, RegionNamed(z.Start, z.End));
-        if (_selectedBookmark != null && _bookmarks?.Find(_selectedBookmark) is { IsRegion: true } region)
-            return (_currentPath, region.Start, region.End!.Value, region.Name);
-        return null;
+        if (ZoneBookmark is { } region)
+            return (_currentPath, region.Start, EndOf(region), region.Name);
+        return _zoomRange is { } z ? (_currentPath, z.Start, z.End, null) : null;
     }
-
-    // Si el tramo es justo una región de bookmark, el clip se llama como ella.
-    private string? RegionNamed(double start, double end) =>
-        _bookmarks?.Items.FirstOrDefault(b => b.IsRegion && Math.Abs(b.Start - start) < 1e-4 && Math.Abs(b.End!.Value - end) < 1e-4)?.Name;
 
     private string RangeLabel(double start, double end, string? name) =>
         name is { Length: > 0 } ? $"«{name}»" : $"{TimeFormat.Short(start, Fps)} – {TimeFormat.Short(end, Fps)}";
@@ -458,7 +453,7 @@ public partial class MainWindow
             var grid = Zoom.Grid;
             var first = grid.FrameAt(_duration * 0.3);
             var count = (int)Math.Round(3 * Fps);
-            SetZoom((grid.TimeOf(first), grid.TimeOf(first + count)));
+            SetFreeZoom((grid.TimeOf(first), grid.TimeOf(first + count)));
             await Task.Delay(300);
             var menu = new ContextMenu();
             AddExportMenu(menu, _currentPath, _zoomRange!.Value.Start, _zoomRange.Value.End, null);
@@ -498,7 +493,7 @@ public partial class MainWindow
 
             Capture("selftest-clips.png");
             Capture("selftest-clips-aviso.png", (FrameworkElement)ClipPopup.Child);
-            SetZoom(null);
+            CloseZone();
         }
         catch (Exception e)
         {

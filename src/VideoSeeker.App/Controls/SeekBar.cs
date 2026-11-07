@@ -24,8 +24,11 @@ public sealed class SeekBar : TimelineBar
     public event Action<double>? RelativeSeekRequested;
     /// <summary>Ctrl + rueda: instante bajo el cursor y giro de la rueda (positivo acerca).</summary>
     public event Action<double, int>? ZoomWheel;
-    /// <summary>El tramo ampliado cambia al arrastrar sus banderitas o la banda: inicio, fin y qué se arrastra (Body, la banda).</summary>
-    public event Action<double, double, BookmarkPart>? ZoomDragged;
+    /// <summary>
+    /// Se arrastra una banderita del tramo ampliado (Start, End) o la banda (Body): el instante bajo el cursor o, con
+    /// Body, el nuevo inicio del tramo. Quien lo recibe calcula el tramo (el otro extremo hace de ancla).
+    /// </summary>
+    public event Action<BookmarkPart, double>? ZoomDragged;
     /// <summary>Se suelta lo que se arrastraba del tramo ampliado.</summary>
     public event Action? ZoomDragEnded;
 
@@ -54,6 +57,18 @@ public sealed class SeekBar : TimelineBar
         set { _zoom = value; InvalidateVisual(); }
     }
 
+    /// <summary>
+    /// Color de la región seleccionada si el tramo es ella: las banderitas toman su color y no se pinta la banda ámbar
+    /// (la región ya se ve en la franja de bookmarks). Null, tramo libre.
+    /// </summary>
+    public string? ZoomColor
+    {
+        get => _zoomColor;
+        set { _zoomColor = value; InvalidateVisual(); }
+    }
+
+    private string? _zoomColor;
+
     protected override double ViewStart => 0;
     protected override double ViewEnd => Duration;
     protected override double TrackHeight => BarTrackHeight;
@@ -75,12 +90,14 @@ public sealed class SeekBar : TimelineBar
         {
             var (x0, x1) = (XAt(z.Start), XAt(z.End));
             var bandTop = top - FlagHeight - 1;
-            dc.DrawRectangle(ZoomFillBrush, null, new Rect(x0, bandTop, Math.Max(1, x1 - x0), top + BarTrackHeight + 3 - bandTop));
+            var flag = _zoomColor is { } hex ? LineBrushFor(hex) : ZoomBrush;
+            if (_zoomColor == null)
+                dc.DrawRectangle(ZoomFillBrush, null, new Rect(x0, bandTop, Math.Max(1, x1 - x0), top + BarTrackHeight + 3 - bandTop));
             // Banderitas hacia fuera: aunque el tramo mida menos de un píxel, las dos se pueden agarrar.
-            dc.DrawRectangle(ZoomBrush, null, new Rect(x0 - 1, bandTop, 2, top + BarTrackHeight + 3 - bandTop));
-            dc.DrawRectangle(ZoomBrush, null, new Rect(x1 - 1, bandTop, 2, top + BarTrackHeight + 3 - bandTop));
-            dc.DrawRectangle(ZoomBrush, null, new Rect(x0 - FlagWidth, bandTop, FlagWidth, FlagHeight));
-            dc.DrawRectangle(ZoomBrush, null, new Rect(x1, bandTop, FlagWidth, FlagHeight));
+            dc.DrawRectangle(flag, null, new Rect(x0 - 1, bandTop, 2, top + BarTrackHeight + 3 - bandTop));
+            dc.DrawRectangle(flag, null, new Rect(x1 - 1, bandTop, 2, top + BarTrackHeight + 3 - bandTop));
+            dc.DrawRectangle(flag, null, new Rect(x0 - FlagWidth, bandTop, FlagWidth, FlagHeight));
+            dc.DrawRectangle(flag, null, new Rect(x1, bandTop, FlagWidth, FlagHeight));
         }
 
         dc.DrawEllipse(HeadBrush, null, new Point(headX, top + BarTrackHeight / 2), 6, 6);
@@ -126,16 +143,21 @@ public sealed class SeekBar : TimelineBar
 
     protected override void MoveGrab(double x)
     {
-        if (_zoom is not { } z)
+        if (_zoom == null)
             return;
         var t = TimeAt(x);
-        var (start, end, part) = _grab switch
+        switch (_grab)
         {
-            Grab.Start => (Math.Min(t, z.End), z.End, BookmarkPart.Start),
-            Grab.End => (z.Start, Math.Max(t, z.Start), BookmarkPart.End),
-            _ => (t - _grabOffset, t - _grabOffset + (z.End - z.Start), BookmarkPart.Body),
-        };
-        ZoomDragged?.Invoke(start, end, part);
+            case Grab.Start:
+                ZoomDragged?.Invoke(BookmarkPart.Start, t);
+                break;
+            case Grab.End:
+                ZoomDragged?.Invoke(BookmarkPart.End, t);
+                break;
+            default:
+                ZoomDragged?.Invoke(BookmarkPart.Body, t - _grabOffset);
+                break;
+        }
     }
 
     protected override void EndGrab()

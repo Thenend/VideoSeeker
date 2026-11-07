@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using VideoSeeker.App.Controls;
 using VideoSeeker.App.Data;
@@ -170,7 +170,7 @@ public partial class MainWindow
 
             // Arrastrar el centro de la banda del tramo: con el ajuste desactivado, no lo mueve y hace scrubbing.
             var range = (_duration * 0.4, _duration * 0.4 + Math.Min(10, _duration * 0.05));
-            SetZoom(range);
+            SetFreeZoom(range);
             await Task.Delay(300);
             UpdateLayout();
             var before = _zoomRange;
@@ -195,7 +195,7 @@ public partial class MainWindow
             // Arrastrar las banderitas (en pausa): con el ajuste, la imagen va al primer / último frame del tramo; sin él, no se mueve.
             _nav.Pause();
             settings.ShowDraggedEdgeFrame = true;
-            SetZoom(range);
+            SetFreeZoom(range);
             await Task.Delay(300);
             from = Seek.ZoomFlagPoint(end: false);
             Seek.SimulateLeftDrag(from, new Point(from.X - Seek.ActualWidth * 0.05, from.Y));
@@ -211,7 +211,7 @@ public partial class MainWindow
             Check(_zoomRange is { } longer && grid.FrameAt(_nav.CurrentTime) == grid.FrameAt(longer.End - 1e-4),
                 $"con el frame del extremo: el fin enseña el último frame ({_nav.CurrentTime:0.000} s, fin {_zoomRange?.End:0.000} s)");
             settings.ShowDraggedEdgeFrame = false;
-            SetZoom(range);
+            SetFreeZoom(range);
             _nav.SeekTo(range.Item1 + 1);
             await Task.Delay(800);
             var still = _nav.CurrentTime;
@@ -223,7 +223,7 @@ public partial class MainWindow
             Check(_zoomRange is { } changed && changed.Start < range.Item1 - 1 && Math.Abs(_nav.CurrentTime - still) < 1e-3,
                 $"sin el frame del extremo: el tramo cambia y la imagen no ({still:0.000} → {_nav.CurrentTime:0.000} s)");
             settings.ShowDraggedEdgeFrame = true;
-            SetZoom(null);
+            CloseZone();
 
             // Doble clic sobre la imagen en pausa: los dos clics (reanudar y pausar) dejan el mismo frame y en pausa.
             _nav.Pause();
@@ -453,13 +453,18 @@ public partial class MainWindow
                     $"Ctrl + Z quita las colecciones importadas y vuelve a «{_store.Settings.BookmarkCollection}»");
                 Directory.Delete(shared, recursive: true);
 
-                // Región seleccionada, bien visible en las barras (captura en selftest-region.png); se deshace al acabar.
+                // Región seleccionada, bien visible en las barras, con las banderitas de la zona de su color (captura en
+                // selftest-region.png); se deshace al acabar.
                 var region = _bookmarks!.Add("Región de prueba", _duration * 0.3, _duration * 0.45);
                 _bookmarks.Add("Dentro", _duration * 0.37, null, BookmarkColors.Palette[4].Hex);
                 Select(region.Id);
                 await Task.Delay(300);
+                Check(_zoomRange is { } rz && Math.Abs(rz.Start - region.Start) < 1e-3 && Math.Abs(rz.End - EndOf(region)) < 1e-3
+                        && Seek.ZoomColor == ColorOf(region) && ZoneName.Text == region.Name,
+                    "la región seleccionada es la zona: banderitas de su color y su nombre en la fila del zoom");
                 SaveVisualSnapshot(Seek, Path.Combine(_store.Folder, "selftest-region.png"));
-                // Y con un color oscuro (de etiqueta propia): región y marca de un frame (selftest-region-dark*.png).
+                // Y con un color oscuro (de etiqueta propia): región larga y de un frame, que se pinta con el triángulo
+                // (selftest-region-dark*.png).
                 var dark = _bookmarks.Add("Oscura", _duration * 0.55, _duration * 0.7, "#4A2E1C");
                 var darkPin = _bookmarks.Add("Oscuro", _duration * 0.85, null, "#4A2E1C");
                 Select(dark.Id);
@@ -467,8 +472,9 @@ public partial class MainWindow
                 SaveVisualSnapshot(Seek, Path.Combine(_store.Folder, "selftest-region-dark.png"));
                 Select(darkPin.Id);
                 await Task.Delay(300);
+                Check(Seek.IsTiny(darkPin) || _duration < 60, $"la región de un frame se pinta con el triángulo en la barra principal ({_duration:0} s)");
                 SaveVisualSnapshot(Seek, Path.Combine(_store.Folder, "selftest-region-darkpin.png"));
-                Select(null);
+                CloseZone();
                 for (var i = 0; i < 4; i++)
                     UndoBookmarks(redo: false);
             }
@@ -519,7 +525,7 @@ public partial class MainWindow
             await Task.Delay(1500);
             Check(_nav.CurrentTime > _duration - 3, $"bucle: marcha atrás desde el principio sigue por el final ({_nav.CurrentTime:0.00} s de {_duration:0.00})");
             _nav.Pause();
-            SetZoom(range);
+            SetFreeZoom(range);
             Check(!RangeLooping && _loopFile && ReferenceEquals(RangeLoopButton.Foreground, FindResource("Fg")), "al ampliar un tramo sin su bucle, sigue el del vídeo");
             // Sin el bucle del tramo, reproducir dentro de él sigue más allá de su final.
             _nav.SeekTo(Math.Max(range.Item1, range.Item2 - 0.3));
@@ -568,7 +574,7 @@ public partial class MainWindow
             await Task.Delay(600);
             Check(Zoom.Grid.FrameAt(_nav.CurrentTime) == rangeLast, $"bucle del tramo: frame atrás desde su primero va a su último ({Zoom.Grid.FrameAt(_nav.CurrentTime)} de {rangeLast})");
             ToggleRangeLoop();
-            SetZoom(null);
+            CloseZone();
             Check(!_loopVideo && !_loopRange && !_loopFile && !settings.Loop && !settings.LoopRange, "quitar los dos bucles");
             _nav.Pause();
             UpdateLayout();
@@ -605,7 +611,7 @@ public partial class MainWindow
             {
                 var zg = Zoom.Grid;
                 var first = zg.FrameAt(_duration * 0.5);
-                SetZoom((zg.TimeOf(first), zg.TimeOf(first + 48)));
+                SetFreeZoom((zg.TimeOf(first), zg.TimeOf(first + 48)));
                 _nav.SeekTo(zg.TimeOf(first + 24));
                 await Task.Delay(800);
                 Check(RangePosText.Text.StartsWith("[" + (zg.TimeOf(first + 24) - zg.TimeOf(first)).ToString("0.000", System.Globalization.CultureInfo.InvariantCulture))
@@ -617,7 +623,7 @@ public partial class MainWindow
                 _nav.SeekTo(zg.TimeOf(first + 100));
                 await Task.Delay(800);
                 Check(RangePosText.Text.StartsWith("[+") && RangePosText.Text.EndsWith("+53 frames]"), $"después del tramo: «{RangePosText.Text}»");
-                SetZoom(null);
+                CloseZone();
                 Check(RangePosText.Text == "", "sin tramo, nada");
             }
 

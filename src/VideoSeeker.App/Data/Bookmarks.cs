@@ -5,13 +5,16 @@ using System.Text;
 
 namespace VideoSeeker.App.Data;
 
-/// <summary>Un instante (o una región, si tiene fin) con nombre. Los tiempos son instantes en segundos, no frames.</summary>
+/// <summary>Una región con nombre (inicio y fin). Los tiempos son instantes en segundos, no frames.</summary>
 public sealed class Bookmark
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public double Start { get; set; }
-    /// <summary>Fin de la región (exclusivo: el inicio del frame siguiente al último); null en un bookmark de un frame.</summary>
+    /// <summary>
+    /// Fin de la región (exclusivo: el inicio del frame siguiente al último). Los archivos de antes (y los escritos a
+    /// mano) pueden no tenerlo: entonces es una región de un frame, que BookmarkSet completa al leerlos.
+    /// </summary>
     public double? End { get; set; }
     /// <summary>Color propio; con etiqueta se pinta con el de la etiqueta (y vuelve a este si se le quita).</summary>
     public string Color { get; set; } = BookmarkColors.Default;
@@ -25,7 +28,8 @@ public sealed class Bookmark
     public DateTime Created { get; set; }
     public DateTime Modified { get; set; }
 
-    public bool IsRegion => End is { } end && end > Start;
+    /// <summary>El fin o, sin él (archivos de antes), el de un frame de "frameDuration" segundos.</summary>
+    public double EndOr(double frameDuration) => End is { } end && end > Start + 1e-6 ? end : Start + frameDuration;
 
     public Bookmark Clone() => (Bookmark)MemberwiseClone();
 }
@@ -181,6 +185,11 @@ public sealed class BookmarkSet
     private BookmarkFile _data;
     // Arrastrando: cómo estaba el archivo al empezar, para apuntar el arrastre entero como un solo paso.
     private (bool Active, string? Before, string Label) _edit;
+    // Inicio del frame siguiente al que empieza en un instante (con el índice del vídeo o su fps).
+    private readonly Func<double, double> _frameEnd;
+    // Los que en el archivo no tienen fin (de antes de que todo fuera región): se les pone el de un frame en memoria y
+    // se recalcula si cambia la rejilla de frames; el archivo no se reescribe hasta que se edite algo.
+    private readonly HashSet<string> _openEnds = [];
 
     public string Fingerprint { get; }
     public string VideoPath { get; }
@@ -193,10 +202,11 @@ public sealed class BookmarkSet
     /// <summary>Algo cambió (también al deshacer).</summary>
     public event Action? Changed;
 
-    public BookmarkSet(DataStore store, BookmarkHistory history, string collection, string fingerprint, string videoPath)
+    public BookmarkSet(DataStore store, BookmarkHistory history, string collection, string fingerprint, string videoPath, Func<double, double> frameEnd)
     {
         _store = store;
         _history = history;
+        _frameEnd = frameEnd;
         Fingerprint = fingerprint;
         VideoPath = videoPath;
         Collection = collection;
@@ -204,8 +214,48 @@ public sealed class BookmarkSet
         _data = store.Load<BookmarkFile>(_file);
         _data.Fingerprint = fingerprint;
         _data.Video = Path.GetFileName(videoPath);
-        if (MergeSidecar() | Normalize())
-            Save();
+        var merged = MergeSidecar() | Normalize();
+        ResolveOpenEnds();
+        // Mezclar el compartido sí se guarda, pero sin completar los fines: solo leer no cuenta como editar.
+        if (merged)
+            Save(keepOpenEnds: true);
+    }
+
+    /// <summary>
+    /// La rejilla de frames cambió (llegó el fps o el índice del vídeo): los que no tenían fin en el archivo vuelven a
+    /// medir un frame exacto.
+    /// </summary>
+    public void RefreshOpenEnds()
+    {
+        var changed = false;
+        foreach (var b in _data.Bookmarks.Where(b => _openEnds.Contains(b.Id)))
+        {
+            var end = Round(_frameEnd(b.Start));
+            if (end > b.Start && end != b.End)
+            {
+                b.End = end;
+                changed = true;
+            }
+        }
+        if (changed)
+            Changed?.Invoke();
+    }
+
+    // Sin fin (o con uno que no pasa del inicio): región de un frame.
+    private void ResolveOpenEnds()
+    {
+        _openEnds.Clear();
+        foreach (var b in _data.Bookmarks.Where(b => b.End is not { } e || e <= b.Start + 1e-4))
+        {
+            _openEnds.Add(b.Id);
+            b.End = Round(OneFrameEnd(b.Start));
+        }
+    }
+
+    private double OneFrameEnd(double start)
+    {
+        var end = _frameEnd(start);
+        return end > start + 1e-4 ? end : start + 1 / 30.0;
     }
 
     public IReadOnlyList<Bookmark> Items => _data.Bookmarks;
@@ -218,13 +268,15 @@ public sealed class BookmarkSet
 
     public string NextName() => $"Bookmark {_data.Bookmarks.Count + 1}";
 
+    /// <summary>Sin "end" (o si no pasa del inicio), región de un frame.</summary>
     public Bookmark Add(string name, double start, double? end, string? color = null, string? label = null)
     {
         var before = DiskText();
         var now = DateTime.Now;
         var bookmark = new Bookmark
         {
-            Id = Guid.NewGuid().ToString("N")[..12], Name = name, Start = Round(start), End = end is { } e && e > start ? Round(e) : null,
+            Id = Guid.NewGuid().ToString("N")[..12], Name = name, Start = Round(start),
+            End = Round(end is { } e && e > start + 1e-4 ? e : OneFrameEnd(start)),
             Color = color ?? BookmarkColors.Default, Label = label, Created = now, Modified = now,
         };
         _data.Bookmarks.Add(bookmark);
@@ -243,8 +295,10 @@ public sealed class BookmarkSet
         var before = dragging ? null : DiskText();
         change(bookmark);
         bookmark.Start = Round(Math.Max(0, bookmark.Start));
-        bookmark.End = bookmark.End is { } e && e > bookmark.Start + 1e-4 ? Round(e) : null;
+        // Nunca menos de un frame.
+        bookmark.End = Round(bookmark.End is { } e && e > bookmark.Start + 1e-4 ? e : OneFrameEnd(bookmark.Start));
         bookmark.Modified = DateTime.Now;
+        _openEnds.Remove(id);
         if (dragging)
         {
             Normalize();
@@ -311,6 +365,7 @@ public sealed class BookmarkSet
         _data.Fingerprint = Fingerprint;
         _data.Video = Path.GetFileName(VideoPath);
         Normalize();
+        ResolveOpenEnds();
         Changed?.Invoke();
     }
 
@@ -338,19 +393,31 @@ public sealed class BookmarkSet
         Changed?.Invoke();
     }
 
-    private void Save()
+    // Al editar se guardan todos con su fin (normalizados); con "keepOpenEnds" (al mezclar el compartido sin editar
+    // nada), los que no lo tenían se quedan sin él en el archivo.
+    private void Save(bool keepOpenEnds = false)
     {
+        var open = keepOpenEnds ? _data.Bookmarks.Where(b => _openEnds.Contains(b.Id)).Select(b => (b, b.End)).ToList() : [];
         try
         {
+            foreach (var (b, _) in open)
+                b.End = null;
             _store.Save(_file, _data);
+            if (!keepOpenEnds)
+                _openEnds.Clear();
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             // Se reintenta en el siguiente cambio; los bookmarks siguen en memoria.
         }
+        finally
+        {
+            foreach (var (b, end) in open)
+                b.End = end;
+        }
     }
 
-    // Por inicio y, a igual inicio, primero el de un frame.
+    // Por inicio y, a igual inicio, primero el más corto.
     private bool Normalize()
     {
         var sorted = _data.Bookmarks.OrderBy(b => b.Start).ThenBy(b => b.End ?? b.Start).ToList();

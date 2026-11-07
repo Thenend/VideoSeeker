@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -224,19 +224,19 @@ public partial class MainWindow
             await Task.Delay(500);
             Check(await Advancing() && _position < 3, $"play al final vuelve a empezar ({_position:0.00})");
             // Con un tramo de zoom que llega al final, desde el principio del tramo.
-            SetZoom((_duration - 4, _duration));
+            SetFreeZoom((_duration - 4, _duration));
             await PlayToEnd();
             _nav.TogglePlay();
             await Task.Delay(500);
             Check(await Advancing() && _position > _duration - 4.1 && _position < _duration - 2,
                 $"con el tramo hasta el final, vuelve al principio del tramo ({_position:0.00} de {_duration:0.00})");
             // Con el tramo en otro sitio, desde el principio del vídeo.
-            SetZoom((1, 3));
+            SetFreeZoom((1, 3));
             await PlayToEnd();
             _nav.TogglePlay();
             await Task.Delay(500);
             Check(await Advancing() && _position < 3, $"con el tramo en otro sitio, vuelve al principio del vídeo ({_position:0.00})");
-            SetZoom(null);
+            CloseZone();
             // Marcha atrás desde el primer frame, desde el final.
             _nav.Pause();
             _nav.SeekTo(0);

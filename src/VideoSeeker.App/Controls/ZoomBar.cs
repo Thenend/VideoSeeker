@@ -47,6 +47,9 @@ public sealed class ZoomBar : TimelineBar
         InvalidateVisual();
     }
 
+    /// <summary>Tramo que enseña la barra (para las autopruebas).</summary>
+    internal (double Start, double End) View => (_start, _end);
+
     public FrameGrid Grid
     {
         get => _grid;

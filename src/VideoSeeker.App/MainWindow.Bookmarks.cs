@@ -21,7 +21,9 @@ public partial class MainWindow
     private BookmarkSet? _bookmarks;
     // Deshacer / rehacer de toda la app: sirve también para cambios en vídeos que ya no están abiertos.
     private readonly BookmarkHistory _history = new();
-    private string? _selectedBookmark;
+    // La región seleccionada, que es también la zona ampliada (MainWindow.xaml.cs); null, ninguna.
+    private string? _zoomBookmark;
+    private string? _selectedBookmark => _zoomBookmark;
     // Bookmark al que se le está poniendo nombre, y si es uno recién creado (entonces va con su creación al deshacer).
     private (string Id, bool IsNew)? _naming;
     // Otro nombre que se está pidiendo en el mismo cuadro (de una colección), con lo que hacer al aceptarlo.
@@ -34,11 +36,12 @@ public partial class MainWindow
     private readonly ObservableCollection<BookmarkRow> _rows = [];
     // Bookmarks de los demás vídeos para "Todos los vídeos": se leen al abrir el panel o cambiar a esa vista.
     private List<BookmarkFile>? _otherFiles;
-    // Al abrir otro vídeo desde el panel: el bookmark que seleccionar y la región que ampliar cuando cargue.
+    // Al abrir otro vídeo desde el panel: el bookmark que seleccionar (y ampliar) cuando cargue.
     private string? _pendingSelect;
-    private (double Start, double End)? _pendingRegion;
     // Entre abrir un vídeo y saber su duración no se puede ampliar: la región queda pendiente.
     private bool _awaitingDuration;
+    // Arrastrando un extremo (o la región entera): cómo era al empezar; el extremo fijo hace de ancla.
+    private (double Start, double End)? _dragOrigin;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(1600) };
 
     private void InitBookmarks()
@@ -46,11 +49,17 @@ public partial class MainWindow
         foreach (var bar in new TimelineBar[] { Seek, Zoom })
         {
             var b = bar;
-            bar.BookmarkPressed += OnBookmarkPressed;
+            bar.BookmarkPressed += (bm, part) =>
+            {
+                // Pulsando un bookmark en la propia barra de zoom, no se reencuadra hasta soltar (la escala no cambia bajo el ratón).
+                if (b == Zoom && b.HoldingBookmark)
+                    _freezeZoomView = true;
+                // El triángulo de una región muy corta agarra su fin, pero un clic va a ella como su inicio.
+                OnBookmarkPressed(bm, part == BookmarkPart.End && b.IsTiny(bm) ? BookmarkPart.Start : part);
+            };
             bar.BookmarkDragged += OnBookmarkDragged;
             bar.BookmarkReleased += OnBookmarkReleased;
             bar.BookmarkMenuRequested += bm => ShowBookmarkMenu(bm, b);
-            bar.BookmarkDoubleClicked += bm => JumpTo(bm);
             bar.BookmarkHovered += (bm, x) => OnBookmarkHovered(b, bm, x);
         }
         _thumbs.Ready += OnThumbnailReady;
@@ -67,7 +76,6 @@ public partial class MainWindow
         BookmarkList.SizeChanged += (_, _) => UpdatePanelHint();
         // También si la lista ya dio el clic por gestionado.
         BookmarkList.AddHandler(MouseLeftButtonUpEvent, new MouseButtonEventHandler(OnBookmarkListClick), handledEventsToo: true);
-        BookmarkList.AddHandler(MouseDoubleClickEvent, new MouseButtonEventHandler(OnBookmarkListDoubleClick), handledEventsToo: true);
         BookmarkList.AddHandler(MouseRightButtonUpEvent, new MouseButtonEventHandler(OnBookmarkListRightClick), handledEventsToo: true);
         Deactivated += (_, _) => HoverPopup.IsOpen = false;
         BookmarkPanel.PreviewKeyDown += OnPanelKeyDown;
@@ -87,23 +95,34 @@ public partial class MainWindow
         CloseNaming(commit: true);
         HoverPopup.IsOpen = false;
         _otherFiles = null;
-        _bookmarks = new BookmarkSet(_store, _history, _store.Settings.BookmarkCollection, fingerprint, path);
+        _bookmarks = new BookmarkSet(_store, _history, _store.Settings.BookmarkCollection, fingerprint, path, NextFrameStart);
         _bookmarks.Changed += OnBookmarksChanged;
-        // Abierto desde el panel: el bookmark queda seleccionado ya (también en la lista, que no salta).
-        _selectedBookmark = _pendingSelect is { } pending && _bookmarks.Find(pending) != null ? pending : null;
-        Seek.SelectedBookmark = Zoom.SelectedBookmark = _selectedBookmark;
+        // Abierto desde el panel: el bookmark queda seleccionado ya (también en la lista, que no salta); su zona se
+        // aplica al saber la duración (ApplyPendingBookmark).
+        _zoomBookmark = _pendingSelect is { } pending && _bookmarks.Find(pending) != null ? pending : null;
+        Seek.SelectedBookmark = Zoom.SelectedBookmark = _zoomBookmark;
         OnBookmarksChanged();
     }
 
     private IReadOnlyList<Bookmark> BookmarkItems => _bookmarks?.Items ?? [];
+
+    // Fin de un bookmark del vídeo abierto (en memoria siempre lo tiene; "fps" para los de otros vídeos sin él).
+    private double EndOf(Bookmark b, double? fps = null) => b.EndOr(1 / ((fps ?? Fps) is > 0 and var f ? f : 30));
 
     private void OnBookmarksChanged()
     {
         // Copia: el arrastre cambia la lista mientras las barras la recorren al pintar.
         var items = BookmarkItems.ToList();
         Seek.Bookmarks = Zoom.Bookmarks = items;
-        if (_selectedBookmark != null && _bookmarks?.Find(_selectedBookmark) == null)
-            Select(null);
+        // La zona sigue a su región (también al deshacer y rehacer); si se borró, se queda libre con los mismos límites.
+        if (_zoomBookmark != null)
+        {
+            if (ZoneBookmark != null)
+                FollowZoneBookmark();
+            else
+                Select(null);
+        }
+        UpdateZoneUi();
         // Miniaturas: se piden ya, para que estén al pasar el ratón (no en cada paso de un arrastre).
         if (_bookmarkDragEdge == null && _bookmarks != null)
             foreach (var b in items)
@@ -112,75 +131,74 @@ public partial class MainWindow
         UpdateTimeText();
     }
 
+    /// <summary>
+    /// Selecciona un bookmark, que pasa a ser la zona ampliada; null deselecciona (la zona, si la hay, se queda libre
+    /// con los mismos límites).
+    /// </summary>
     private void Select(string? id)
     {
-        _selectedBookmark = id;
+        _zoomBookmark = id;
         Seek.SelectedBookmark = Zoom.SelectedBookmark = id;
         if (id != null && _rows.FirstOrDefault(r => r.Id == id && r.IsCurrentVideo) is { } row)
         {
             BookmarkList.SelectedItem = row;
             BookmarkList.ScrollIntoView(row);
         }
+        FollowZoneBookmark();
+        UpdateZoneUi();
     }
 
-    // Texto bajo el vídeo: el bookmark del frame que se ve o la región en la que se está.
+    // Texto bajo el vídeo: la región en la que se está (la más interior).
     private string CurrentBookmarkText()
     {
         if (_bookmarks == null)
             return "";
-        var grid = Zoom.Grid;
-        var frame = grid.FrameAt(_position);
-        Bookmark? point = null, region = null;
+        Bookmark? region = null;
         foreach (var b in _bookmarks.Items)
         {
-            if (b.Start > _position + 1)
+            if (b.Start > _position + 1e-4)
                 break;
-            if (!b.IsRegion && grid.FrameAt(b.Start) == frame)
-                point = b;
-            else if (b.IsRegion && _position >= b.Start - 1e-4 && _position < b.End!.Value - 1e-4)
+            if (_position >= b.Start - 1e-4 && _position < EndOf(b) - 1e-4)
                 region = b; // la que empieza más tarde: la más interior
         }
-        return (point ?? region) is { } shown ? $"◆ {shown.Name}" : "";
+        return region is { } shown ? $"◆ {shown.Name}" : "";
     }
 
     // ---- Crear ----
 
-    /// <summary>B o "Añadir bookmark aquí": en el frame dado, y se abre el campo del nombre.</summary>
+    /// <summary>
+    /// B (o Shift + B): una región con la zona ampliada si es libre; si no (sin zona, o la zona es otra región), de
+    /// un frame en el frame actual. Queda seleccionada (así O fija su fin) y se abre el campo del nombre.
+    /// </summary>
+    private void AddBookmark()
+    {
+        if (_zoomRange is { } z && _zoomBookmark == null)
+            AddRegion(z.Start, z.End);
+        else
+            AddBookmarkAt(_nav.CurrentTime);
+    }
+
+    /// <summary>"Añadir bookmark aquí" (y B sin zona libre): región de un frame en el frame dado.</summary>
     private void AddBookmarkAt(double time)
+    {
+        if (_duration <= 0)
+            return;
+        var start = Zoom.Grid.Snap(Math.Clamp(time, 0, _duration));
+        AddRegion(start, NextFrameStart(start));
+    }
+
+    // Si ya hay una región igual, no se duplica: se selecciona y se renombra.
+    private void AddRegion(double start, double end)
     {
         if (_bookmarks == null || _duration <= 0)
             return;
-        var start = Zoom.Grid.Snap(Math.Clamp(time, 0, _duration));
-        // Dos veces B en el mismo frame: no se duplica, se renombra el que hay.
-        var frame = Zoom.Grid.FrameAt(start);
-        if (_bookmarks.Items.FirstOrDefault(b => !b.IsRegion && Zoom.Grid.FrameAt(b.Start) == frame) is { } existing)
+        if (_bookmarks.Items.FirstOrDefault(b => Math.Abs(b.Start - start) < 1e-4 && Math.Abs(EndOf(b) - end) < 1e-4) is { } existing)
         {
             Select(existing.Id);
             BeginRename(existing, isNew: false);
             return;
         }
-        var bookmark = _bookmarks.Add(_bookmarks.NextName(), start, null, _store.Settings.NewBookmarkColor, NewBookmarkLabel());
-        Select(bookmark.Id);
-        BeginRename(bookmark, isNew: true);
-    }
-
-    /// <summary>Shift + B o "Bookmark de esta región": con el tramo ampliado.</summary>
-    private void AddRegionBookmark()
-    {
-        if (_bookmarks == null)
-            return;
-        if (_zoomRange is not { } z)
-        {
-            ShowToast("Para un bookmark de región, marca antes un tramo (I / O, Z o arrastrando con el botón derecho)");
-            return;
-        }
-        if (_bookmarks.Items.FirstOrDefault(b => b.IsRegion && Math.Abs(b.Start - z.Start) < 1e-4 && Math.Abs(b.End!.Value - z.End) < 1e-4) is { } existing)
-        {
-            Select(existing.Id);
-            BeginRename(existing, isNew: false);
-            return;
-        }
-        var bookmark = _bookmarks.Add(_bookmarks.NextName(), z.Start, z.End, _store.Settings.NewBookmarkColor, NewBookmarkLabel());
+        var bookmark = _bookmarks.Add(_bookmarks.NextName(), start, end, _store.Settings.NewBookmarkColor, NewBookmarkLabel());
         Select(bookmark.Id);
         BeginRename(bookmark, isNew: true);
     }
@@ -288,7 +306,7 @@ public partial class MainWindow
         ReturnFocusToVideo();
     }
 
-    // Enter con un bookmark seleccionado: ir a él (y ampliar la región). Devuelve false si no hay ninguno.
+    // Enter con un bookmark seleccionado: ir a él. Devuelve false si no hay ninguno.
     private bool JumpToSelected()
     {
         if (_bookmarks?.Find(_selectedBookmark) is not { } bookmark)
@@ -307,7 +325,14 @@ public partial class MainWindow
 
     private void DeleteSelected()
     {
-        if (_bookmarks?.Find(_selectedBookmark) is not { } bookmark)
+        if (_bookmarks?.Find(_selectedBookmark) is { } bookmark)
+            DeleteBookmark(bookmark);
+    }
+
+    // Si era la zona, la zona se queda libre con los mismos límites (OnBookmarksChanged).
+    private void DeleteBookmark(Bookmark bookmark)
+    {
+        if (_bookmarks == null)
             return;
         _bookmarks.Remove(bookmark.Id);
         ShowToast($"Borrado «{bookmark.Name}» · Ctrl + Z lo recupera");
@@ -350,17 +375,12 @@ public partial class MainWindow
 
     // ---- Ir a los bookmarks ----
 
-    /// <summary>Va al inicio del bookmark y lo selecciona; si es una región, la amplía en la barra de zoom.</summary>
-    private void JumpTo(Bookmark bookmark, bool zoom = true)
+    /// <summary>Va al inicio del bookmark y lo selecciona: su región pasa a ser la zona ampliada.</summary>
+    private void JumpTo(Bookmark bookmark)
     {
+        if (_awaitingDuration)
+            _pendingSelect = bookmark.Id;
         Select(bookmark.Id);
-        if (zoom && bookmark.IsRegion)
-        {
-            if (_awaitingDuration)
-                _pendingRegion = (bookmark.Start, bookmark.End!.Value);
-            else
-                SetZoom((bookmark.Start, bookmark.End!.Value));
-        }
         _nav.SeekTo(bookmark.Start);
         ShowToast(bookmark.Name);
     }
@@ -416,11 +436,12 @@ public partial class MainWindow
     private void OnBookmarkPressed(Bookmark bookmark, BookmarkPart part)
     {
         HoverPopup.IsOpen = false;
+        // Seleccionarlo lo convierte en la zona ampliada.
         Select(bookmark.Id);
         // Como al elegirlo en el panel: su nombre sobre la imagen.
         ShowToast(bookmark.Name);
         _bookmarkPressGo = null;
-        // El asa del fin no mueve la imagen hasta arrastrarla.
+        // El fin no mueve la imagen hasta arrastrarlo.
         if (part == BookmarkPart.End)
             return;
         if (_store.Settings.ShowDraggedEdgeFrame)
@@ -429,55 +450,45 @@ public partial class MainWindow
             _bookmarkPressGo = bookmark.Start;
     }
 
+    /// <summary>
+    /// Arrastrando el inicio, el fin o la región entera. Un extremo llevado más allá del otro los intercambia: el
+    /// fijo hace de ancla (su frame sigue dentro) y nunca queda menos de un frame. Todo el arrastre es un paso de deshacer.
+    /// </summary>
     private void OnBookmarkDragged(Bookmark bookmark, BookmarkPart part, double time)
     {
         if (_bookmarks == null || _duration <= 0)
             return;
-        if (_bookmarkDragEdge == null)
+        if (_dragOrigin == null)
+        {
+            _dragOrigin = (bookmark.Start, EndOf(bookmark));
             _bookmarks.BeginEdit(part switch
             {
                 BookmarkPart.Start => $"mover el inicio de «{bookmark.Name}»",
                 BookmarkPart.End => $"mover el fin de «{bookmark.Name}»",
                 _ => $"mover «{bookmark.Name}»",
             });
-        var grid = Zoom.Grid;
+        }
+        var origin = _dragOrigin.Value;
         double edge;
-        switch (part)
+        if (part == BookmarkPart.Body)
         {
-            case BookmarkPart.Start:
+            var length = origin.End - origin.Start;
+            var start = Zoom.Grid.Snap(Math.Clamp(time, 0, Math.Max(0, _duration - length)));
+            _bookmarks.Update(bookmark.Id, b =>
             {
-                var start = grid.Snap(Math.Clamp(time, 0, _duration));
-                // Una región no se queda en menos de un frame.
-                if (bookmark.End is { } end && bookmark.IsRegion)
-                    start = Math.Min(start, grid.TimeOf(grid.FrameAt(end - 1e-4)));
-                _bookmarks.Update(bookmark.Id, b => b.Start = start, dragging: true);
-                edge = start;
-                break;
-            }
-            case BookmarkPart.End:
-            {
-                // El fin cae en el borde entre frames más cercano; en el inicio o antes, vuelve a ser de un frame.
-                var end = Math.Min(grid.TimeOf(grid.FrameAt(Math.Clamp(time, 0, _duration) + 0.5 / Fps)), _duration);
-                _bookmarks.Update(bookmark.Id, b => b.End = end > b.Start + 1e-4 ? end : null, dragging: true);
-                // Se enseña el último frame de la región.
-                edge = end > bookmark.Start + 1e-4 ? grid.TimeOf(grid.FrameAt(end - 1e-4)) : bookmark.Start;
-                break;
-            }
-            default:
-            {
-                var length = (bookmark.End ?? bookmark.Start) - bookmark.Start;
-                var start = grid.Snap(Math.Clamp(time, 0, Math.Max(0, _duration - length)));
-                _bookmarks.Update(bookmark.Id, b =>
-                {
-                    // La miniatura elegida se mueve con la región.
-                    if (b.Thumb is { } thumb)
-                        b.Thumb = thumb + (start - b.Start);
-                    b.Start = start;
-                    b.End = b.End != null ? start + length : null;
-                }, dragging: true);
-                edge = start;
-                break;
-            }
+                // La miniatura elegida se mueve con la región.
+                if (b.Thumb is { } thumb)
+                    b.Thumb = thumb + (start - b.Start);
+                b.Start = start;
+                b.End = start + length;
+            }, dragging: true);
+            edge = start;
+        }
+        else
+        {
+            var (start, end, shown) = DragEdge(origin, part, time);
+            _bookmarks.Update(bookmark.Id, b => { b.Start = start; b.End = end; }, dragging: true);
+            edge = shown;
         }
         _bookmarkDragEdge = edge;
         if (_store.Settings.ShowDraggedEdgeFrame)
@@ -488,20 +499,29 @@ public partial class MainWindow
     {
         var go = _bookmarkPressGo;
         _bookmarkPressGo = null;
-        if (!moved)
+        var dragged = _dragOrigin != null;
+        _dragOrigin = null;
+        if (moved && dragged && _bookmarkDragEdge is { } edge)
+        {
+            _bookmarkDragEdge = null;
+            _bookmarks?.EndEdit();
+            if (_store.Settings.ShowDraggedEdgeFrame)
+                _nav.SeekTo(edge);
+        }
+        else if (go is { } time)
         {
             // Un clic: ahora sí, ir al bookmark.
-            if (go is { } time)
-                _nav.SeekTo(time);
-            return;
+            _nav.SeekTo(time);
         }
-        if (_bookmarkDragEdge is not { } edge)
-            return;
-        _bookmarkDragEdge = null;
-        _bookmarks?.EndEdit();
-        if (_store.Settings.ShowDraggedEdgeFrame)
-            _nav.SeekTo(edge);
-        OnBookmarksChanged(); // pide la miniatura del nuevo inicio
+        // Soltado: la barra de zoom ya se puede reencuadrar a la zona.
+        if (_freezeZoomView)
+        {
+            _freezeZoomView = false;
+            if (_zoomRange is { } z)
+                Zoom.SetRange(z.Start, z.End);
+        }
+        if (dragged)
+            OnBookmarksChanged(); // pide la miniatura del nuevo inicio
     }
 
     private void OnBookmarkHovered(TimelineBar bar, Bookmark? bookmark, double x)
@@ -700,15 +720,17 @@ public partial class MainWindow
 
     // ---- Menús ----
 
+    // "Añadir bookmark aquí": región de un frame en ese punto. Con una zona libre, también un bookmark con ella (B).
     private void AddBookmarkMenuItems(ItemsControl menu, double time)
     {
-        var add = new MenuItem { Header = "Añadir bookmark aquí", InputGestureText = "B" };
+        var free = _zoomRange is { } && _zoomBookmark == null;
+        var add = new MenuItem { Header = "Añadir bookmark aquí", InputGestureText = free ? "" : "B" };
         add.Click += (_, _) => AddBookmarkAt(time);
         menu.Items.Add(add);
-        if (_zoomRange != null)
+        if (free && _zoomRange is { } z)
         {
-            var region = new MenuItem { Header = "Bookmark de esta región", InputGestureText = "Shift+B" };
-            region.Click += (_, _) => AddRegionBookmark();
+            var region = new MenuItem { Header = "Bookmark del tramo ampliado", InputGestureText = "B" };
+            region.Click += (_, _) => AddRegion(z.Start, z.End);
             menu.Items.Add(region);
         }
     }
@@ -730,14 +752,14 @@ public partial class MainWindow
         menu.IsOpen = true;
     }
 
+    // Menú de un bookmark (clic derecho en su marca o en el panel): actúa sobre él sin seleccionarlo (no cambia la zona).
     private void ShowBookmarkMenu(Bookmark bookmark, UIElement target)
     {
         HoverPopup.IsOpen = false;
-        Select(bookmark.Id);
         var menu = new ContextMenu { PlacementTarget = target, Placement = PlacementMode.MousePoint };
         var header = new MenuItem { Header = bookmark.Name, IsEnabled = false };
         menu.Items.Add(header);
-        var go = new MenuItem { Header = bookmark.IsRegion ? "Ir y ampliar la región" : "Ir al bookmark", InputGestureText = "Enter" };
+        var go = new MenuItem { Header = "Ir a la región", InputGestureText = bookmark.Id == _selectedBookmark ? "Enter" : "" };
         go.Click += (_, _) => JumpTo(bookmark);
         menu.Items.Add(go);
         var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
@@ -753,8 +775,8 @@ public partial class MainWindow
         var useFrame = new MenuItem { Header = $"Usar el frame actual como miniatura (frame {Zoom.Grid.FrameAt(current)})" };
         useFrame.Click += (_, _) =>
         {
-            // En una región, un frame de fuera seguramente es un despiste: se pregunta antes.
-            if (bookmark.IsRegion && (current < bookmark.Start - 1e-4 || current >= bookmark.End!.Value - 1e-4)
+            // Un frame de fuera de la región seguramente es un despiste: se pregunta antes.
+            if ((current < bookmark.Start - 1e-4 || current >= EndOf(bookmark) - 1e-4)
                 && !Dialog.Confirm(this,
                     $"El frame actual ({Zoom.Grid.FrameAt(current)}, {TimeFormat.Precise(current, Fps)}) está fuera de la región «{bookmark.Name}» " +
                     $"({RangeText(bookmark, withFrames: true)}).\n\n¿Usarlo igualmente como miniatura?", "Usarlo"))
@@ -770,30 +792,11 @@ public partial class MainWindow
         }
 
         menu.Items.Add(new Separator());
-        if (_zoomRange is { } z)
-        {
-            var useRange = new MenuItem { Header = bookmark.IsRegion ? "Ajustar la región al tramo ampliado" : "Convertir en región con el tramo ampliado" };
-            useRange.Click += (_, _) => _bookmarks?.Update(bookmark.Id, b => { b.Start = z.Start; b.End = z.End; });
-            menu.Items.Add(useRange);
-        }
-        if (bookmark.IsRegion)
-        {
-            var toPoint = new MenuItem { Header = "Convertir en bookmark de un frame (su inicio)" };
-            toPoint.Click += (_, _) => _bookmarks?.Update(bookmark.Id, b => b.End = null);
-            menu.Items.Add(toPoint);
-        }
-        else
-        {
-            var toFrame = new MenuItem { Header = $"Mover al frame actual (frame {Zoom.Grid.FrameAt(_nav.CurrentTime)})" };
-            toFrame.Click += (_, _) => _bookmarks?.Update(bookmark.Id, b => b.Start = Zoom.Grid.Snap(_nav.CurrentTime));
-            menu.Items.Add(toFrame);
-        }
-        var delete = new MenuItem { Header = "Borrar", InputGestureText = "Supr" };
-        delete.Click += (_, _) => { Select(bookmark.Id); DeleteSelected(); };
+        var delete = new MenuItem { Header = "Borrar", InputGestureText = bookmark.Id == _selectedBookmark ? "Supr" : "" };
+        delete.Click += (_, _) => DeleteBookmark(bookmark);
         menu.Items.Add(delete);
         menu.Items.Add(new Separator());
-        if (bookmark.IsRegion)
-            AddExportMenu(menu, _bookmarks?.VideoPath, bookmark.Start, bookmark.End!.Value, bookmark.Name);
+        AddExportMenu(menu, _bookmarks?.VideoPath, bookmark.Start, EndOf(bookmark), bookmark.Name);
         if (_bookmarks != null)
             AddRevealItem(menu, _bookmarks.VideoPath);
         var export = new MenuItem { Header = "Exportar bookmarks junto al vídeo" };
@@ -1232,9 +1235,7 @@ public partial class MainWindow
     {
         var rate = fps ?? Fps;
         var start = TimeFormat.Precise(b.Start, rate);
-        if (!b.IsRegion)
-            return withFrames ? $"{start} · frame {Zoom.Grid.FrameAt(b.Start)}" : start;
-        var end = b.End!.Value;
+        var end = EndOf(b, rate);
         var width = end - b.Start;
         var length = width < 60 ? $"{width:0.00} s" : TimeFormat.Format(width, withMilliseconds: false);
         var text = $"{start} – {TimeFormat.Precise(end, rate)}{(twoLines ? "\n" : " · ")}{length}";
@@ -1251,9 +1252,7 @@ public partial class MainWindow
     {
         const string Glue = "\u00A0"; // espacio que no parte la línea
         var start = TimeFormat.Short(b.Start, fps);
-        if (!b.IsRegion)
-            return withFrames ? $"{start} ·{Glue}frame{Glue}{Zoom.Grid.FrameAt(b.Start)}" : start;
-        var end = b.End!.Value;
+        var end = EndOf(b, fps);
         var width = end - b.Start;
         var details = width < 60 ? $"{width:0.0}{Glue}s" : TimeFormat.Format(width, withMilliseconds: false);
         if (withFrames)
@@ -1270,22 +1269,14 @@ public partial class MainWindow
         return (element as ListBoxItem)?.DataContext as BookmarkRow;
     }
 
-    // Clic: al primer frame, seleccionado. Doble clic (o Enter): además amplía la región.
+    // Clic (o Enter): al primer frame, seleccionado, y su región pasa a ser la zona ampliada.
     private void OnBookmarkListClick(object sender, MouseButtonEventArgs e)
     {
         // Con Ctrl o Shift se están eligiendo varios: no se va a ninguno.
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
             return;
         if (ListRowFromEvent(e.OriginalSource) is { } row)
-            OpenRow(row, zoom: false);
-    }
-
-
-
-    private void OnBookmarkListDoubleClick(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ChangedButton == MouseButton.Left && ListRowFromEvent(e.OriginalSource) is { } row)
-            OpenRow(row, zoom: true);
+            OpenRow(row);
     }
 
     private void OnBookmarkListRightClick(object sender, MouseButtonEventArgs e)
@@ -1315,14 +1306,15 @@ public partial class MainWindow
         if (rows.Count == 1)
         {
             var go = new MenuItem { Header = "Abrir su vídeo e ir", InputGestureText = "Enter" };
-            go.Click += (_, _) => OpenRow(rows[0], zoom: true);
+            go.Click += (_, _) => OpenRow(rows[0]);
             menu.Items.Add(go);
             var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
             rename.Click += (_, _) => RenameRow(rows[0]);
             menu.Items.Add(rename);
-            AddRevealItem(menu, rows[0].VideoPath ?? (rows[0].IsCurrentVideo ? _bookmarks?.VideoPath : null));
-            if (rows[0].Bookmark is { IsRegion: true } region)
-                AddExportMenu(menu, rows[0].VideoPath ?? (rows[0].IsCurrentVideo ? _bookmarks?.VideoPath : null), region.Start, region.End!.Value, region.Name);
+            var video = rows[0].VideoPath ?? (rows[0].IsCurrentVideo ? _bookmarks?.VideoPath : null);
+            AddRevealItem(menu, video);
+            var region = rows[0].Bookmark;
+            AddExportMenu(menu, video, region.Start, EndOf(region, rows[0].IsCurrentVideo ? null : FpsOf(rows[0].Fingerprint)), region.Name);
         }
         var labels = rows.Select(r => _labels.Find(r.Bookmark.Label)?.Id).Distinct().ToList();
         AddLabelMenu(menu, labels[0], mixed: labels.Count > 1, id => SetRowsLabel(rows, id), BookmarkList);
@@ -1515,7 +1507,7 @@ public partial class MainWindow
         switch (e.Key)
         {
             case Key.Enter when row != null:
-                OpenRow(row, zoom: true);
+                OpenRow(row);
                 break;
             // Desde el primero, ↑ sube al buscador (igual que ↓ desde el buscador baja a la lista).
             case Key.Up when BookmarkList.SelectedIndex <= 0:
@@ -1546,7 +1538,7 @@ public partial class MainWindow
                 (BookmarkList.ItemContainerGenerator.ContainerFromIndex(BookmarkList.SelectedIndex) as ListBoxItem)?.Focus();
                 break;
             case Key.Enter when _rows.Count > 0:
-                OpenRow(BookmarkList.SelectedItem as BookmarkRow ?? _rows[0], zoom: true);
+                OpenRow(BookmarkList.SelectedItem as BookmarkRow ?? _rows[0]);
                 break;
             case Key.Escape when BookmarkSearch.Text.Length > 0:
                 BookmarkSearch.Clear();
@@ -1560,14 +1552,14 @@ public partial class MainWindow
         e.Handled = true;
     }
 
-    // Ir al bookmark de una fila; si es de otro vídeo, se abre ese vídeo en su inicio.
-    private void OpenRow(BookmarkRow row, bool zoom)
+    // Ir al bookmark de una fila (su región pasa a ser la zona); si es de otro vídeo, se abre ese vídeo en su inicio.
+    private void OpenRow(BookmarkRow row)
     {
         DismissRowPreview(row);
         if (row.IsCurrentVideo)
         {
             if (_bookmarks?.Find(row.Id) is { } bookmark)
-                JumpTo(bookmark, zoom);
+                JumpTo(bookmark);
             return;
         }
         var path = row.VideoPath;
@@ -1578,7 +1570,6 @@ public partial class MainWindow
                 return;
         }
         _pendingSelect = row.Id;
-        _pendingRegion = zoom && row.Bookmark.IsRegion ? (row.Bookmark.Start, row.Bookmark.End!.Value) : null;
         // Como ir a un bookmark del mismo vídeo: si estaba en pausa, sigue en pausa en su primer frame.
         Open(path, row.Bookmark.Start, keepPause: true);
         ShowToast(row.Bookmark.Name);
@@ -1659,20 +1650,21 @@ public partial class MainWindow
         _otherFiles = null;
     }
 
-    // Cuando el vídeo abierto desde el panel ya sabe su duración.
+    // Cuando el vídeo abierto ya sabe su duración: el bookmark pendiente (abierto desde el panel) se selecciona y su
+    // región pasa a ser la zona.
     private void ApplyPendingBookmark()
     {
         _awaitingDuration = false;
         if (_pendingSelect is { } id)
         {
             _pendingSelect = null;
-            Select(id);
+            if (_bookmarks?.Find(id) != null)
+            {
+                Select(id);
+                return;
+            }
         }
-        if (_pendingRegion is { } region)
-        {
-            _pendingRegion = null;
-            SetZoom(region);
-        }
+        FollowZoneBookmark();
     }
 
     // El teclado vuelve al vídeo: flechas, espacio, etc. dejan de ir a la lista o al buscador. Hay que olvidar

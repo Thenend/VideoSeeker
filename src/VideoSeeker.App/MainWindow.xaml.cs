@@ -159,15 +159,15 @@ public partial class MainWindow : Window
         Seek.RelativeSeekRequested += s => _nav.SeekRelative(Math.Sign(s) * _store.Settings.SeekSeconds);
         Zoom.SeekRequested += OnTimelineSeek;
         // Zoom: arrastrar con botón derecho en cualquiera de las dos barras, menú contextual o Ctrl + rueda.
-        Seek.RangeSelected += (start, end) => SetZoom((start, end));
-        Zoom.RangeSelected += (start, end) => SetZoom((start, end));
+        Seek.RangeSelected += (start, end) => SetFreeZoom((start, end));
+        Zoom.RangeSelected += (start, end) => SetFreeZoom((start, end));
         Seek.MenuRequested += t => ShowTimelineMenu(Seek, t);
         Zoom.MenuRequested += t => ShowTimelineMenu(Zoom, t);
         Seek.ZoomWheel += OnZoomWheel;
         Zoom.ZoomWheel += OnZoomWheel;
         Seek.ZoomDragged += OnZoomDragged;
         Seek.ZoomDragEnded += OnZoomDragEnded;
-        Zoom.PanRequested += s => { if (_zoomRange is { } z) SetZoom((z.Start + s, z.End + s)); };
+        Zoom.PanRequested += s => { if (_zoomRange is { } z) SetFreeZoom((z.Start + s, z.End + s)); };
         Zoom.StepRequested += frames =>
         {
             for (var i = 0; i < Math.Abs(frames); i++)
@@ -348,6 +348,8 @@ public partial class MainWindow : Window
             _cacheTimer.Start();
             if (BookmarkSelfTestEnabled)
                 _ = RunBookmarkSelfTest();
+            if (ZoneSelfTestEnabled)
+                _ = RunZoneSelfTest();
             if (SettingsSelfTestEnabled)
                 _ = RunSettingsSelfTest();
             if (ClipSelfTestEnabled)
@@ -364,7 +366,7 @@ public partial class MainWindow : Window
                 }));
             if (SelfTest.Enabled)
                 _ = new SelfTest(_nav, () => _engine, _duration, Path.Combine(_store.Folder, "selftest.log"), Close,
-                    (start, end) => SetZoom((start, end))).RunAsync();
+                    (start, end) => SetFreeZoom((start, end))).RunAsync();
         }
         catch (Exception e)
         {
@@ -420,7 +422,7 @@ public partial class MainWindow : Window
         _position = start ?? 0;
         _currentPath = path;
         Seek.CachedRanges = Zoom.CachedRanges = [];
-        SetZoom(null);
+        CloseZone();
         _awaitingDuration = true;
         _nav.OnFileOpening(path, play: !keepPause);
         _player.Load(path, start, play: !keepPause);
@@ -504,6 +506,8 @@ public partial class MainWindow : Window
     private void UpdateFrameGrid()
     {
         Zoom.Grid = new FrameGrid(_frameIndex, Fps);
+        // Los bookmarks sin fin en el archivo (de antes) miden un frame de esta rejilla.
+        _bookmarks?.RefreshOpenEnds();
         UpdateLastFrame();
         UpdateTimeText();
         UpdateZoomUi();
@@ -521,20 +525,42 @@ public partial class MainWindow : Window
     private double MinZoomWidth => 1 / Fps;
     private double MinWheelZoomWidth => 10 / Fps;
 
-    /// <summary>Abre o mueve la barra de zoom al tramo dado (se ajusta al vídeo); null la cierra.</summary>
-    private void SetZoom((double Start, double End)? range)
+    // ---- Zona ampliada ----
+    // Una sola: libre (Z, Ctrl + rueda, arrastre con el botón derecho, marcado) o igual a la región seleccionada
+    // (_zoomBookmark). Seleccionar un bookmark la convierte en la zona; I/O, los botones ⇤ ⇥, asignar frames y las
+    // banderitas cambian la región (EditZone, con su paso de deshacer); lo que crea una zona libre suelta la región.
+
+    // Arrastrando el inicio o el fin dentro de la propia barra de zoom: no se reencuadra hasta soltar (la escala no
+    // debe cambiar bajo el ratón).
+    private bool _freezeZoomView;
+
+    /// <summary>La región que es la zona ampliada, o null si la zona es libre (o no hay).</summary>
+    private Bookmark? ZoneBookmark => _bookmarks?.Find(_zoomBookmark);
+
+    /// <summary>
+    /// Pone la barra de zoom en el tramo dado (se ajusta al vídeo); null la cierra. Con "exact" (una región) no se
+    /// ensancha ni se desplaza: la zona es la región tal cual.
+    /// </summary>
+    private void ApplyZone((double Start, double End)? range, bool exact = false)
     {
         if (range is { } r)
         {
             if (_duration <= 0)
                 return;
-            var width = Math.Clamp(r.End - r.Start, Math.Min(MinZoomWidth, _duration), _duration);
-            var start = Math.Clamp(r.Start, 0, _duration - width);
-            range = (start, start + width);
+            if (exact)
+            {
+                range = (Math.Max(0, r.Start), Math.Max(r.End, r.Start + 1e-3));
+            }
+            else
+            {
+                var width = Math.Clamp(r.End - r.Start, Math.Min(MinZoomWidth, _duration), _duration);
+                var start = Math.Clamp(r.Start, 0, _duration - width);
+                range = (start, start + width);
+            }
         }
         _zoomRange = range;
         Seek.Zoom = range;
-        if (range is { } z)
+        if (range is { } z && !_freezeZoomView)
             Zoom.SetRange(z.Start, z.End);
         ZoomRow.Visibility = range != null ? Visibility.Visible : Visibility.Collapsed;
         _nav.SetRegion(range);
@@ -542,31 +568,147 @@ public partial class MainWindow : Window
         UpdateZoomUi();
     }
 
-    // Arrastrando una banderita (o la banda) del tramo ampliado: el frame que se enseña al soltar, si el ajuste lo pide.
+    /// <summary>Zona libre (o null para cerrarla): suelta la región seleccionada, que no cambia.</summary>
+    private void SetFreeZoom((double Start, double End)? range)
+    {
+        if (_zoomBookmark != null)
+            Select(null);
+        ApplyZone(range);
+    }
+
+    /// <summary>Esc, la X o Alt + X: cierra la zona y deselecciona.</summary>
+    private void CloseZone() => SetFreeZoom(null);
+
+    /// <summary>La zona sigue a su región (al seleccionarla, al cambiarla, al deshacer).</summary>
+    private void FollowZoneBookmark()
+    {
+        // Entre abrir un vídeo y saber su duración no se puede ampliar: ApplyPendingBookmark lo hace.
+        if (ZoneBookmark is not { } b || _awaitingDuration || _duration <= 0)
+            return;
+        ApplyZone((b.Start, EndOf(b)), exact: true);
+    }
+
+    /// <summary>
+    /// Cambia los extremos de la zona: con una región, la región (un paso de deshacer); si no, la zona libre.
+    /// </summary>
+    private void EditZone(double start, double end, string what = "ajustar")
+    {
+        if (ZoneBookmark is { } b && _bookmarks != null)
+            _bookmarks.Update(b.Id, x => { x.Start = start; x.End = end; }, label: what);
+        else
+            ApplyZone((start, end));
+    }
+
+    /// <summary>"del tramo" o "de «Nombre»", para los menús y tooltips.</summary>
+    private string ZoneOf() => ZoneBookmark is { } b ? $"de «{b.Name}»" : "del tramo";
+
+    /// <summary>
+    /// Arrastrando un extremo de un tramo: el otro hace de ancla. Si se lleva más allá de él, se intercambian (el frame
+    /// del ancla sigue dentro); nunca queda menos de un frame. Devuelve el tramo y el frame que enseñar (el del extremo
+    /// que se mueve).
+    /// </summary>
+    private (double Start, double End, double Shown) DragEdge((double Start, double End) origin, BookmarkPart part, double time)
+    {
+        var grid = Zoom.Grid;
+        time = Math.Clamp(time, 0, _duration);
+        if (part == BookmarkPart.End)
+        {
+            var anchor = grid.FrameAt(origin.Start);
+            // El fin cae en el borde entre frames más cercano.
+            var k = grid.FrameAt(time + 0.5 / Fps);
+            return k > anchor
+                ? (origin.Start, ClampEnd(grid.TimeOf(k), grid.TimeOf(k - 1)), grid.TimeOf(k - 1))
+                : (grid.TimeOf(k), ClampEnd(grid.TimeOf(anchor + 1), grid.TimeOf(anchor)), grid.TimeOf(k));
+        }
+        var last = grid.FrameAt(Math.Max(origin.Start, origin.End - 1e-4));
+        var frame = grid.FrameAt(time);
+        return frame <= last
+            ? (grid.TimeOf(frame), origin.End, grid.TimeOf(frame))
+            : (grid.TimeOf(last), ClampEnd(grid.TimeOf(frame + 1), grid.TimeOf(frame)), grid.TimeOf(frame));
+    }
+
+    // Un fin no pasa de la duración del vídeo (salvo que quedara antes del inicio de su último frame).
+    private double ClampEnd(double end, double lastFrameStart) => _duration > lastFrameStart + 1e-4 ? Math.Min(end, _duration) : end;
+
+    // Inicio del frame siguiente al que empieza en "time" (el fin de una región de un frame).
+    private double NextFrameStart(double time)
+    {
+        var grid = Zoom.Grid;
+        var frame = grid.FrameAt(time);
+        return ClampEnd(grid.TimeOf(frame + 1), grid.TimeOf(frame));
+    }
+
+    // Arrastrando una banderita (o la banda) de la zona libre: cómo era al empezar, y el frame que se enseña al soltar
+    // si el ajuste lo pide. Con una región, el arrastre es el de la región (OnBookmarkDragged).
+    private (double Start, double End)? _zoneDragOrigin;
     private double? _zoomDragEdge;
 
-    private void OnZoomDragged(double start, double end, BookmarkPart part)
+    private void OnZoomDragged(BookmarkPart part, double time)
     {
-        SetZoom((start, end));
-        if (!_store.Settings.ShowDraggedEdgeFrame || _zoomRange is not { } z)
+        if (ZoneBookmark is { } region)
+        {
+            OnBookmarkDragged(region, part, time);
             return;
-        // El primer frame del tramo o, con la banderita del fin, el último.
-        var grid = Zoom.Grid;
-        var edge = part == BookmarkPart.End ? grid.TimeOf(grid.FrameAt(Math.Max(z.Start, z.End - 1e-4))) : grid.Snap(z.Start);
+        }
+        if (_zoomRange is not { } z)
+            return;
+        var origin = _zoneDragOrigin ??= z;
+        double edge;
+        if (part == BookmarkPart.Body)
+        {
+            ApplyZone((time, time + (origin.End - origin.Start)));
+            edge = Zoom.Grid.Snap(_zoomRange!.Value.Start);
+        }
+        else
+        {
+            var (start, end, shown) = DragEdge(origin, part, time);
+            ApplyZone((start, end));
+            edge = shown;
+        }
+        if (!_store.Settings.ShowDraggedEdgeFrame)
+            return;
         _zoomDragEdge = edge;
         _nav.DragTo(edge);
     }
 
     private void OnZoomDragEnded()
     {
+        _zoneDragOrigin = null;
+        if (_dragOrigin != null && ZoneBookmark is { } region)
+        {
+            OnBookmarkReleased(region, moved: true);
+            return;
+        }
         if (_zoomDragEdge is not { } edge)
             return;
         _zoomDragEdge = null;
         _nav.SeekTo(edge);
     }
 
+    /// <summary>Lo que se ve de la zona en la fila del zoom y en la barra: nombre y color de su región, tooltips.</summary>
+    private void UpdateZoneUi()
+    {
+        var region = ZoneBookmark;
+        Seek.ZoomColor = region != null ? ColorOf(region) : null;
+        if (region != null)
+        {
+            ZoneName.Text = region.Name;
+            ZoneName.Foreground = TimelineBar.LineBrushFor(ColorOf(region));
+            ZoneName.ToolTip = $"La zona es la región «{region.Name}»: I / O, ⇤ ⇥ y las banderitas la cambian";
+            ZoneName.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            ZoneName.Visibility = Visibility.Collapsed;
+        }
+        MarkFirstButton.ToolTip = $"Asignar el frame en pantalla al inicio {ZoneOf()} (I)";
+        MarkLastButton.ToolTip = $"Asignar el frame en pantalla al fin {ZoneOf()} (O)";
+        CloseZoomButton.ToolTip = region != null ? $"Cerrar zoom y deseleccionar «{region.Name}» (Esc)" : "Cerrar zoom (Esc)";
+        UpdateLoopButtons();
+    }
+
     // "Ampliar sección": ±5 s alrededor del instante.
-    private void ZoomAround(double time) => SetZoom((time - 5, time + 5));
+    private void ZoomAround(double time) => SetFreeZoom((time - 5, time + 5));
 
     // Ctrl + rueda: acerca o aleja manteniendo quieto el instante bajo el cursor. Alejado del todo, se cierra.
     private void OnZoomWheel(double anchor, int delta)
@@ -583,7 +725,7 @@ public partial class MainWindow : Window
             newStart = anchor - (anchor - newStart) * scale;
             newEnd = anchor + (newEnd - anchor) * scale;
         }
-        SetZoom(newEnd - newStart >= _duration ? null : (newStart, newEnd));
+        SetFreeZoom(newEnd - newStart >= _duration ? null : (newStart, newEnd));
     }
 
     private int? _markFrom;
@@ -605,7 +747,7 @@ public partial class MainWindow : Window
             return;
         var to = Zoom.Grid.FrameAt(_nav.CurrentTime);
         var (first, last) = (Math.Min(from, to), Math.Max(from, to));
-        SetZoom((Zoom.Grid.TimeOf(first), Math.Min(Zoom.Grid.TimeOf(last + 1), _duration)));
+        SetFreeZoom((Zoom.Grid.TimeOf(first), Math.Min(Zoom.Grid.TimeOf(last + 1), _duration)));
     }
 
     // Bucle del vídeo entero (R o el botón junto al play). Se recuerda.
@@ -629,7 +771,7 @@ public partial class MainWindow : Window
         // Si se está fuera del tramo, el bucle empieza por su principio.
         if (RangeLooping && _zoomRange is { } z && (_nav.CurrentTime < z.Start || _nav.CurrentTime > z.End))
             _nav.SeekTo(z.Start);
-        ShowToast(_loopRange ? "Bucle del tramo" : "Sin bucle del tramo");
+        ShowToast(_loopRange ? "Bucle " + ZoneOf() : "Sin bucle " + ZoneOf());
     }
 
     private void ApplyLoop()
@@ -650,7 +792,7 @@ public partial class MainWindow : Window
         LoopButton.Foreground = (Brush)FindResource(_loopVideo ? "Accent" : "Fg");
         LoopButton.ToolTip = _loopVideo ? "Quitar el bucle del vídeo (R)" : "Bucle del vídeo (R)";
         RangeLoopButton.Foreground = (Brush)FindResource(_loopRange ? "Accent" : "Fg");
-        RangeLoopButton.ToolTip = _loopRange ? "Quitar el bucle del tramo (Shift + R)" : "Bucle del tramo (Shift + R)";
+        RangeLoopButton.ToolTip = (_loopRange ? "Quitar el bucle " : "Bucle ") + ZoneOf() + " (Shift + R)";
     }
 
     // Lo que repite el bucle que manda: el tramo con su bucle puesto o, si no, el vídeo entero con el suyo.
@@ -694,7 +836,11 @@ public partial class MainWindow : Window
     }
 
     // La duración del tramo y sus frames van abajo, junto al tiempo (UpdateRangePosition).
-    private void UpdateZoomUi() => UpdateRangePosition();
+    private void UpdateZoomUi()
+    {
+        UpdateRangePosition();
+        UpdateZoneUi();
+    }
 
     /// <summary>
     /// Junto al tiempo y al frame, entre corchetes, lo mismo respecto al tramo ampliado: dentro, el tiempo desde su
@@ -732,10 +878,10 @@ public partial class MainWindow : Window
         zoom.Click += (_, _) => ZoomAround(time);
         menu.Items.Add(zoom);
         var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
-        var markFirst = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al inicio del tramo", InputGestureText = "I" };
+        var markFirst = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al inicio {ZoneOf()}", InputGestureText = "I" };
         markFirst.Click += (_, _) => MarkFirstFrame();
         menu.Items.Add(markFirst);
-        var markLast = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al fin del tramo", InputGestureText = "O" };
+        var markLast = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al fin {ZoneOf()}", InputGestureText = "O" };
         markLast.Click += (_, _) => MarkLastFrame();
         menu.Items.Add(markLast);
         if (_zoomRange != null)
@@ -746,55 +892,58 @@ public partial class MainWindow : Window
                 var grid = Zoom.Grid;
                 var frame = grid.FrameAt(time);
                 menu.Items.Add(new Separator());
-                var first = new MenuItem { Header = $"Asignar el frame bajo el cursor ({frame}) al inicio del tramo" };
+                var first = new MenuItem { Header = $"Asignar el frame bajo el cursor ({frame}) al inicio {ZoneOf()}" };
                 first.Click += (_, _) => SetZoomFirstFrame(frame);
                 menu.Items.Add(first);
-                var last = new MenuItem { Header = $"Asignar el frame bajo el cursor ({frame}) al fin del tramo" };
+                var last = new MenuItem { Header = $"Asignar el frame bajo el cursor ({frame}) al fin {ZoneOf()}" };
                 last.Click += (_, _) => SetZoomLastFrame(frame);
                 menu.Items.Add(last);
                 menu.Items.Add(new Separator());
             }
-            var loop = new MenuItem { Header = "Bucle del tramo", InputGestureText = "Shift+R", IsCheckable = true, IsChecked = _loopRange };
+            var loop = new MenuItem { Header = $"Bucle {ZoneOf()}", InputGestureText = "Shift+R", IsCheckable = true, IsChecked = _loopRange };
             loop.Click += (_, _) => ToggleRangeLoop();
             menu.Items.Add(loop);
-            var close = new MenuItem { Header = "Cerrar zoom", InputGestureText = "Esc" };
-            close.Click += (_, _) => SetZoom(null);
+            var close = new MenuItem
+            {
+                Header = ZoneBookmark is { } region ? $"Cerrar zoom y deseleccionar «{region.Name}»" : "Cerrar zoom", InputGestureText = "Esc",
+            };
+            close.Click += (_, _) => CloseZone();
             menu.Items.Add(close);
-            if (_zoomRange is { } z)
+            if (ExportTarget() is { } export)
             {
                 menu.Items.Add(new Separator());
-                AddExportMenu(menu, _currentPath, z.Start, z.End, RegionNamed(z.Start, z.End));
+                AddExportMenu(menu, export.Video, export.Start, export.End, export.Name);
             }
         }
         menu.IsOpen = true;
     }
 
     // El tramo empieza al inicio del frame; si quedaba por detrás del final, el final pasa a ser ese mismo frame.
-    // Sin tramo, se abre uno de 10 s que empieza ahí.
+    // Con una región, se cambia la región. Sin tramo, se abre uno de 10 s que empieza ahí.
     private void SetZoomFirstFrame(int frame)
     {
         var grid = Zoom.Grid;
         if (_zoomRange is not { } z)
         {
-            SetZoom((grid.TimeOf(frame), grid.TimeOf(frame) + 10));
+            SetFreeZoom((grid.TimeOf(frame), grid.TimeOf(frame) + 10));
             return;
         }
         var start = grid.TimeOf(frame);
-        SetZoom((start, z.End > start + 1e-4 ? z.End : grid.TimeOf(frame + 1)));
+        EditZone(start, z.End > start + 1e-4 ? z.End : NextFrameStart(start), "asignar el inicio de");
     }
 
-    // El tramo acaba al final del frame (inicio del siguiente), así que el frame queda dentro. Sin tramo, se
-    // abre uno de 10 s que acaba ahí.
+    // El tramo acaba al final del frame (inicio del siguiente), así que el frame queda dentro. Con una región, se
+    // cambia la región. Sin tramo, se abre uno de 10 s que acaba ahí.
     private void SetZoomLastFrame(int frame)
     {
         var grid = Zoom.Grid;
-        var end = Math.Min(grid.TimeOf(frame + 1), _duration);
+        var end = NextFrameStart(grid.TimeOf(frame));
         if (_zoomRange is not { } z)
         {
-            SetZoom((end - 10, end));
+            SetFreeZoom((end - 10, end));
             return;
         }
-        SetZoom((z.Start < end - 1e-4 ? z.Start : grid.TimeOf(frame), end));
+        EditZone(z.Start < end - 1e-4 ? z.Start : grid.TimeOf(frame), end, "asignar el fin de");
     }
 
     // Con el frame que se ve: para ajustar el tramo sin apuntar con el ratón (en vídeos largos la banda de la
@@ -825,7 +974,7 @@ public partial class MainWindow : Window
 
     private void OnMarkLastClick(object sender, RoutedEventArgs e) => MarkLastFrame();
 
-    private void OnCloseZoomClick(object sender, RoutedEventArgs e) => SetZoom(null);
+    private void OnCloseZoomClick(object sender, RoutedEventArgs e) => CloseZone();
 
     private void OnLoopClick(object sender, RoutedEventArgs e) => ToggleVideoLoop();
 
@@ -1020,18 +1169,16 @@ public partial class MainWindow : Window
                 var seconds = ctrl ? s.SeekSecondsCtrl : shift ? s.SeekSecondsShift : s.SeekSeconds;
                 _nav.SeekRelative(e.Key == Key.Left ? -seconds : seconds);
                 break;
-            // Bookmarks: B añade uno en el frame actual y Shift + B uno de región con el tramo; Ctrl + B, el panel.
+            // Bookmarks: B (o Shift + B) crea una región con la zona libre o, sin ella, de un frame en el frame actual;
+            // Ctrl + B, el panel.
             case Key.B when ctrl && shift:
                 ToggleMarks();
                 break;
             case Key.B when ctrl:
                 TogglePanel();
                 break;
-            case Key.B when shift:
-                AddRegionBookmark();
-                break;
             case Key.B:
-                AddBookmarkAt(_nav.CurrentTime);
+                AddBookmark();
                 break;
             case Key.F when ctrl:
                 OpenSearch();
@@ -1076,14 +1223,12 @@ public partial class MainWindow : Window
             case Key.Escape when _beforeFullscreen != null:
                 ToggleFullscreen();
                 break;
-            case Key.Escape when _zoomRange != null:
-                SetZoom(null);
+            // Esc cierra la zona y deselecciona.
+            case Key.Escape when _zoomRange != null || _selectedBookmark != null:
+                CloseZone();
                 break;
             case Key.Escape when BookmarkPanel.Visibility == Visibility.Visible:
                 ShowPanel(false);
-                break;
-            case Key.Escape when _selectedBookmark != null:
-                Select(null);
                 break;
             case Key.Z:
                 ZoomAround(_nav.CurrentTime);
@@ -1094,7 +1239,7 @@ public partial class MainWindow : Window
             case Key.R:
                 ToggleVideoLoop();
                 break;
-            // Atajos de los editores de vídeo (Premiere, DaVinci): I / O marcan el primer / último frame del tramo,
+            // Atajos habituales de los editores de vídeo: I / O marcan el primer / último frame del tramo,
             // Shift + I / O van a ellos y Alt + X quita el tramo.
             case Key.I when shift:
                 GoToRangeEdge(first: true);
@@ -1109,7 +1254,7 @@ public partial class MainWindow : Window
                 MarkLastFrame();
                 break;
             case Key.X when Keyboard.Modifiers.HasFlag(ModifierKeys.Alt):
-                SetZoom(null);
+                CloseZone();
                 break;
             // Ctrl + coma: ajustes, como en VS Code y otros editores.
             case Key.OemComma when ctrl:
@@ -1128,7 +1273,7 @@ public partial class MainWindow : Window
             case Key.End:
                 GoToLastFrame();
                 break;
-            // Ctrl + M, como «Exportar medios» en Premiere: el tramo ampliado o la región elegida, como clip.
+            // Ctrl + M: la zona ampliada (libre o la región seleccionada), como clip.
             case Key.M when ctrl:
                 ShowExportMenu();
                 break;
