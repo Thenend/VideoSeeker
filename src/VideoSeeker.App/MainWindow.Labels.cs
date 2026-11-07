@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -260,7 +260,7 @@ public partial class MainWindow
     /// Submenú "Etiqueta ▸": las de la colección (con su atajo), "Sin etiqueta" y "Nueva etiqueta…". "current" es la que
     /// llevan (null si ninguna o si son varios con distintas).
     /// </summary>
-    private void AddLabelMenu(ItemsControl menu, string? current, bool mixed, Action<string?> apply, UIElement promptTarget)
+    private void AddLabelMenu(ItemsControl menu, string? current, bool mixed, Action<string?> apply)
     {
         var item = new MenuItem { Header = "Etiqueta" };
         for (var i = 0; i < _labels.Labels.Count; i++)
@@ -282,7 +282,7 @@ public partial class MainWindow
             item.Items.Add(new Separator());
         }
         var create = new MenuItem { Header = "Nueva etiqueta…" };
-        create.Click += (_, _) => PromptNewLabel(promptTarget, apply);
+        create.Click += (_, _) => PromptNewLabel(null, apply);
         item.Items.Add(create);
         menu.Items.Add(item);
     }
@@ -295,7 +295,7 @@ public partial class MainWindow
     // ---- Gestionar las etiquetas ----
 
     /// <summary>Pide el nombre de una etiqueta nueva (con el primer color libre); "then" se la pone a lo que se estaba editando.</summary>
-    private void PromptNewLabel(UIElement target, Action<string?>? then)
+    private void PromptNewLabel(UIElement? target, Action<string?>? then)
     {
         PromptName("Nombre de la nueva etiqueta", "", target, name =>
         {
@@ -332,11 +332,11 @@ public partial class MainWindow
     private void ShowLabelMenu(BookmarkLabel label, UIElement target)
     {
         var menu = new ContextMenu { PlacementTarget = target, Placement = PlacementMode.Bottom };
-        FillLabelMenu(menu, label, target);
+        FillLabelMenu(menu, label);
         menu.IsOpen = true;
     }
 
-    private void FillLabelMenu(ItemsControl menu, BookmarkLabel label, UIElement target)
+    private void FillLabelMenu(ItemsControl menu, BookmarkLabel label)
     {
         var index = _labels.Labels.FindIndex(l => l.Id == label.Id);
         var files = BookmarkSet.LoadAll(_store, _store.Settings.BookmarkCollection).ToList();
@@ -348,7 +348,7 @@ public partial class MainWindow
                 InputGestureText = uses == 0 ? "sin bookmarks" : uses == 1 ? "1 bookmark" : $"{uses} bookmarks",
             });
         var rename = new MenuItem { Header = "Renombrar…" };
-        rename.Click += (_, _) => PromptName($"Nuevo nombre para «{label.Name}»", label.Name, target, name =>
+        rename.Click += (_, _) => PromptName($"Nuevo nombre para «{label.Name}»", label.Name, null, name =>
         {
             if (name == label.Name)
                 return;
@@ -454,14 +454,14 @@ public partial class MainWindow
                 if (e.OriginalSource != item)
                     return;
                 item.Items.Clear();
-                FillLabelMenu(item, label, CollectionButton);
+                FillLabelMenu(item, label);
             };
             labels.Items.Add(item);
         }
         if (labels.Items.Count > 0)
             labels.Items.Add(new Separator());
         var create = new MenuItem { Header = "Nueva etiqueta…" };
-        create.Click += (_, _) => PromptNewLabel(CollectionButton, null);
+        create.Click += (_, _) => PromptNewLabel(null, null);
         labels.Items.Add(create);
         menu.Items.Add(labels);
     }

@@ -494,7 +494,13 @@ public partial class MainWindow
     {
         var set = _bookmarks!;
         var first = set.Items[0];
-        PromptNewLabel(CollectionButton, null);
+        // Desde un menú (sin elemento al que anclarlo), el cuadro sale bajo el ratón.
+        var mouse = Mouse.GetPosition((UIElement)Content);
+        PromptNewLabel(null, null);
+        var at = NamePopup.PlacementRectangle;
+        check(ReferenceEquals(NamePopup.PlacementTarget, Content) && !at.IsEmpty && (at.Location - mouse).Length < 20,
+            $"«Nueva etiqueta…» desde un menú abre el cuadro junto al ratón ({(at.IsEmpty ? "sin punto" : $"{at.X:0},{at.Y:0}")}; ratón {mouse.X:0},{mouse.Y:0}; " +
+            $"ancla {NamePopup.PlacementTarget?.GetType().Name})");
         NameBox.Text = "Boss";
         CloseNaming(commit: true);
         PromptNewLabel(CollectionButton, null);

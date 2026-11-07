@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -247,8 +247,12 @@ public partial class MainWindow
     // Clic fuera del campo: se guarda lo escrito.
     private void OnNamePopupClosed(object? sender, EventArgs e) => CloseNaming(commit: true);
 
-    // El mismo cuadro, para otros nombres (colecciones), colocado bajo "target".
-    private void PromptName(string caption, string initial, UIElement target, Action<string> done)
+    /// <summary>
+    /// El mismo cuadro, para otros nombres (colecciones, etiquetas, bookmarks de otros vídeos), junto a lo que se pulsó:
+    /// bajo "target" (un botón, una fila) o, sin él (desde un menú), bajo el ratón, donde se eligió la opción. WPF lo
+    /// mete en la pantalla si no cabe.
+    /// </summary>
+    private void PromptName(string caption, string initial, UIElement? target, Action<string> done)
     {
         CloseNaming(commit: false);
         _prompt = done;
@@ -256,8 +260,19 @@ public partial class MainWindow
         NameCaption.Text = caption;
         NameBox.Text = initial;
         NamePopup.Placement = PlacementMode.Bottom;
-        NamePopup.PlacementTarget = target;
-        NamePopup.PlacementRectangle = Rect.Empty;
+        if (target != null)
+        {
+            NamePopup.PlacementTarget = target;
+            NamePopup.PlacementRectangle = Rect.Empty;
+        }
+        else
+        {
+            // Un punto fijo en la ventana (no MousePoint): así, si se mueve la ventana, el cuadro va con ella.
+            var root = (UIElement)Content;
+            var mouse = Mouse.GetPosition(root);
+            NamePopup.PlacementTarget = root;
+            NamePopup.PlacementRectangle = new Rect(mouse.X, mouse.Y, 0, 0);
+        }
         NamePopup.HorizontalOffset = 0;
         NamePopup.VerticalOffset = 4;
         NamePopup.IsOpen = true;
@@ -762,7 +777,7 @@ public partial class MainWindow
         var header = new MenuItem { Header = bookmark.Name, IsEnabled = false };
         menu.Items.Add(header);
 
-        AddLabelMenu(menu, bookmark.Label, mixed: false, id => SetBookmarkLabel(bookmark, id), target);
+        AddLabelMenu(menu, bookmark.Label, mixed: false, id => SetBookmarkLabel(bookmark, id));
         // Con etiqueta se pinta con el color de ella: el propio solo cuenta sin etiqueta.
         if (_labels.Find(bookmark.Label) == null)
             AddColorMenu(menu, bookmark.Color, hex => _bookmarks?.Update(bookmark.Id, b => b.Color = hex));
@@ -879,7 +894,7 @@ public partial class MainWindow
         }
         menu.Items.Add(new Separator());
         var create = new MenuItem { Header = "Nueva colección…" };
-        create.Click += (_, _) => PromptName("Nombre de la nueva colección", "", CollectionButton, name =>
+        create.Click += (_, _) => PromptName("Nombre de la nueva colección", "", null, name =>
         {
             if (BookmarkCollections.Clean(name) is not { } clean)
                 return;
@@ -893,7 +908,7 @@ public partial class MainWindow
         });
         menu.Items.Add(create);
         var rename = new MenuItem { Header = $"Renombrar «{active}»…" };
-        rename.Click += (_, _) => PromptName($"Nuevo nombre para «{active}»", active, CollectionButton, name =>
+        rename.Click += (_, _) => PromptName($"Nuevo nombre para «{active}»", active, null, name =>
         {
             if (BookmarkCollections.Clean(name) is not { } clean || clean == active)
                 return;
@@ -1302,7 +1317,7 @@ public partial class MainWindow
             IsEnabled = false,
         });
         var labels = rows.Select(r => _labels.Find(r.Bookmark.Label)?.Id).Distinct().ToList();
-        AddLabelMenu(menu, labels[0], mixed: labels.Count > 1, id => SetRowsLabel(rows, id), BookmarkList);
+        AddLabelMenu(menu, labels[0], mixed: labels.Count > 1, id => SetRowsLabel(rows, id));
         if (labels.Contains(null))
             AddColorMenu(menu, rows.Select(r => r.Bookmark.Color).Distinct().Count() == 1 ? rows[0].Bookmark.Color : null,
             hex => EditRows(rows, rows.Count == 1 ? $"color de «{rows[0].Name}»" : $"color de {rows.Count} bookmarks",
@@ -1320,7 +1335,7 @@ public partial class MainWindow
         if (rows.Count == 1)
         {
             var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
-            rename.Click += (_, _) => RenameRow(rows[0]);
+            rename.Click += (_, _) => RenameRow(rows[0], fromMenu: true);
             menu.Items.Add(rename);
         }
         var delete = new MenuItem { Header = rows.Count == 1 ? "Borrar" : $"Borrar los {rows.Count}", InputGestureText = "Supr" };
@@ -1359,14 +1374,16 @@ public partial class MainWindow
         ShowToast(rows.Count == 1 ? $"Movido a «{collection}» · Ctrl + Z lo devuelve" : $"Movidos {rows.Count} a «{collection}» · Ctrl + Z los devuelve");
     }
 
-    private void RenameRow(BookmarkRow row)
+    // Desde el menú, el cuadro sale junto al ratón; con F2, bajo la fila.
+    private void RenameRow(BookmarkRow row, bool fromMenu = false)
     {
         if (row.IsCurrentVideo && _bookmarks?.Find(row.Id) is { } bookmark)
         {
             BeginRename(bookmark, isNew: false);
             return;
         }
-        PromptName($"Renombrar bookmark · {row.VideoName}", row.Name, BookmarkList, name =>
+        var target = fromMenu ? null : BookmarkList.ItemContainerGenerator.ContainerFromItem(row) as UIElement ?? BookmarkList;
+        PromptName($"Renombrar bookmark · {row.VideoName}", row.Name, target, name =>
         {
             if (name != row.Name)
                 EditRows([row], $"renombrar «{row.Name}»",
@@ -1473,7 +1490,7 @@ public partial class MainWindow
         if (move.Items.Count > 0)
             move.Items.Add(new Separator());
         var create = new MenuItem { Header = "Nueva colección…" };
-        create.Click += (_, _) => PromptName("Nombre de la colección a la que moverlos", "", CollectionButton, name =>
+        create.Click += (_, _) => PromptName("Nombre de la colección a la que moverlos", "", null, name =>
         {
             if (BookmarkCollections.Clean(name) is not { } clean || clean == active)
                 return;
