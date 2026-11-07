@@ -753,18 +753,14 @@ public partial class MainWindow
     }
 
     // Menú de un bookmark (clic derecho en su marca o en el panel): actúa sobre él sin seleccionarlo (no cambia la zona).
+    // Ir a él es pinchar en él, y exportar los bookmarks junto al vídeo está en el botón del panel. Orden: lo que lo
+    // cambia, lo que hace con el vídeo y, al final, renombrar y borrar.
     private void ShowBookmarkMenu(Bookmark bookmark, UIElement target)
     {
         HoverPopup.IsOpen = false;
         var menu = new ContextMenu { PlacementTarget = target, Placement = PlacementMode.MousePoint };
         var header = new MenuItem { Header = bookmark.Name, IsEnabled = false };
         menu.Items.Add(header);
-        var go = new MenuItem { Header = "Ir a la región", InputGestureText = bookmark.Id == _selectedBookmark ? "Enter" : "" };
-        go.Click += (_, _) => JumpTo(bookmark);
-        menu.Items.Add(go);
-        var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
-        rename.Click += (_, _) => BeginRename(bookmark, isNew: false);
-        menu.Items.Add(rename);
 
         AddLabelMenu(menu, bookmark.Label, mixed: false, id => SetBookmarkLabel(bookmark, id), target);
         // Con etiqueta se pinta con el color de ella: el propio solo cuenta sin etiqueta.
@@ -792,16 +788,17 @@ public partial class MainWindow
         }
 
         menu.Items.Add(new Separator());
-        var delete = new MenuItem { Header = "Borrar", InputGestureText = bookmark.Id == _selectedBookmark ? "Supr" : "" };
-        delete.Click += (_, _) => DeleteBookmark(bookmark);
-        menu.Items.Add(delete);
-        menu.Items.Add(new Separator());
         AddExportMenu(menu, _bookmarks?.VideoPath, bookmark.Start, EndOf(bookmark), bookmark.Name);
         if (_bookmarks != null)
             AddRevealItem(menu, _bookmarks.VideoPath);
-        var export = new MenuItem { Header = "Exportar bookmarks junto al vídeo" };
-        export.Click += (_, _) => ExportBookmarks();
-        menu.Items.Add(export);
+
+        menu.Items.Add(new Separator());
+        var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
+        rename.Click += (_, _) => BeginRename(bookmark, isNew: false);
+        menu.Items.Add(rename);
+        var delete = new MenuItem { Header = "Borrar", InputGestureText = bookmark.Id == _selectedBookmark ? "Supr" : "" };
+        delete.Click += (_, _) => DeleteBookmark(bookmark);
+        menu.Items.Add(delete);
         menu.IsOpen = true;
     }
 
@@ -1292,8 +1289,9 @@ public partial class MainWindow
         e.Handled = true;
     }
 
-    // Menú con varios bookmarks elegidos: lo que tiene sentido para todos a la vez.
-    // Menú para varios elegidos en el panel, o para uno de otro vídeo: lo que se puede hacer sin abrir su vídeo.
+    // Menú para varios elegidos en el panel, o para uno de otro vídeo: lo que se puede hacer sin abrir su vídeo. Mismo
+    // orden que el de un bookmark: lo que los cambia, lo que hace con el vídeo (con uno solo) y, al final, renombrar y
+    // borrar. Ir a uno (también de otro vídeo) es pinchar en él.
     private void ShowMultiMenu(List<BookmarkRow> rows)
     {
         var menu = new ContextMenu { PlacementTarget = BookmarkList, Placement = PlacementMode.MousePoint };
@@ -1303,19 +1301,6 @@ public partial class MainWindow
             Header = rows.Count == 1 ? rows[0].Name : videos == 1 ? $"{rows.Count} bookmarks" : $"{rows.Count} bookmarks de {videos} vídeos",
             IsEnabled = false,
         });
-        if (rows.Count == 1)
-        {
-            var go = new MenuItem { Header = "Abrir su vídeo e ir", InputGestureText = "Enter" };
-            go.Click += (_, _) => OpenRow(rows[0]);
-            menu.Items.Add(go);
-            var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
-            rename.Click += (_, _) => RenameRow(rows[0]);
-            menu.Items.Add(rename);
-            var video = rows[0].VideoPath ?? (rows[0].IsCurrentVideo ? _bookmarks?.VideoPath : null);
-            AddRevealItem(menu, video);
-            var region = rows[0].Bookmark;
-            AddExportMenu(menu, video, region.Start, EndOf(region, rows[0].IsCurrentVideo ? null : FpsOf(rows[0].Fingerprint)), region.Name);
-        }
         var labels = rows.Select(r => _labels.Find(r.Bookmark.Label)?.Id).Distinct().ToList();
         AddLabelMenu(menu, labels[0], mixed: labels.Count > 1, id => SetRowsLabel(rows, id), BookmarkList);
         if (labels.Contains(null))
@@ -1323,6 +1308,21 @@ public partial class MainWindow
             hex => EditRows(rows, rows.Count == 1 ? $"color de «{rows[0].Name}»" : $"color de {rows.Count} bookmarks",
                 (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id))) { b.Color = hex; b.Modified = DateTime.Now; } }));
         AddMoveMenu(menu, collection => MoveRows(rows, collection));
+        if (rows.Count == 1)
+        {
+            menu.Items.Add(new Separator());
+            var video = rows[0].VideoPath ?? (rows[0].IsCurrentVideo ? _bookmarks?.VideoPath : null);
+            var region = rows[0].Bookmark;
+            AddExportMenu(menu, video, region.Start, EndOf(region, rows[0].IsCurrentVideo ? null : FpsOf(rows[0].Fingerprint)), region.Name);
+            AddRevealItem(menu, video);
+        }
+        menu.Items.Add(new Separator());
+        if (rows.Count == 1)
+        {
+            var rename = new MenuItem { Header = "Renombrar", InputGestureText = "F2" };
+            rename.Click += (_, _) => RenameRow(rows[0]);
+            menu.Items.Add(rename);
+        }
         var delete = new MenuItem { Header = rows.Count == 1 ? "Borrar" : $"Borrar los {rows.Count}", InputGestureText = "Supr" };
         delete.Click += (_, _) => DeleteRows(rows);
         menu.Items.Add(delete);

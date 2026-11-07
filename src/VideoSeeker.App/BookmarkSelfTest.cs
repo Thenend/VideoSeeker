@@ -297,8 +297,13 @@ public partial class MainWindow
                 { Video = "zzz después.mp4", Fingerprint = "0000000000000002", Bookmarks = [new Bookmark { Id = "x2", Name = "otro después", Start = 1 }] });
             _otherFiles = null;
             RefreshRows();
-            Check(_rows.Count >= 3 && _rows[0].Id == "x1" && _rows[^1].Id == "x2" && !_rows[0].IsCurrentVideo,
-                $"«todos» va por nombre de vídeo: {string.Join(", ", _rows.Select(r => r.Name))}");
+            // Puede haber bookmarks de otros vídeos de verdad: se mira el orden relativo, no las posiciones.
+            var x1 = _rows.ToList().FindIndex(r => r.Id == "x1");
+            var x2 = _rows.ToList().FindIndex(r => r.Id == "x2");
+            var here = _rows.ToList().FindIndex(r => r.IsCurrentVideo);
+            var hereLast = _rows.ToList().FindLastIndex(r => r.IsCurrentVideo);
+            Check(x1 >= 0 && x2 >= 0 && here > x1 && hereLast < x2,
+                $"«todos» va por nombre de vídeo, el abierto en su sitio: {string.Join(", ", _rows.Select(r => r.Name))}");
             foreach (var f in new[] { "0000000000000001.json", "0000000000000002.json" })
             {
                 File.Delete(Path.Combine(folder, f));
