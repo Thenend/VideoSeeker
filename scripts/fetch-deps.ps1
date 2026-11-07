@@ -19,9 +19,14 @@ if (-not (Test-Path (Join-Path $mpvDir 'libmpv-2.dll'))) {
         Invoke-WebRequest -Uri $url -OutFile $archive
     }
     New-Item -ItemType Directory -Force $mpvDir | Out-Null
-    # El tar de Windows 11 (libarchive) sabe extraer .7z
+    # El tar de Windows 11 (libarchive) sabe extraer .7z; el de Windows 10 no (sin LZMA): entonces, 7-Zip si está.
     & "$env:SystemRoot\System32\tar.exe" -xf $archive -C $mpvDir
-    if ($LASTEXITCODE -ne 0) { throw "No se pudo extraer $archive" }
+    if ($LASTEXITCODE -ne 0) {
+        $sevenZip = @("$env:ProgramFiles\7-Zip\7z.exe", "${env:ProgramFiles(x86)}\7-Zip\7z.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+        if (-not $sevenZip) { throw "No se pudo extraer $archive (en Windows 10 hace falta 7-Zip)" }
+        & $sevenZip x $archive "-o$mpvDir" -y | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "No se pudo extraer $archive" }
+    }
     Remove-Item $archive
 }
 
