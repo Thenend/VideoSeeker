@@ -339,7 +339,11 @@
             <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Accent}" BorderThickness="1"
                     CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
                 <StackPanel Width="260">
-                    <TextBlock x:Name="NameCaption" Foreground="{StaticResource FgMuted}" FontSize="11.5" Margin="0,0,0,4" />
+                    <!-- Arriba qué se nombra; debajo, más tenue, de qué (el tramo de la región, el vídeo): en dos líneas
+                         cabe siempre, también con horas o nombres largos. -->
+                    <TextBlock x:Name="NameCaption" Foreground="{StaticResource Fg}" FontSize="11.5" TextWrapping="Wrap" />
+                    <TextBlock x:Name="NameDetail" Foreground="{StaticResource FgMuted}" FontSize="11" TextWrapping="Wrap" Visibility="Collapsed" />
+                    <Border Height="4" />
                     <TextBox x:Name="NameBox" Style="{StaticResource DarkTextBox}" PreviewKeyDown="OnNameBoxKeyDown" />
                     <!-- Solo con un bookmark: etiquetas (clic o Alt + número), «Sin etiqueta», «+ Nueva» y los colores sueltos.
                          O etiqueta o color: elegir un color quita la etiqueta. -->

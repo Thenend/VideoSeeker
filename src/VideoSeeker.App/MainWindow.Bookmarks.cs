@@ -212,7 +212,7 @@ public partial class MainWindow
         _namingColor = bookmark.Color;
         _namingCreatedLabel = false;
         BuildNameChips();
-        NameCaption.Text = (isNew ? "Nuevo bookmark" : "Renombrar bookmark") + " · " + RangeText(bookmark, withFrames: true);
+        SetNameCaption(isNew ? "Nuevo bookmark" : "Renombrar bookmark", RangeText(bookmark, withFrames: true));
         NameBox.Text = bookmark.Name;
         NamePopup.Placement = PlacementMode.Top;
         NamePopup.VerticalOffset = 0;
@@ -226,6 +226,14 @@ public partial class MainWindow
             Keyboard.Focus(NameBox);
             NameBox.SelectAll();
         }, DispatcherPriority.Input);
+    }
+
+    // Título del cuadro del nombre y, en otra línea más tenue, de qué es (si hay algo que decir).
+    private void SetNameCaption(string title, string? detail)
+    {
+        NameCaption.Text = title;
+        NameDetail.Text = detail ?? "";
+        NameDetail.Visibility = string.IsNullOrEmpty(detail) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void OnNameBoxKeyDown(object sender, KeyEventArgs e)
@@ -252,12 +260,12 @@ public partial class MainWindow
     /// bajo "target" (un botón, una fila) o, sin él (desde un menú), bajo el ratón, donde se eligió la opción. WPF lo
     /// mete en la pantalla si no cabe.
     /// </summary>
-    private void PromptName(string caption, string initial, UIElement? target, Action<string> done)
+    private void PromptName(string caption, string initial, UIElement? target, Action<string> done, string? detail = null)
     {
         CloseNaming(commit: false);
         _prompt = done;
         BuildNameChips();
-        NameCaption.Text = caption;
+        SetNameCaption(caption, detail);
         NameBox.Text = initial;
         NamePopup.Placement = PlacementMode.Bottom;
         if (target != null)
@@ -1459,12 +1467,12 @@ public partial class MainWindow
             return;
         }
         var target = fromMenu ? null : BookmarkList.ItemContainerGenerator.ContainerFromItem(row) as UIElement ?? BookmarkList;
-        PromptName($"Renombrar bookmark · {row.VideoName}", row.Name, target, name =>
+        PromptName("Renombrar bookmark", row.Name, target, name =>
         {
             if (name != row.Name)
                 EditRows([row], $"renombrar «{row.Name}»",
                     (file, ids) => { foreach (var b in file.Bookmarks.Where(b => ids.Contains(b.Id))) { b.Name = name; b.Modified = DateTime.Now; } });
-        });
+        }, detail: row.VideoName);
     }
 
     /// <summary>
