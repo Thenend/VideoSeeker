@@ -65,12 +65,20 @@ public partial class App : Application
             return;
         }
         var path = FullPath(e.Args.FirstOrDefault());
-        _instance = new SingleInstance();
-        if (!_instance.IsFirst && SingleInstance.Forward(path))
+        // Las autopruebas van por su cuenta: con la app de Mario abierta no le pasan el vídeo a ella, ni reciben los
+        // que él abra.
+        var selfTest = Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST");
+        if (selfTest == null)
         {
-            Shutdown();
-            return;
+            _instance = new SingleInstance();
+            if (!_instance.IsFirst && SingleInstance.Forward(path))
+            {
+                Shutdown();
+                return;
+            }
         }
+        if (selfTest == "rapida")
+            global::VideoSeeker.App.MainWindow.WatchBindingErrors();
 
         var store = new DataStore();
         Mark("datos cargados");
@@ -90,10 +98,10 @@ public partial class App : Application
         playerReady.Wait();
         window.StartEarly();
         Mark("mpv arrancado");
-        _instance.Listen(p => window.Dispatcher.BeginInvoke(() => window.OpenFromOtherInstance(p)));
+        _instance?.Listen(p => window.Dispatcher.BeginInvoke(() => window.OpenFromOtherInstance(p)));
         window.Show();
         // Las autopruebas pueden ejecutarse desde una copia en otra carpeta: no se apunta Windows a ella.
-        if (Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") == null)
+        if (selfTest == null)
             Task.Run(FileAssociations.RefreshIfMoved);
     }
 

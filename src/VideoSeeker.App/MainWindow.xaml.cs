@@ -307,6 +307,9 @@ public partial class MainWindow : Window
                 OnStartupShown();
                 // El motor de inspección se crea después del primer frame para no retrasar el arranque.
                 Dispatcher.BeginInvoke(CreateEngine, DispatcherPriority.Background);
+                // La prueba rápida no espera al motor (si no arranca, es uno de sus fallos).
+                if (QuickSelfTestEnabled)
+                    _ = RunQuickSelfTest();
             }
         });
     }
