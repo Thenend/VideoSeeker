@@ -351,6 +351,8 @@ public partial class MainWindow : Window
                 _ = RunBookmarkSelfTest();
             if (ZoneSelfTestEnabled)
                 _ = RunZoneSelfTest();
+            if (JumpSelfTestEnabled)
+                _ = RunJumpSelfTest();
             if (SettingsSelfTestEnabled)
                 _ = RunSettingsSelfTest();
             if (ClipSelfTestEnabled)

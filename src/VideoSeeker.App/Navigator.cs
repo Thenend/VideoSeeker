@@ -542,22 +542,51 @@ public sealed class Navigator(MpvPlayer player)
         var origin = EnterLoopRange(reverse: true);
         if (origin == null && RestartTarget(reverse: true) is { } end)
         {
-            // En el primer frame, marcha atrás vuelve a empezar desde el final; si no está en caché, el reloj espera a
-            // que llegue la imagen de allí.
-            if (_engine != null && _engine.ShowAt(end))
-            {
-                Shown();
-            }
-            else
-            {
-                HideOnNextRestart();
-                player.ScrubTo(end);
-                _engine?.Focus(end);
-                _reverseWrap = (end, Stopwatch.StartNew());
-            }
+            // En el primer frame, marcha atrás vuelve a empezar desde el final.
+            ShowForReverse(end);
             origin = end;
         }
         RestartReverseClock(origin ?? CurrentTime);
+        _reverseSpeed = speed;
+        CompositionTarget.Rendering += OnReverseTick;
+        SpeedChanged?.Invoke();
+    }
+
+    // Marcha atrás salta a "time": de la caché si está; si no, el reloj espera a que llegue la imagen de allí.
+    private void ShowForReverse(double time)
+    {
+        if (_engine != null && _engine.ShowAt(time))
+        {
+            Shown();
+            return;
+        }
+        HideOnNextRestart();
+        player.ScrubTo(time);
+        _engine?.Focus(time);
+        _reverseWrap = (time, Stopwatch.StartNew());
+    }
+
+    /// <summary>
+    /// Ir a un sitio (un bookmark) sin cambiar cómo se reproduce: en pausa sigue en pausa, reproduciendo sigue
+    /// reproduciendo desde allí y en marcha atrás sigue hacia atrás desde allí (salvo en el primer frame: ahí se para).
+    /// </summary>
+    public void GoTo(double time)
+    {
+        if (!Reversing)
+        {
+            SeekTo(time);
+            return;
+        }
+        var speed = _reverseSpeed;
+        time = ClampTime(time);
+        StopReverse();
+        if (time <= 0.5 / Fps)
+        {
+            SeekTo(time);
+            return;
+        }
+        ShowForReverse(time);
+        RestartReverseClock(time);
         _reverseSpeed = speed;
         CompositionTarget.Rendering += OnReverseTick;
         SpeedChanged?.Invoke();
@@ -696,17 +725,7 @@ public sealed class Navigator(MpvPlayer player)
             // El último frame que empieza antes del final del tramo.
             var last = Math.Max(loop.Start, loop.End - frame / 2);
             RestartReverseClock(last);
-            if (_engine != null && _engine.ShowAt(last))
-            {
-                Shown();
-            }
-            else
-            {
-                HideOnNextRestart();
-                player.ScrubTo(last);
-                _engine?.Focus(last);
-                _reverseWrap = (last, System.Diagnostics.Stopwatch.StartNew());
-            }
+            ShowForReverse(last);
             return;
         }
 
@@ -722,10 +741,19 @@ public sealed class Navigator(MpvPlayer player)
                 StopReverse(); // principio del vídeo
                 return;
             }
+            else if (_region is { } region && target < region.Start - frame && from >= region.Start - frame)
+            {
+                // Saliendo hacia atrás del tramo de zoom sin el frame anterior en caché: el foco se lleva a donde va el
+                // reloj. Si no, se quedaba en el tramo (al ir a una región, que pasa a ser la zona, marcha atrás) y solo
+                // se precargaba el tramo: lo de antes no llegaba nunca.
+                engine.Focus(target);
+            }
             var maxLag = Math.Max(3 * frame, 0.05 * _reverseSpeed);
             var lag = CurrentTime - target;
+            // El reloj espera: no se aleja más de maxLag por debajo del frame que se ve. (Restarlo lo alejaba más a cada
+            // refresco y, sin frames en caché donde se ve, en un instante llegaba al principio del vídeo y se paraba.)
             if (lag > maxLag)
-                _reverseOrigin -= lag - maxLag;
+                _reverseOrigin += lag - maxLag;
         }
         else
         {

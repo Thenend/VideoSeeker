@@ -422,7 +422,8 @@ public partial class MainWindow
         if (_awaitingDuration)
             _pendingSelect = bookmark.Id;
         Select(bookmark.Id);
-        _nav.SeekTo(bookmark.Start);
+        // Sin cambiar cómo se reproduce: en pausa sigue en pausa; reproduciendo (también hacia atrás), sigue desde él.
+        _nav.GoTo(bookmark.Start);
         ShowToast(bookmark.Name);
     }
 
@@ -486,7 +487,7 @@ public partial class MainWindow
         if (part == BookmarkPart.End)
             return;
         if (_store.Settings.ShowDraggedEdgeFrame)
-            _nav.SeekTo(bookmark.Start);
+            _nav.GoTo(bookmark.Start);
         else
             _bookmarkPressGo = bookmark.Start;
     }
@@ -567,7 +568,7 @@ public partial class MainWindow
         else if (go is { } time)
         {
             // Un clic: ahora sí, ir al bookmark.
-            _nav.SeekTo(time);
+            _nav.GoTo(time);
         }
         // Soltado: la barra de zoom ya se puede reencuadrar a la zona.
         if (_freezeZoomView)
