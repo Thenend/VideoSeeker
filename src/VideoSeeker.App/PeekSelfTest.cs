@@ -62,7 +62,9 @@ public partial class MainWindow
                 return await WaitExact();
             }
 
-            // Lo que ya está en la caché de frames (la línea verde) sale al momento, reducido en la GPU.
+            // Lo que ya está en la caché de frames (la línea verde) sale al momento, reducido en la GPU. La caché se
+            // llena en pausa.
+            _nav.Pause();
             (double Start, double End)? cachedRange = null;
             for (var i = 0; i < 100 && cachedRange == null; i++)
             {
@@ -80,6 +82,12 @@ public partial class MainWindow
                 Check(PeekPopup.IsOpen && _peekExact && PeekFromGpu == gpuBefore + 1,
                     $"en caché ({range.Start:0.00}–{range.End:0.00} s): sale de la GPU en {gpuMs:0.0} ms");
                 SavePeekSnapshot(PeekPopup.Child as FrameworkElement, "selftest-vistazo-gpu.png");
+                // La primera crea las texturas; la siguiente, lo que cuesta de normal.
+                var other = Seek.TrackPoint(range.Start + (range.End - range.Start) * 0.75);
+                clock.Restart();
+                Seek.SimulateHover(other);
+                var nextMs = clock.Elapsed.TotalMilliseconds;
+                Check(PeekPopup.IsOpen && _peekExact && PeekFromGpu == gpuBefore + 2, $"otro frame en caché: {nextMs:0.0} ms");
                 Seek.SimulateLeave();
             }
             else
