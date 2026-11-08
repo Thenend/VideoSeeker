@@ -90,8 +90,14 @@ public partial class MainWindow
         // Un menú que se acaba de abrir: captura, sus opciones (y las de los submenús) y se cierra.
         async Task InspectMenu(string part, string png)
         {
-            await Task.Delay(300);
-            var menu = OpenContextMenus().FirstOrDefault();
+            // Hasta 2 s: en un equipo cargado el menú tarda más en abrirse.
+            ContextMenu? menu = null;
+            for (var i = 0; i < 20 && menu == null; i++)
+            {
+                await Task.Delay(100);
+                menu = OpenContextMenus().FirstOrDefault();
+            }
+            await Task.Delay(150); // que acabe de dibujarse antes de la captura
             Check(menu != null, $"menú {part}: se abre");
             if (menu == null)
                 return;
@@ -126,7 +132,10 @@ public partial class MainWindow
                 ToggleOpenPanel();
             await Task.Delay(300);
             UpdateLayout();
-            SaveWindowSnapshot(this, Png("ventana"));
+            // Con el fondo de la app debajo: la barra de controles es transparente y saldría en blanco. (El vídeo va en
+            // su propia ventana nativa y sale negro.)
+            if (Content is FrameworkElement main)
+                SaveVisualSnapshot(main, Png("ventana"));
             Inspect("Ventana principal", this, trimmedIsFailure: false);
 
             // Ajustes: la ventana entera (también lo que hay que desplazar para ver).
@@ -158,7 +167,9 @@ public partial class MainWindow
 
             // El cuadro del nombre (F2), sin cambiar nada.
             BeginRename(probe, isNew: false);
-            await Task.Delay(300);
+            for (var i = 0; i < 20 && !NamePopup.IsOpen; i++)
+                await Task.Delay(100);
+            await Task.Delay(200);
             Check(NamePopup.IsOpen, "el cuadro del nombre se abre");
             if (NamePopup.Child is FrameworkElement box)
             {
