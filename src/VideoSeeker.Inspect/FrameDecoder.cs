@@ -205,16 +205,9 @@ public sealed unsafe class FrameDecoder : IDisposable
     // Códecs antiguos sin D3D11VA: se convierten a BGRA en CPU. Son de baja resolución, así que es barato.
     private CachedFrame CaptureSoftware(double time, int width, int height, double aspect)
     {
-        _sws = ffmpeg.sws_getCachedContext(_sws, _frame->width, _frame->height, (AVPixelFormat)_frame->format,
-            width, height, AVPixelFormat.AV_PIX_FMT_BGRA, (int)SwsFlags.SWS_BILINEAR, null, null, null);
-        var stride = width * 4;
-        var pixels = new byte[stride * height];
-        fixed (byte* dst = pixels)
+        var dst = FFmpegLib.ScaleToBgra(ref _sws, _frame, width, height, (int)SwsFlags.SWS_BILINEAR, out var stride);
+        try
         {
-            var dstData = new byte*[] { dst, null, null, null };
-            var dstStride = new[] { stride, 0, 0, 0 };
-            ffmpeg.sws_scale(_sws, _frame->data.ToArray(), _frame->linesize.ToArray(), 0, _frame->height, dstData, dstStride);
-
             var texture = _gpu.Device.CreateTexture2D(
                 new Texture2DDescription(Format.B8G8R8A8_UNorm, (uint)width, (uint)height, 1, 1, BindFlags.ShaderResource, ResourceUsage.Immutable),
                 new SubresourceData(dst, (uint)stride));
@@ -223,8 +216,12 @@ public sealed unsafe class FrameDecoder : IDisposable
             {
                 Pts = CurrentPts, Time = time, Width = width, Height = height, DisplayAspect = aspect,
                 Layout = FrameLayout.Bgra, Color = new ColorInfo(ColorMatrix.Bt601, true, TransferCurve.Sdr, 8),
-                Bytes = pixels.Length, Texture = texture, Plane0 = view,
+                Bytes = (long)width * height * 4, Texture = texture, Plane0 = view,
             };
+        }
+        finally
+        {
+            ffmpeg.av_free(dst);
         }
     }
 

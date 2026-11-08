@@ -105,17 +105,21 @@ public sealed unsafe class Thumbnailer : IDisposable
         var sar = frame->sample_aspect_ratio.num > 0 ? ffmpeg.av_q2d(frame->sample_aspect_ratio) : 1;
         var aspect = frame->width * sar / Math.Max(1, frame->height);
         var height = Math.Max(2, (int)Math.Round(width / aspect / 2) * 2);
-        _sws = ffmpeg.sws_getCachedContext(_sws, frame->width, frame->height, (AVPixelFormat)frame->format,
-            width, height, AVPixelFormat.AV_PIX_FMT_BGRA, (int)SwsFlags.SWS_AREA, null, null, null);
-        var stride = width * 4;
-        var pixels = new byte[stride * height];
-        fixed (byte* dst = pixels)
+        // A un búfer nativo con margen y luego al array, fila a fila (ver FFmpegLib.ScaleToBgra).
+        var src = FFmpegLib.ScaleToBgra(ref _sws, frame, width, height, (int)SwsFlags.SWS_AREA, out var srcStride);
+        try
         {
-            var dstData = new byte*[] { dst, null, null, null };
-            var dstStride = new[] { stride, 0, 0, 0 };
-            ffmpeg.sws_scale(_sws, frame->data.ToArray(), frame->linesize.ToArray(), 0, frame->height, dstData, dstStride);
+            var stride = width * 4;
+            var pixels = new byte[stride * height];
+            fixed (byte* dst = pixels)
+                for (var y = 0; y < height; y++)
+                    Buffer.MemoryCopy(src + (long)y * srcStride, dst + (long)y * stride, stride, stride);
+            return (pixels, width, height);
         }
-        return (pixels, width, height);
+        finally
+        {
+            ffmpeg.av_free(src);
+        }
     }
 
     public void Dispose()
