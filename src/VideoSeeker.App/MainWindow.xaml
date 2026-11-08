@@ -140,11 +140,11 @@
             <Button x:Name="LoopButton" Style="{StaticResource ToolButton}" FontFamily="{StaticResource Icons}" Content="&#xE8EE;"
                     Width="56" Margin="0,0,6,0" ToolTip="Bucle del vídeo (R)" Click="OnLoopClick" />
             <RepeatButton Style="{StaticResource ToolRepeatButton}" FontFamily="{StaticResource Icons}" Content="&#xE892;"
-                          ToolTip="Frame anterior (,)" Click="OnStepBackClick" />
+                          ToolTip="Frame anterior (,) · rueda: frame a frame" Click="OnStepBackClick" MouseWheel="OnFrameWheel" />
             <Button x:Name="PlayButton" Style="{StaticResource ToolButton}" FontFamily="{StaticResource Icons}" FontSize="18"
-                    Content="&#xE768;" ToolTip="Reproducir / pausar (Espacio). J / K / L: atrás / pausa / adelante · rueda: frame a frame" Click="OnPlayClick" MouseWheel="OnPlayWheel" />
+                    Content="&#xE768;" ToolTip="Reproducir / pausar (Espacio). J / K / L: atrás / pausa / adelante · rueda: frame a frame" Click="OnPlayClick" MouseWheel="OnFrameWheel" />
             <RepeatButton Style="{StaticResource ToolRepeatButton}" FontFamily="{StaticResource Icons}" Content="&#xE893;"
-                          ToolTip="Frame siguiente (.)" Click="OnStepForwardClick" />
+                          ToolTip="Frame siguiente (.) · rueda: frame a frame" Click="OnStepForwardClick" MouseWheel="OnFrameWheel" />
             <Button x:Name="SpeedButton" Style="{StaticResource ToolButton}" Width="56" Margin="6,0,0,0" Padding="4,4"
                     ToolTip="Velocidad · rueda: ±0,1 · botón central: 1×" Click="OnSpeedClick" MouseWheel="OnSpeedWheel"
                     PreviewMouseDown="OnMiddleClick">

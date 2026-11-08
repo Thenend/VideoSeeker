@@ -1390,8 +1390,8 @@ public partial class MainWindow : Window
 
     private void OnPlayClick(object sender, RoutedEventArgs e) => _nav.TogglePlay();
 
-    // Rueda sobre el play: siempre frame a frame (hacia arriba, el siguiente), con o sin modificadores.
-    private void OnPlayWheel(object sender, MouseWheelEventArgs e)
+    // Rueda sobre el play y los botones de frame: siempre frame a frame (hacia arriba, el siguiente), con o sin modificadores.
+    private void OnFrameWheel(object sender, MouseWheelEventArgs e)
     {
         if (_duration > 0)
             WheelSteps(e.Delta, steps =>
