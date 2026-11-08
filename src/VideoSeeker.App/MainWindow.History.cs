@@ -79,12 +79,21 @@ public partial class MainWindow
     {
         HistoryBackButton.IsEnabled = _videoHistoryIndex > 0;
         HistoryForwardButton.IsEnabled = _videoHistoryIndex >= 0 && _videoHistoryIndex < _videoHistory.Count - 1;
-        HistoryBackButton.ToolTip = HistoryTip("Atrás (Alt + ←)", _videoHistoryIndex - 1);
-        HistoryForwardButton.ToolTip = HistoryTip("Adelante (Alt + →)", _videoHistoryIndex + 1);
+        HistoryBackButton.ToolTip = HistoryTip("Volver al vídeo que se abrió antes (Alt + ←)", _videoHistoryIndex - 1,
+            Math.Max(_videoHistoryIndex, 0), "Aún no hay ninguno: aparece al abrir otro vídeo", "anteriores");
+        HistoryForwardButton.ToolTip = HistoryTip("Ir al vídeo que se abrió después (Alt + →)", _videoHistoryIndex + 1,
+            _videoHistory.Count - 1 - _videoHistoryIndex, "Solo tras volver a uno anterior", "siguientes");
     }
 
-    private string HistoryTip(string action, int index) =>
-        index >= 0 && index < _videoHistory.Count ? $"{action}\n{HistoryLabel(_videoHistory[index])}" : action;
+    // Con destino: el vídeo y dónde se dejó (y, si hay más de uno de ese lado, cómo verlos todos); sin él (botón
+    // desactivado), cuándo lo habrá.
+    private string HistoryTip(string action, int index, int count, string none, string side)
+    {
+        if (index < 0 || index >= _videoHistory.Count)
+            return $"{action}\n{none}";
+        var tip = $"{action}\n{HistoryLabel(_videoHistory[index])}";
+        return count > 1 ? $"{tip}\nClic derecho: los {count} {side}" : tip;
+    }
 
     private static string HistoryLabel(HistoryEntry entry) =>
         $"{Path.GetFileName(entry.Path)} · {TimeFormat.Format(entry.Position, withMilliseconds: false)}";
