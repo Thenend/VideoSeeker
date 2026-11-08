@@ -36,6 +36,13 @@ public sealed partial class FrameRenderer : IDisposable
     private readonly ID3D11Buffer _constants;
     private ID3D11RenderTargetView? _target;
     private int _width = 1, _height = 1;
+    // Miniaturas: se pinta a 4 veces su tamaño y se reduce con mipmaps (dos niveles de media 2×2), que con una sola
+    // lectura bilineal de un 4K a 320 px saldría todo dientes de sierra. Se rehacen solo si cambia el tamaño.
+    private const int ThumbScale = 4, ThumbMip = 2;
+    private ID3D11Texture2D? _thumbTexture, _thumbStaging;
+    private ID3D11RenderTargetView? _thumbTarget;
+    private ID3D11ShaderResourceView? _thumbView;
+    private int _thumbWidth, _thumbHeight;
 
     public bool Visible { get; private set; }
 
@@ -114,6 +121,84 @@ public sealed partial class FrameRenderer : IDisposable
         }
         // mpv puede recrear su ventana (al abrir otro archivo) por encima: la nuestra se vuelve a subir.
         SetWindowPos(_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+
+    /// <summary>
+    /// El frame reducido a "width" de ancho (alto según su proporción de pantalla) en BGRA, leído de la tarjeta. No toca
+    /// la ventana ni lo que se ve; espera a la GPU, pero a este tamaño es cuestión de un milisegundo.
+    /// </summary>
+    public (byte[] Pixels, int Width, int Height) RenderThumbnail(CachedFrame frame, int width)
+    {
+        var height = Math.Max(2, (int)Math.Round(width / frame.DisplayAspect / 2) * 2);
+        EnsureThumbTargets(width, height);
+        var parameters = BuildParams(frame);
+        var ctx = _gpu.Context;
+        ctx.UpdateSubresource(in parameters, _constants);
+        ctx.OMSetRenderTargets(_thumbTarget!);
+        ctx.RSSetViewport(new Viewport(0, 0, width * ThumbScale, height * ThumbScale));
+        ctx.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
+        ctx.VSSetShader(_vertexShader);
+        ctx.PSSetShader(_pixelShader);
+        ctx.PSSetSampler(0, _sampler);
+        ctx.PSSetConstantBuffer(0, _constants);
+        if (frame.Layout == FrameLayout.BiPlanar)
+        {
+            ctx.PSSetShaderResource(0, frame.Plane0);
+            ctx.PSSetShaderResource(1, frame.Plane1!);
+        }
+        else
+        {
+            ctx.PSSetShaderResource(2, frame.Plane0);
+        }
+        ctx.Draw(3, 0);
+        ctx.PSSetShaderResource(0, null!);
+        ctx.PSSetShaderResource(1, null!);
+        ctx.PSSetShaderResource(2, null!);
+        ctx.OMSetRenderTargets((ID3D11RenderTargetView)null!);
+        ctx.GenerateMips(_thumbView!);
+        ctx.CopySubresourceRegion(_thumbStaging!, 0, 0, 0, 0, _thumbTexture!, ThumbMip);
+
+        var stride = width * 4;
+        var pixels = new byte[stride * height];
+        var map = ctx.Map(_thumbStaging!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+        try
+        {
+            for (var y = 0; y < height; y++)
+                Marshal.Copy(map.DataPointer + (nint)(y * (long)map.RowPitch), pixels, y * stride, stride);
+        }
+        finally
+        {
+            ctx.Unmap(_thumbStaging!, 0);
+        }
+        return (pixels, width, height);
+    }
+
+    private void EnsureThumbTargets(int width, int height)
+    {
+        if (_thumbTexture != null && width == _thumbWidth && height == _thumbHeight)
+            return;
+        DisposeThumbTargets();
+        _thumbWidth = width;
+        _thumbHeight = height;
+        _thumbTexture = _gpu.Device.CreateTexture2D(new Texture2DDescription(Format.B8G8R8A8_UNorm,
+            (uint)(width * ThumbScale), (uint)(height * ThumbScale), arraySize: 1, mipLevels: ThumbMip + 1,
+            bindFlags: BindFlags.RenderTarget | BindFlags.ShaderResource, miscFlags: ResourceOptionFlags.GenerateMips));
+        _thumbTarget = _gpu.Device.CreateRenderTargetView(_thumbTexture);
+        _thumbView = _gpu.Device.CreateShaderResourceView(_thumbTexture);
+        _thumbStaging = _gpu.Device.CreateTexture2D(new Texture2DDescription(Format.B8G8R8A8_UNorm, (uint)width, (uint)height,
+            arraySize: 1, mipLevels: 1, bindFlags: BindFlags.None, usage: ResourceUsage.Staging, cpuAccessFlags: CpuAccessFlags.Read));
+    }
+
+    private void DisposeThumbTargets()
+    {
+        _thumbView?.Dispose();
+        _thumbTarget?.Dispose();
+        _thumbTexture?.Dispose();
+        _thumbStaging?.Dispose();
+        _thumbView = null;
+        _thumbTarget = null;
+        _thumbTexture = null;
+        _thumbStaging = null;
     }
 
     public void Hide()
@@ -220,6 +305,7 @@ public sealed partial class FrameRenderer : IDisposable
 
     public void Dispose()
     {
+        DisposeThumbTargets();
         _target?.Dispose();
         _constants.Dispose();
         _sampler.Dispose();

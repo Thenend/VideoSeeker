@@ -209,6 +209,24 @@ public sealed class InspectionEngine : IDisposable
         return true;
     }
 
+    /// <summary>
+    /// Miniatura del frame que se ve en "time" si está en la caché: se reduce en la GPU (con el mismo color que en
+    /// pantalla) y sale al momento, en BGRA de "width" de ancho. Null si no está o si la tarjeta falla.
+    /// </summary>
+    public (byte[] Pixels, int Width, int Height)? Thumbnail(double time, int width)
+    {
+        (byte[] Pixels, int Width, int Height)? result = null;
+        try
+        {
+            _cache.UseNear(time, FrameDuration / 2, frame => result = _renderer.RenderThumbnail(frame, width));
+        }
+        catch (SharpGen.Runtime.SharpGenException)
+        {
+            return null;
+        }
+        return result;
+    }
+
     /// <summary>Vídeo caro de decodificar (4K, keyframes muy separados). False si aún no se sabe.</summary>
     public bool IsHeavy => _filler?.IsHeavy == true;
 

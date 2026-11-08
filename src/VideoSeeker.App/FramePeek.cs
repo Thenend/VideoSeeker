@@ -10,7 +10,8 @@ namespace VideoSeeker.App;
 /// Vistazo al pasar el ratón por las barras: el frame que se ve en un instante, decodificado en CPU en un hilo propio
 /// de baja prioridad (sin tocar la caché del motor ni la reproducción). Manda la última petición: lo que se pidió
 /// antes y aún no empezó se olvida, y una decodificación que tarda se abandona si ya se quiere otro instante. Lo hecho
-/// se guarda en memoria (solo del vídeo de la última petición), para volver a pasar por ahí al momento.
+/// se guarda en memoria (solo del vídeo de la última petición), para volver a pasar por ahí al momento. Lo que está en
+/// la caché de frames de la GPU no pasa por aquí: lo reduce el motor al momento (MainWindow.Peek.cs).
 /// </summary>
 public sealed class FramePeek : IDisposable
 {
@@ -47,8 +48,8 @@ public sealed class FramePeek : IDisposable
 
     private static long Key(double time) => (long)Math.Round(time * 1000);
 
-    /// <summary>El frame si ya está hecho; si no, se pide (en lugar de lo que se pidiera antes) y llegará con Ready.</summary>
-    public ImageSource? Get(string path, double time)
+    /// <summary>El frame si ya está hecho (en memoria), sin pedir nada.</summary>
+    public ImageSource? Kept(string path, double time)
     {
         if (path != _keptPath)
         {
@@ -56,7 +57,27 @@ public sealed class FramePeek : IDisposable
             _keptOrder.Clear();
             _keptPath = path;
         }
-        if (_kept.TryGetValue(Key(time), out var image))
+        return _kept.TryGetValue(Key(time), out var image) ? image : null;
+    }
+
+    /// <summary>Guarda un frame hecho por otro camino (de la caché de la GPU) para volver a él sin pedirlo.</summary>
+    public void Keep(string path, double time, ImageSource image)
+    {
+        Kept(path, time);
+        Store(path, time, image);
+    }
+
+    public static ImageSource ToImage((byte[] Pixels, int Width, int Height) frame)
+    {
+        var bitmap = BitmapSource.Create(frame.Width, frame.Height, 96, 96, PixelFormats.Bgra32, null, frame.Pixels, frame.Width * 4);
+        bitmap.Freeze();
+        return bitmap;
+    }
+
+    /// <summary>El frame si ya está hecho; si no, se pide (en lugar de lo que se pidiera antes) y llegará con Ready.</summary>
+    public ImageSource? Get(string path, double time)
+    {
+        if (Kept(path, time) is { } image)
         {
             lock (_lock)
                 _wanted = null;
@@ -124,12 +145,7 @@ public sealed class FramePeek : IDisposable
                         decoder = new Thumbnailer(job.Path);
                     }
                     if (decoder.Grab(job.Time, Width, cancel.Token) is { } grabbed)
-                    {
-                        var bitmap = BitmapSource.Create(grabbed.Width, grabbed.Height, 96, 96, PixelFormats.Bgra32, null,
-                            grabbed.Pixels, grabbed.Width * 4);
-                        bitmap.Freeze();
-                        image = bitmap;
-                    }
+                        image = ToImage(grabbed);
                 }
                 catch (OperationCanceledException) when (!_stop.IsCancellationRequested)
                 {
@@ -159,13 +175,18 @@ public sealed class FramePeek : IDisposable
 
     private void Done(string path, double time, ImageSource image)
     {
+        Store(path, time, image);
+        Ready?.Invoke(path, time, image);
+    }
+
+    private void Store(string path, double time, ImageSource image)
+    {
         if (path == _keptPath && _kept.TryAdd(Key(time), image))
         {
             _keptOrder.Enqueue(Key(time));
             while (_keptOrder.Count > MaxKept)
                 _kept.Remove(_keptOrder.Dequeue());
         }
-        Ready?.Invoke(path, time, image);
     }
 
     public void Dispose()

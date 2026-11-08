@@ -9,7 +9,7 @@ namespace VideoSeeker.App;
 
 /// <summary>
 /// Prueba automática del vistazo (VIDEOSEEKER_SELFTEST=vistazo): pasar el ratón por las barras enseña el frame de debajo
-/// en miniatura (cuánto tarda, también tras un barrido rápido), volver a un punto ya visto es inmediato, la barra de
+/// en miniatura (al momento si está en la caché de frames; si no, cuánto tarda, también tras un barrido rápido), volver a un punto ya visto es inmediato, la barra de
 /// zoom pide el frame bajo el cursor, al salir o pulsar se quita y con el ajuste apagado no sale. Guarda
 /// selftest-vistazo.png con la miniatura, escribe selftest.log y cierra.
 /// </summary>
@@ -60,6 +60,31 @@ public partial class MainWindow
             {
                 Seek.SimulateHover(Seek.TrackPoint(_duration * fraction));
                 return await WaitExact();
+            }
+
+            // Lo que ya está en la caché de frames (la línea verde) sale al momento, reducido en la GPU.
+            (double Start, double End)? cachedRange = null;
+            for (var i = 0; i < 100 && cachedRange == null; i++)
+            {
+                cachedRange = _engine?.CachedRanges().Where(r => r.End - r.Start > 0.5).Select(r => ((double, double)?)r).FirstOrDefault();
+                if (cachedRange == null)
+                    await Task.Delay(100);
+            }
+            if (cachedRange is { } range)
+            {
+                var inside = (range.Start + range.End) / 2;
+                var gpuBefore = PeekFromGpu;
+                var clock = Stopwatch.StartNew();
+                Seek.SimulateHover(Seek.TrackPoint(inside));
+                var gpuMs = clock.Elapsed.TotalMilliseconds;
+                Check(PeekPopup.IsOpen && _peekExact && PeekFromGpu == gpuBefore + 1,
+                    $"en caché ({range.Start:0.00}–{range.End:0.00} s): sale de la GPU en {gpuMs:0.0} ms");
+                SavePeekSnapshot(PeekPopup.Child as FrameworkElement, "selftest-vistazo-gpu.png");
+                Seek.SimulateLeave();
+            }
+            else
+            {
+                Check(false, "no llegó a haber nada en la caché de frames para probar la miniatura desde la GPU");
             }
 
             var first = await HoverSeek(0.3);

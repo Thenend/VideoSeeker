@@ -125,6 +125,22 @@ public sealed class FrameCache(long budgetBytes) : IDisposable
             BudgetBytes = Math.Min(BudgetBytes, _bytes * 9 / 10);
     }
 
+    /// <summary>
+    /// Usa el frame que se ve en el instante dado (dentro de la tolerancia) sin fijarlo: "use" corre dentro del cerrojo,
+    /// así que mientras dura nadie puede liberarlo (que sea breve). False si no está en caché.
+    /// </summary>
+    public bool UseNear(double time, double tolerance, Action<CachedFrame> use)
+    {
+        lock (_gate)
+        {
+            var i = IndexNear(time, tolerance);
+            if (i < 0)
+                return false;
+            use(_frames.Values[i]);
+            return true;
+        }
+    }
+
     /// <summary>El frame que se ve en el instante dado (dentro de la tolerancia), fijándolo para pintarlo.</summary>
     public CachedFrame? PinNear(double time, double tolerance)
     {

@@ -17,6 +17,8 @@ public partial class MainWindow
     private const double PeekLongSide = 240;
     // Lo que el borde y el relleno del recuadro suman al ancho de la imagen (MainWindow.xaml).
     private const double PeekChrome = 2 * 3 + 2 * 1;
+    // Para la autoprueba: cuántas han salido de la caché de la GPU.
+    private int PeekFromGpu { get; set; }
 
     private void InitPeek()
     {
@@ -46,8 +48,21 @@ public partial class MainWindow
         if (_lastFrameStart > 0)
             t = Math.Min(t, _lastFrameStart);
         _peekTime = t;
-        if (_peek.Get(path, t) is { } image)
+        // Ya visto, o en la caché de frames (la línea verde): al momento. Si no, se decodifica desde el archivo.
+        var image = _peek.Kept(path, t);
+        if (image == null && _engine?.Thumbnail(t, FramePeek.Width) is { } cached)
+        {
+            image = FramePeek.ToImage(cached);
+            _peek.Keep(path, t, image);
+            PeekFromGpu++;
+        }
+        if (image != null)
+        {
+            _peek.Cancel();
             ShowPeekImage(image, path, exact: true);
+        }
+        else if (_peek.Get(path, t) is { } decoded)
+            ShowPeekImage(decoded, path, exact: true);
         else if (PeekImage.Source != null && _peekImagePath == path)
         {
             // Hasta que llegue, la anterior atenuada (mejor que un hueco que parpadea).
