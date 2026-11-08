@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using VideoSeeker.App.Controls;
 using VideoSeeker.App.Data;
@@ -697,6 +697,16 @@ public partial class MainWindow
             window.ScrubSlider.Value = 9;
             Check(settings.ScrubPixelsPerFrame == 9 && window.ScrubText.Text.StartsWith('9'), $"slider del scrubbing: {window.ScrubText.Text}");
             window.ScrubSlider.Value = 6;
+            // La rueda sobre el vídeo: dos opciones como «Formato del tiempo» (capturas en selftest-ajustes-rueda.png
+            // y selftest-ajustes-tiempo.png, para compararlas).
+            Check(window.WheelSpeedRadio.IsChecked == true && window.WheelVolumeRadio.IsChecked == false, "rueda: abre en Velocidad, como el ajuste");
+            window.WheelVolumeRadio.IsChecked = true;
+            Check(settings.WheelOnVideo == Settings.WheelVolume && window.WheelSpeedRadio.IsChecked == false, "rueda: Volumen guarda «volume»");
+            window.WheelSpeedRadio.IsChecked = true;
+            Check(settings.WheelOnVideo == Settings.WheelSpeed, "rueda: Velocidad guarda «speed»");
+            await Task.Delay(200);
+            SaveVisualSnapshot(CardOf(window.WheelSpeedRadio), Path.Combine(_store.Folder, "selftest-ajustes-rueda.png"));
+            SaveVisualSnapshot(CardOf(window.TimeMsRadio), Path.Combine(_store.Folder, "selftest-ajustes-tiempo.png"));
             window.CacheSlider.Value = 4000;
             Check(settings.FrameCacheMegabytes % 256 == 0 && settings.FrameCacheMegabytes >= 3840, $"slider de la caché en pasos de 256 MB: {settings.FrameCacheMegabytes} MB, {window.CacheText.Text}");
             var recommended = (GpuDevice.DefaultAdapter()?.RecommendedCacheBytes ?? AdapterInfo.FallbackCacheBytes) / (1024 * 1024);
@@ -802,6 +812,14 @@ public partial class MainWindow
         encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
         using var stream = File.Create(path);
         encoder.Save(stream);
+    }
+
+    /// <summary>La tarjeta (Border) de ajustes que contiene el control.</summary>
+    private static FrameworkElement CardOf(FrameworkElement control)
+    {
+        var element = control;
+        while (element is not System.Windows.Controls.Border && element.Parent is FrameworkElement parent) element = parent;
+        return element;
     }
 
     private static void SaveWindowSnapshot(Window window, string path) => SaveElementSnapshot((FrameworkElement)window.Content, path);

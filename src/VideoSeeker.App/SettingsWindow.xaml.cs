@@ -54,11 +54,8 @@ public partial class SettingsWindow : Window
             ScrubText.Text = $"{ScrubSlider.Value:0} px por frame";
             Change(() => s.ScrubPixelsPerFrame = (int)Math.Round(ScrubSlider.Value));
         };
-        WheelCombo.SelectionChanged += (_, _) =>
-        {
-            if (WheelCombo.SelectedItem is ComboBoxItem { Tag: string mode })
-                Change(() => s.WheelOnVideo = mode);
-        };
+        WheelVolumeRadio.Checked += (_, _) => Change(() => s.WheelOnVideo = Settings.WheelVolume);
+        WheelSpeedRadio.Checked += (_, _) => Change(() => s.WheelOnVideo = Settings.WheelSpeed);
         Bind(ResumeCheck, v => s.ResumePlayback = v);
         TimeFramesRadio.Checked += (_, _) => Change(() => s.TimeWithFrames = true);
         TimeMsRadio.Checked += (_, _) => Change(() => s.TimeWithFrames = false);
@@ -118,8 +115,7 @@ public partial class SettingsWindow : Window
             SetNumber(SeekCtrlBox, s.SeekSecondsCtrl);
             ScrubSlider.Value = Math.Clamp(s.ScrubPixelsPerFrame, 1, 20);
             ScrubText.Text = $"{ScrubSlider.Value:0} px por frame";
-            WheelCombo.SelectedItem = WheelCombo.Items.OfType<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == s.WheelOnVideo)
-                ?? WheelCombo.Items[0];
+            (s.WheelOnVideo == Settings.WheelVolume ? WheelVolumeRadio : WheelSpeedRadio).IsChecked = true;
             ResumeCheck.IsChecked = s.ResumePlayback;
             (s.TimeWithFrames ? TimeFramesRadio : TimeMsRadio).IsChecked = true;
             BuildColorSwatches();

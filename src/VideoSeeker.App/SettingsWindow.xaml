@@ -316,10 +316,10 @@
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
-                            <ComboBox DockPanel.Dock="Right" x:Name="WheelCombo" Style="{StaticResource DarkCombo}">
-                                <ComboBoxItem Content="Velocidad" Tag="speed" />
-                                <ComboBoxItem Content="Volumen" Tag="volume" />
-                            </ComboBox>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <RadioButton x:Name="WheelVolumeRadio" Style="{StaticResource Segment}" GroupName="Wheel" Content="Volumen" />
+                                <RadioButton x:Name="WheelSpeedRadio" Style="{StaticResource Segment}" GroupName="Wheel" Content="Velocidad" Margin="4,0,0,0" />
+                            </StackPanel>
                             <TextBlock Style="{StaticResource Label}" ToolTip="Velocidad: ±0,1× (botón central: 1×). Volumen: ±5 %." Text="Rueda del ratón sobre el vídeo" />
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
