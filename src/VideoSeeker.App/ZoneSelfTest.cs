@@ -227,6 +227,46 @@ public partial class MainWindow
             UndoBookmarks(redo: false);
             b = set.Find(b.Id)!;
 
+            // Clic selecciona; arrastrar edita sin seleccionar. Con una zona libre, arrastrar en la barra de zoom el fin de
+            // una región que no es la zona la cambia en su sitio (resaltada mientras), sin tocar la zona ni la escala.
+            var b0 = (Start: b.Start, End: EndOf(b));
+            SetFreeZoom((b0.Start - 1, b0.End + 1));
+            UpdateLayout();
+            await Task.Delay(300);
+            var freeBefore = _zoomRange!.Value;
+            var viewBefore = Zoom.View;
+            var otherGrip = Zoom.LanePoint(b0.End);
+            var highlightedWhileDragging = false;
+            Zoom.SimulateLeftDrag(otherGrip, new Point(otherGrip.X + Zoom.ActualWidth * 0.1, otherGrip.Y),
+                beforeRelease: () => highlightedWhileDragging = Zoom.EditingBookmark == b.Id && _zoomBookmark == null);
+            await Task.Delay(300);
+            b = set.Find(b.Id)!;
+            Check(EndOf(b) > b0.End + 0.2 && Near(b.Start, b0.Start), $"con zona libre, arrastrar el fin de otra región la cambia ({Show(b)})");
+            Check(_zoomBookmark == null && _zoomRange is { } stillFree && Near(stillFree.Start, freeBefore.Start) && Near(stillFree.End, freeBefore.End)
+                    && Near(Zoom.View.Start, viewBefore.Start) && Near(Zoom.View.End, viewBefore.End),
+                $"sin seleccionarla: la zona y la escala no cambian ({ShowZone()})");
+            Check(highlightedWhileDragging && Zoom.EditingBookmark == null, "se resalta solo mientras se arrastra");
+            UndoBookmarks(redo: false);
+            b = set.Find(b.Id)!;
+            Check(Near(b.Start, b0.Start) && Near(EndOf(b), b0.End), "un Ctrl + Z lo deshace");
+            // Con otra región como zona, en la barra principal: igual.
+            Select(a.Id);
+            UpdateLayout();
+            await Task.Delay(300);
+            var mainGrip = Seek.LanePoint(b0.End);
+            Seek.SimulateLeftDrag(mainGrip, new Point(mainGrip.X + Seek.ActualWidth * 0.03, mainGrip.Y));
+            await Task.Delay(300);
+            b = set.Find(b.Id)!;
+            Check(EndOf(b) > b0.End + 1 && _zoomBookmark == a.Id && ZoneIs(a),
+                $"con otra región como zona, arrastrar en la barra principal cambia la región y la zona sigue siendo la otra ({Show(b)})");
+            UndoBookmarks(redo: false);
+            b = set.Find(b.Id)!;
+            Check(Near(EndOf(b), b0.End), "y se deshace en un paso");
+            // Un clic sin arrastrar sí la selecciona y es la zona.
+            Seek.SimulateLeftDrag(Seek.LanePoint(b.Start), Seek.LanePoint(b.Start), steps: 1);
+            await Task.Delay(300);
+            Check(_zoomBookmark == b.Id && ZoneIs(b), $"un clic sin arrastrar la selecciona y es la zona ({ShowZone()})");
+
             // Clic en una región: seleccionada y es la zona.
             CloseZone();
             OnBookmarkPressed(a, BookmarkPart.Start);

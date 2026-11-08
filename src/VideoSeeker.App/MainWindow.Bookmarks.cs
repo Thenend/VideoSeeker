@@ -42,6 +42,8 @@ public partial class MainWindow
     private bool _awaitingDuration;
     // Arrastrando un extremo (o la región entera): cómo era al empezar; el extremo fijo hace de ancla.
     private (double Start, double End)? _dragOrigin;
+    // Pulsado (sin soltar) un bookmark que no es la zona: se selecciona solo si se suelta sin arrastrar.
+    private string? _pressedOther;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(1600) };
 
     private void InitBookmarks()
@@ -51,7 +53,16 @@ public partial class MainWindow
             var b = bar;
             bar.BookmarkPressed += (bm, part) =>
             {
-                // Pulsando un bookmark en la propia barra de zoom, no se reencuadra hasta soltar (la escala no cambia bajo el ratón).
+                // Clic selecciona; arrastrar edita sin seleccionar. Pulsar (sin soltar) uno que no es la zona no lo
+                // selecciona ni cambia la zona: si se arrastra, se edita en su sitio; si se suelta sin arrastrar, se va a él.
+                if (b.HoldingBookmark && bm.Id != _zoomBookmark)
+                {
+                    HoverPopup.IsOpen = false;
+                    _pressedOther = bm.Id;
+                    _bookmarkPressGo = null;
+                    return;
+                }
+                // Pulsando la zona en la propia barra de zoom, no se reencuadra hasta soltar (la escala no cambia bajo el ratón).
                 if (b == Zoom && b.HoldingBookmark)
                     _freezeZoomView = true;
                 // El triángulo de una región muy corta agarra su fin, pero un clic va a ella como su inicio.
@@ -491,6 +502,9 @@ public partial class MainWindow
         if (_dragOrigin == null)
         {
             _dragOrigin = (bookmark.Start, EndOf(bookmark));
+            // Uno que no es la zona se edita sin seleccionarlo: se resalta mientras dura el arrastre.
+            if (bookmark.Id != _zoomBookmark)
+                Seek.EditingBookmark = Zoom.EditingBookmark = bookmark.Id;
             _bookmarks.BeginEdit(part switch
             {
                 BookmarkPart.Start => $"mover el inicio de «{bookmark.Name}»",
@@ -523,7 +537,7 @@ public partial class MainWindow
         _bookmarkDragEdge = edge;
         // Avanzando solo porque el ratón salió de la barra de zoom: la barra se aleja para enseñar la región entera (el
         // otro extremo fijo en su lado), así al soltar no hay salto de escala.
-        if (Zoom.AutoExtending && _zoomRange is { } zone)
+        if (Zoom.AutoExtending && bookmark.Id == _zoomBookmark && _zoomRange is { } zone)
             Zoom.SetRange(zone.Start, zone.End);
         if (_store.Settings.ShowDraggedEdgeFrame)
             _nav.DragTo(edge);
@@ -535,12 +549,20 @@ public partial class MainWindow
         _bookmarkPressGo = null;
         var dragged = _dragOrigin != null;
         _dragOrigin = null;
+        var other = _pressedOther == bookmark.Id;
+        _pressedOther = null;
+        Seek.EditingBookmark = Zoom.EditingBookmark = null;
         if (moved && dragged && _bookmarkDragEdge is { } edge)
         {
             _bookmarkDragEdge = null;
             _bookmarks?.EndEdit();
             if (_store.Settings.ShowDraggedEdgeFrame)
                 _nav.SeekTo(edge);
+        }
+        else if (other && _bookmarks?.Find(bookmark.Id) is { } clicked)
+        {
+            // Un clic en uno que no era la zona: ahora sí, se selecciona (pasa a ser la zona) y se va a él.
+            JumpTo(clicked);
         }
         else if (go is { } time)
         {

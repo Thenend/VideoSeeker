@@ -198,6 +198,18 @@ public abstract class TimelineBar : FrameworkElement
     /// <summary>Posición x de un instante en la barra (para colocar ventanas encima).</summary>
     public double XOf(double time) => XAt(time);
 
+    /// <summary>
+    /// Bookmark que se está editando arrastrándolo sin seleccionarlo (uno que no es la zona): se resalta como el
+    /// seleccionado mientras dura el arrastre.
+    /// </summary>
+    public string? EditingBookmark
+    {
+        get => _editingBookmark;
+        set { _editingBookmark = value; InvalidateVisual(); }
+    }
+
+    private string? _editingBookmark;
+
     /// <summary>Si se está pulsando (sin soltar) un bookmark de esta barra.</summary>
     public bool HoldingBookmark => _bookmarkPress != null;
 
@@ -279,21 +291,17 @@ public abstract class TimelineBar : FrameworkElement
         var lane = LaneTop;
         // Lo que cae fuera del tramo visible (en la barra de zoom) no se pinta encima de los botones de al lado.
         dc.PushClip(new RectangleGeometry(new Rect(left, 0, right - left, ActualHeight)));
-        Bookmark? selected = null;
-        // La banda de la región seleccionada, debajo de todo: los bookmarks que caen dentro se siguen viendo.
-        if (_bookmarks.FirstOrDefault(b => b.Id == _selectedBookmark) is { } region && !IsTiny(region))
+        // Resaltados: el seleccionado y el que se está editando sin seleccionarlo (arrastrando uno que no es la zona).
+        bool Highlighted(Bookmark b) => b.Id == _selectedBookmark || b.Id == _editingBookmark;
+        var highlighted = _bookmarks.Where(Highlighted).ToList();
+        // Sus bandas, debajo de todo: los bookmarks que caen dentro se siguen viendo.
+        foreach (var region in highlighted.Where(r => !IsTiny(r)))
             DrawSelectedBand(dc, region, lane, left, right);
         foreach (var b in _bookmarks)
-        {
-            if (b.Id == _selectedBookmark)
-            {
-                selected = b; // encima de los demás
-                continue;
-            }
-            DrawBookmark(dc, b, lane, left, right, false);
-        }
-        if (selected != null)
-            DrawBookmark(dc, selected, lane, left, right, true);
+            if (!Highlighted(b))
+                DrawBookmark(dc, b, lane, left, right, false);
+        foreach (var b in highlighted)
+            DrawBookmark(dc, b, lane, left, right, true); // encima de los demás
         dc.Pop();
     }
 
@@ -560,7 +568,9 @@ public abstract class TimelineBar : FrameworkElement
             {
                 _bookmarkMoved = true;
                 // Un extremo llevado por fuera de la pista avanza solo (OnAutoExtend); al volver dentro, sigue al ratón.
-                var outside = AutoExtendEdges && press.Part != BookmarkPart.Body
+                // Solo con la región que es la zona (la seleccionada): mover la vista por otra cambiaría la zona. Con otra,
+                // el extremo se queda en el borde de la barra.
+                var outside = AutoExtendEdges && press.Part != BookmarkPart.Body && press.Id == _selectedBookmark
                     ? point.X < TrackLeft - AutoDeadZone ? -1 : point.X > TrackLeft + TrackWidth + AutoDeadZone ? 1 : 0
                     : 0;
                 _autoX = point.X;
