@@ -41,6 +41,8 @@ public sealed class Settings
     /// extremo. Si no, se queda en el frame que se veía.
     /// </summary>
     public bool ShowDraggedEdgeFrame { get; set; } = true;
+    /// <summary>Al pasar el ratón por las barras, el frame que hay bajo el cursor en miniatura (sin ir a él).</summary>
+    public bool HoverPreview { get; set; } = true;
     /// <summary>Línea verde de la caché de frames bajo las barras (la caché funciona igual sin ella).</summary>
     public bool ShowCachedFrames { get; set; }
     /// <summary>Segundos que saltan ← / → (y la rueda sobre la barra principal), con Shift y con Ctrl.</summary>
@@ -99,6 +101,7 @@ public sealed class Settings
         var d = new Settings();
         MoveWholeRegions = d.MoveWholeRegions;
         ShowDraggedEdgeFrame = d.ShowDraggedEdgeFrame;
+        HoverPreview = d.HoverPreview;
         ShowCachedFrames = d.ShowCachedFrames;
         ShowBookmarkMarks = d.ShowBookmarkMarks;
         SeekSeconds = d.SeekSeconds;

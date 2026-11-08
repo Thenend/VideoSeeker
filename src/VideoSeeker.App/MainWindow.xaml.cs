@@ -85,6 +85,7 @@ public partial class MainWindow : Window
             target.RenderMode = RenderMode.SoftwareOnly;
         App.Mark("hwnd");
         _thumbs = new Thumbnails(store.Folder, ffmpegReady, Dispatcher);
+        _peek = new FramePeek(ffmpegReady, Dispatcher);
         _nav.PositionShown += t =>
         {
             // Nunca más allá del último frame (al llegar al final, mpv puede dar el instante en que acaba).
@@ -185,6 +186,7 @@ public partial class MainWindow : Window
 
         App.Mark("eventos");
         InitBookmarks();
+        InitPeek();
         App.Mark("bookmarks");
         InitClipExport();
         InitHistory();
@@ -358,6 +360,8 @@ public partial class MainWindow : Window
                 _ = RunZoneSelfTest();
             if (JumpSelfTestEnabled)
                 _ = RunJumpSelfTest();
+            if (PeekSelfTestEnabled)
+                _ = RunPeekSelfTest();
             if (SettingsSelfTestEnabled)
                 _ = RunSettingsSelfTest();
             if (ClipSelfTestEnabled)
@@ -1517,6 +1521,7 @@ public partial class MainWindow : Window
         _settingsWindow?.Close();
         CloseNaming(commit: true);
         _thumbs.Dispose();
+        _peek.Dispose();
         _indexing?.Cancel();
         Step("miniaturas");
         SavePosition();

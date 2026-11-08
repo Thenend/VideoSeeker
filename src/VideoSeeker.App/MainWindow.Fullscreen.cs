@@ -147,6 +147,7 @@ public partial class MainWindow
         {
             ControlsPopup.IsOpen = false;
             HoverPopup.IsOpen = false;
+            HidePeek();
         }
 
         // El cursor, escondido con el ratón quieto sobre la imagen.

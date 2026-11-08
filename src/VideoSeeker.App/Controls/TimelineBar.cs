@@ -119,6 +119,11 @@ public abstract class TimelineBar : FrameworkElement
     public event Action<Bookmark>? BookmarkMenuRequested;
     /// <summary>El ratón pasa por encima de un bookmark (null al salir), con la x de su marca (o del centro de la región) en la barra.</summary>
     public event Action<Bookmark?, double>? BookmarkHovered;
+    /// <summary>
+    /// El ratón pasa por la barra sin pulsar nada ni estar sobre un bookmark: el instante bajo el cursor (el de su frame en
+    /// la barra de zoom) y su x, para enseñar ese frame en miniatura. Null al salir, al pulsar o al llegar a un bookmark.
+    /// </summary>
+    public event Action<double?, double>? PeekRequested;
 
     protected TimelineBar()
     {
@@ -280,6 +285,7 @@ public abstract class TimelineBar : FrameworkElement
             dc.DrawRectangle(HoverBrush, null, new Rect(Math.Round(hx), TrackTop - 3, 1, TrackHeight + 6));
             DrawLabel(dc, HoverLabel(TimeAt(hx)), hx);
         }
+        RefreshPeekAfterRender();
     }
 
     private void DrawBookmarks(DrawingContext dc)
@@ -503,6 +509,7 @@ public abstract class TimelineBar : FrameworkElement
 
     private bool LeftDown(Point point, int clickCount)
     {
+        SetPeek(null);
         if (_selectFromX != null)
         {
             if (_duration <= 0)
@@ -550,6 +557,7 @@ public abstract class TimelineBar : FrameworkElement
     private void MouseMoved(Point point, bool left, bool right)
     {
         HoverX = point.X;
+        double? peekX = null;
         if (_bodyPress != null)
         {
             // Arrastrando el centro de la banda: como en la pista, la imagen sigue al cursor.
@@ -618,8 +626,39 @@ public abstract class TimelineBar : FrameworkElement
                 _ => CursorAt(point),
             };
             SetHovered(hit?.Bookmark);
+            // Con la barra capturando el ratón (pulsada, arrastrando) no: al capturar, WPF manda un movimiento propio.
+            if (hit == null && !left && !right && !IsMouseCaptured)
+                peekX = point.X;
         }
+        SetPeek(peekX);
         InvalidateVisual();
+    }
+
+    private double? _peekTime;
+    private bool _peekRefreshQueued;
+
+    private void SetPeek(double? x)
+    {
+        double? time = x is { } px && Duration > 0 && ViewEnd > ViewStart ? SnapTime(TimeAt(px)) : null;
+        if (time == null && _peekTime == null)
+            return;
+        _peekTime = time;
+        PeekRequested?.Invoke(time, x ?? 0);
+    }
+
+    // Con el ratón quieto la vista puede cambiar debajo (rueda en la barra de zoom, la zona que se mueve): el frame del
+    // vistazo se pone al día después de pintar.
+    private void RefreshPeekAfterRender()
+    {
+        if (_peekTime is not { } shown || HoverX is not { } hx || _peekRefreshQueued || SnapTime(TimeAt(hx)) == shown)
+            return;
+        _peekRefreshQueued = true;
+        Dispatcher.BeginInvoke(() =>
+        {
+            _peekRefreshQueued = false;
+            if (_peekTime != null && HoverX is { } x)
+                SetPeek(x);
+        });
     }
 
     /// <summary>Para las autopruebas: un arrastre con el botón izquierdo de un punto a otro, por los mismos caminos que el ratón.</summary>
@@ -682,6 +721,14 @@ public abstract class TimelineBar : FrameworkElement
     internal void SimulateLeftMove(Point point) => MouseMoved(point, left: true, right: false);
 
     internal void SimulateLeftUp() => LeftUp();
+
+    /// <summary>Para las autopruebas: el ratón pasa por un punto sin pulsar nada, y sale de la barra.</summary>
+    internal void SimulateHover(Point point) => MouseMoved(point, left: false, right: false);
+
+    internal void SimulateLeave() => OnMouseLeave(null!);
+
+    /// <summary>Para las autopruebas: punto del centro de la pista en el instante dado.</summary>
+    internal Point TrackPoint(double time) => new(XAt(time), TrackTop + TrackHeight / 2);
 
     /// <summary>Para las autopruebas: punto del centro de la franja de bookmarks en el instante dado.</summary>
     internal Point LanePoint(double time) => new(XAt(time), LaneTop + LaneHeight / 2);
@@ -757,6 +804,7 @@ public abstract class TimelineBar : FrameworkElement
 
     protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
     {
+        SetPeek(null);
         if (DragTime != null && !_marking)
         {
             _marking = true;
@@ -847,6 +895,7 @@ public abstract class TimelineBar : FrameworkElement
     {
         HoverX = null;
         SetHovered(null);
+        SetPeek(null);
         InvalidateVisual();
     }
 

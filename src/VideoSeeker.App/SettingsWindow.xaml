@@ -274,6 +274,11 @@
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" x:Name="HoverPreviewCheck" Style="{StaticResource Switch}" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="Para ver qué hay en un punto del vídeo sin ir a él." Text="Miniatura al pasar el ratón por las barras" />
+                        </DockPanel>
+                        <Rectangle Style="{StaticResource Divider}" />
+                        <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="CachedLineCheck" Style="{StaticResource Switch}" />
                             <TextBlock Style="{StaticResource Label}" ToolTip="Marca bajo las barras lo que ya está en la caché: ahí se salta al instante." Text="Línea verde de la caché de frames" />
                         </DockPanel>

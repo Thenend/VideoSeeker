@@ -107,6 +107,7 @@ public partial class MainWindow
             Check(!d.MoveWholeRegions, "por defecto no se mueven las regiones enteras");
             Check(d.BookmarkPanelWidth == 330 && BookmarkPanel.Width == settings.BookmarkPanelWidth, $"panel de bookmarks: 330 px por defecto, ahora {BookmarkPanel.Width}");
             Check(d.ShowDraggedEdgeFrame, "por defecto se ve el frame del extremo que se arrastra");
+            Check(d.HoverPreview, "por defecto se ve la miniatura al pasar el ratón por las barras");
             Check(!d.ShowCachedFrames, "por defecto no se ve la línea verde");
             Check(d.ShowBookmarkMarks, "por defecto se ven las marcas de los bookmarks");
             Check(d.SeekSeconds == 5 && d.SeekSecondsShift == 1 && d.SeekSecondsCtrl == 30, "saltos 5 / 1 / 30 s");

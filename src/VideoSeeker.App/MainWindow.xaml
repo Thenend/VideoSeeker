@@ -377,6 +377,19 @@
             </Border>
         </Popup>
 
+        <!-- Vistazo: el frame que hay bajo el cursor al pasar el ratón por las barras (sin ir a él). Su tamaño sigue la
+             proporción del vídeo (MainWindow.Peek.cs). -->
+        <Popup x:Name="PeekPopup" AllowsTransparency="True" StaysOpen="True" Placement="Top" IsHitTestVisible="False">
+            <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                    CornerRadius="4" Padding="3" Margin="0,0,0,2" IsHitTestVisible="False">
+                <Grid x:Name="PeekBox" Width="240" Height="135" Background="#0E0F12">
+                    <TextBlock x:Name="PeekWait" Text="Cargando…" Foreground="{StaticResource FgMuted}"
+                               FontSize="11.5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Image x:Name="PeekImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                </Grid>
+            </Border>
+        </Popup>
+
         <!-- Avisos breves, centrados abajo sobre la imagen y bien grandes (la imagen puede ser del motor, que tapa el
              texto en pantalla de mpv). -->
         <!-- Al acabar un clip, como el aviso de descargas de los navegadores: dónde ha quedado y cómo llegar a él. -->
