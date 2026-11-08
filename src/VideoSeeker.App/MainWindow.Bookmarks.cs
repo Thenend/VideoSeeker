@@ -802,8 +802,11 @@ public partial class MainWindow
         zoom.Click += (_, _) => ZoomAround(_nav.CurrentTime);
         menu.Items.Add(zoom);
         menu.Items.Add(new Separator());
-        var panel = new MenuItem { Header = "Panel de bookmarks", InputGestureText = "Ctrl+B" };
-        panel.Click += (_, _) => TogglePanel();
+        // Como el botón: abre o cierra sin más, con la marca si está abierto (desde el menú el teclado nunca está
+        // en el panel, así que el Ctrl + B de TogglePanel nunca lo cerraría).
+        var open = BookmarkPanel.Visibility == Visibility.Visible;
+        var panel = new MenuItem { Header = "Panel de bookmarks", InputGestureText = "Ctrl+B", IsCheckable = true, IsChecked = open };
+        panel.Click += (_, _) => ToggleOpenPanel();
         menu.Items.Add(panel);
         menu.IsOpen = true;
     }
@@ -1098,8 +1101,10 @@ public partial class MainWindow
         BookmarkSearch.SelectAll();
     }
 
-    // El botón abre y cierra sin más (al pulsarlo, el teclado ya ha vuelto al vídeo).
-    private void OnBookmarksButtonClick(object sender, RoutedEventArgs e)
+    // El botón (y el menú del vídeo) abre y cierra sin más (al pulsarlo, el teclado ya ha vuelto al vídeo).
+    private void OnBookmarksButtonClick(object sender, RoutedEventArgs e) => ToggleOpenPanel();
+
+    private void ToggleOpenPanel()
     {
         if (BookmarkPanel.Visibility == Visibility.Visible)
             ShowPanel(false);
