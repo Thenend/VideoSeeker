@@ -142,7 +142,7 @@
             <RepeatButton Style="{StaticResource ToolRepeatButton}" FontFamily="{StaticResource Icons}" Content="&#xE892;"
                           ToolTip="Frame anterior (,)" Click="OnStepBackClick" />
             <Button x:Name="PlayButton" Style="{StaticResource ToolButton}" FontFamily="{StaticResource Icons}" FontSize="18"
-                    Content="&#xE768;" ToolTip="Reproducir / pausar (Espacio). J / K / L: atrás / pausa / adelante" Click="OnPlayClick" />
+                    Content="&#xE768;" ToolTip="Reproducir / pausar (Espacio). J / K / L: atrás / pausa / adelante · rueda: frame a frame" Click="OnPlayClick" MouseWheel="OnPlayWheel" />
             <RepeatButton Style="{StaticResource ToolRepeatButton}" FontFamily="{StaticResource Icons}" Content="&#xE893;"
                           ToolTip="Frame siguiente (.)" Click="OnStepForwardClick" />
             <Button x:Name="SpeedButton" Style="{StaticResource ToolButton}" Width="56" Margin="6,0,0,0" Padding="4,4"

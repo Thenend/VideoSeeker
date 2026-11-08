@@ -1390,6 +1390,18 @@ public partial class MainWindow : Window
 
     private void OnPlayClick(object sender, RoutedEventArgs e) => _nav.TogglePlay();
 
+    // Rueda sobre el play: siempre frame a frame (hacia arriba, el siguiente), con o sin modificadores.
+    private void OnPlayWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (_duration > 0)
+            WheelSteps(e.Delta, steps =>
+            {
+                for (var i = 0; i < Math.Abs(steps); i++)
+                    StepFrame(Math.Sign(steps));
+            });
+        e.Handled = true;
+    }
+
     private void OnFullscreenClick(object sender, RoutedEventArgs e) => ToggleFullscreen();
 
     // El engranaje abre los ajustes y, si ya están abiertos, los cierra (como el botón del panel de bookmarks).
