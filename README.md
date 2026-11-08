@@ -38,7 +38,7 @@ Zip autocontenido (incluye .NET, libmpv y FFmpeg) para otro PC con Windows 10/11
 | --- | --- |
 | Reproducir / pausar | Espacio, K, clic en el vídeo |
 | Frame siguiente / anterior | ↑ / ↓, o arrastrar a derecha / izquierda sobre la imagen |
-| Saltar 5 s (Shift 1 s, Ctrl 30 s) | ← / →, rueda sobre la barra |
+| Saltar 5 s (Shift 1 s, Ctrl 30 s) | ← / →, rueda sobre la barra (con Shift / Ctrl, igual) |
 | Pantalla completa | F, Enter, doble clic en el vídeo (Esc para salir) |
 | Silenciar | M |
 | Cambiar pista de audio / subtítulos | A / S |

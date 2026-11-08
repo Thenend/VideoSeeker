@@ -6,7 +6,8 @@ namespace VideoSeeker.App.Controls;
 
 /// <summary>
 /// Barra principal de la línea de tiempo. Mientras se arrastra pide el frame exacto bajo el cursor
-/// y al soltar confirma la posición; la rueda salta en segundos. El tramo ampliado en la barra de zoom se
+/// y al soltar confirma la posición; la rueda salta como ← / → (con Shift y Ctrl, sus saltos) y Ctrl + Shift + rueda
+/// acerca o aleja. El tramo ampliado en la barra de zoom se
 /// ve como una banda con dos banderitas encima de la pista: arrastrando una se mueve ese extremo y
 /// arrastrando el espacio entre ambas se mueve el tramo entero.
 /// </summary>
@@ -19,10 +20,11 @@ public sealed class SeekBar : TimelineBar
     private (double Start, double End)? _zoom;
     private Grab _grab;
     private double _grabOffset;
+    private int _wheel;
 
-    /// <summary>Salto relativo en segundos (rueda del ratón).</summary>
-    public event Action<double>? RelativeSeekRequested;
-    /// <summary>Ctrl + rueda: instante bajo el cursor y giro de la rueda (positivo acerca).</summary>
+    /// <summary>Rueda: muescas (positivo, adelante) y modificadores pulsados; se salta lo mismo que con ← / →.</summary>
+    public event Action<int, ModifierKeys>? WheelSeekRequested;
+    /// <summary>Ctrl + Shift + rueda: instante bajo el cursor y giro de la rueda (positivo acerca).</summary>
     public event Action<double, int>? ZoomWheel;
     /// <summary>
     /// Se arrastra una banderita del tramo ampliado (Start, End) o la banda (Body): el instante bajo el cursor o, con
@@ -168,10 +170,20 @@ public sealed class SeekBar : TimelineBar
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        var modifiers = Keyboard.Modifiers;
+        if (modifiers.HasFlag(ModifierKeys.Control) && modifiers.HasFlag(ModifierKeys.Shift))
+        {
             ZoomWheel?.Invoke(TimeAt(e.GetPosition(this).X), e.Delta);
+        }
         else
-            RelativeSeekRequested?.Invoke(e.Delta > 0 ? 5 : -5);
+        {
+            // Las ruedas finas (touchpads) mandan fracciones de muesca: se acumulan.
+            _wheel += e.Delta;
+            var notches = _wheel / 120;
+            _wheel -= notches * 120;
+            if (notches != 0)
+                WheelSeekRequested?.Invoke(notches, modifiers);
+        }
         e.Handled = true;
     }
 }

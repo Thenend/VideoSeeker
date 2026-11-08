@@ -156,9 +156,10 @@ public partial class MainWindow : Window
         Zoom.MarkEnded += EndMark;
 
         Seek.SeekRequested += OnTimelineSeek;
-        Seek.RelativeSeekRequested += s => _nav.SeekRelative(Math.Sign(s) * _store.Settings.SeekSeconds);
+        Seek.WheelSeekRequested += (notches, modifiers) => _nav.SeekRelative(notches * SeekStep(modifiers));
         Zoom.SeekRequested += OnTimelineSeek;
-        // Zoom: arrastrar con botón derecho en cualquiera de las dos barras, menú contextual o Ctrl + rueda.
+        // Zoom: arrastrar con botón derecho en cualquiera de las dos barras, menú contextual o Ctrl + Shift + rueda
+        // (en la de zoom basta Ctrl + rueda; en la principal, Ctrl + rueda salta como Ctrl + ← / →).
         Seek.RangeSelected += (start, end) => SetFreeZoom((start, end));
         Zoom.RangeSelected += (start, end) => SetFreeZoom((start, end));
         Seek.MenuRequested += t => ShowTimelineMenu(Seek, t);
@@ -1093,6 +1094,15 @@ public partial class MainWindow : Window
         apply(steps);
     }
 
+    // Salto de ← / → y de la rueda sobre la barra principal: el de Ctrl, el de Shift o el normal, según los ajustes.
+    private double SeekStep(ModifierKeys modifiers)
+    {
+        var s = _store.Settings;
+        return modifiers.HasFlag(ModifierKeys.Control) ? s.SeekSecondsCtrl
+            : modifiers.HasFlag(ModifierKeys.Shift) ? s.SeekSecondsShift
+            : s.SeekSeconds;
+    }
+
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
@@ -1165,8 +1175,7 @@ public partial class MainWindow : Window
                 GoHistory(key == Key.BrowserBack ? -1 : 1);
                 break;
             case Key.Left or Key.Right:
-                var s = _store.Settings;
-                var seconds = ctrl ? s.SeekSecondsCtrl : shift ? s.SeekSecondsShift : s.SeekSeconds;
+                var seconds = SeekStep(Keyboard.Modifiers);
                 _nav.SeekRelative(e.Key == Key.Left ? -seconds : seconds);
                 break;
             // Bookmarks: B (o Shift + B) crea una región con la zona libre o, sin ella, de un frame en el frame actual;
