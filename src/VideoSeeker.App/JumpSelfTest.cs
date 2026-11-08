@@ -14,6 +14,19 @@ public partial class MainWindow
 {
     public static bool JumpSelfTestEnabled => Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") == "saltar";
 
+    // Desde ahora hasta llamar a lo que devuelve: true si en algún momento la fila del zoom dejó de verse.
+    private Func<bool> WatchSmoothOpen()
+    {
+        var closed = false;
+        void Watch(object? sender, EventArgs e) => closed |= ZoomRow.Visibility != System.Windows.Visibility.Visible;
+        LayoutUpdated += Watch;
+        return () =>
+        {
+            LayoutUpdated -= Watch;
+            return closed;
+        };
+    }
+
     private async Task RunJumpSelfTest()
     {
         var lines = new List<string>();
@@ -204,11 +217,19 @@ public partial class MainWindow
                                 var how = $"{(reverse ? "marcha atrás" : "reproduciendo")} (pausa {pauseMs} ms, play {playMs} ms)";
                                 Log($"   antes: {(_nav.LoopPlaying ? "bucle desde la caché" : _nav.Paused ? "en pausa" : "reproduce")}; caché {string.Join(" ", _engine?.CachedRanges().Select(r => $"{r.Start:0.000}-{r.End:0.000}") ?? [])}; duración {_duration:0.000}, bucle {_loopVideo}");
                                 var row = _rows.First(r => r.Id == ids[round % 2]);
+                                var smooth = WatchSmoothOpen();
                                 OpenRow(row);
+                                var (instantDuration, instantView) = (Seek.Duration, Zoom.View);
                                 await WaitOpened(to);
                                 var before = _nav.CurrentTime;
                                 await Task.Delay(1000);
                                 var t = _nav.CurrentTime;
+                                var closed = smooth();
+                                Check(!closed && Math.Abs(instantDuration - _duration) < 1e-3
+                                        && Math.Abs(instantView.Start - Zoom.View.Start) < 1e-3 && Math.Abs(instantView.End - Zoom.View.End) < 1e-3,
+                                    $"otro vídeo sin saltos: fila del zoom {(closed ? "se cerró" : "siempre abierta")}, " +
+                                    $"barras al abrir {instantDuration:0.000} s, {instantView.Start:0.000}-{instantView.End:0.000} " +
+                                    $"(luego {_duration:0.000} s, {Zoom.View.Start:0.000}-{Zoom.View.End:0.000})");
                                 // En marcha atrás, el otro vídeo se reproduce hacia delante (lo que importa es que no se pare).
                                 Check(!_nav.Paused && !row.IsCurrentVideo && t > before + 0.3,
                                     $"otro vídeo {how}: {(_nav.Reversing ? "marcha atrás" : _nav.Paused ? "en pausa" : "reproduce")}, {before:0.00} → {t:0.00}");

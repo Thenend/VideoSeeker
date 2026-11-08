@@ -1718,6 +1718,10 @@ public partial class MainWindow
             }
         }
         FollowZoneBookmark();
+        // Al abrir el bookmark de otro vídeo la fila del zoom se queda abierta esperando su región (Open): si ya no
+        // está, se cierra.
+        if (_zoomRange == null)
+            ZoomRow.Visibility = Visibility.Collapsed;
     }
 
     // El teclado vuelve al vídeo: flechas, espacio, etc. dejan de ir a la lista o al buscador. Hay que olvidar

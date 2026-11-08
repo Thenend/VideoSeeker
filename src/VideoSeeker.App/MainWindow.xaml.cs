@@ -273,13 +273,7 @@ public partial class MainWindow : Window
         });
         _player.DurationChanged += d => Ui(() =>
         {
-            _duration = d;
-            Seek.Duration = Zoom.Duration = _nav.Duration = d;
-            UpdateLastFrame();
-            ApplyLoop(); // el bucle del vídeo entero va hasta su duración
-            if (_current != null)
-                _current.Duration = d;
-            UpdateTimeText();
+            SetDuration(d);
             if (d > 0)
                 ApplyPendingBookmark();
         });
@@ -313,6 +307,17 @@ public partial class MainWindow : Window
                 Dispatcher.BeginInvoke(CreateEngine, DispatcherPriority.Background);
             }
         });
+    }
+
+    private void SetDuration(double d)
+    {
+        _duration = d;
+        Seek.Duration = Zoom.Duration = _nav.Duration = d;
+        UpdateLastFrame();
+        ApplyLoop(); // el bucle del vídeo entero va hasta su duración
+        if (_current != null)
+            _current.Duration = d;
+        UpdateTimeText();
     }
 
     // Arranque terminado cuando la ventana ya se pintó y se ve el primer frame (o no hay vídeo): se apunta lo que tardó
@@ -425,7 +430,12 @@ public partial class MainWindow : Window
         _position = start ?? 0;
         _currentPath = path;
         Seek.CachedRanges = Zoom.CachedRanges = [];
+        // Desde el bookmark de otro vídeo, su región pasa a ser la zona: la fila del zoom no se cierra mientras tanto
+        // (cerrarla y volver a abrirla movía la barra y cambiaba el tamaño de la imagen).
+        var zoneComing = _pendingSelect != null;
         CloseZone();
+        if (zoneComing)
+            ZoomRow.Visibility = Visibility.Visible;
         _awaitingDuration = true;
         // Con "keepPause" se sigue como estaba. Hay que mirarlo antes de OnFileOpening, que para el bucle desde la caché
         // dejando la pausa puesta: con un vídeo corto entero en caché y el bucle del vídeo, ir al bookmark de otro
@@ -433,11 +443,32 @@ public partial class MainWindow : Window
         var play = !keepPause || _nav.Playing;
         _nav.OnFileOpening(path, play);
         _player.Load(path, start, play);
+        // Ya abierto antes: con su fps y su duración de entonces, las barras pasan a este vídeo de una vez (sus
+        // bookmarks, la zona y la posición), sin esperar a que mpv lo cargue. Lo que diga mpv luego es lo mismo.
+        var known = entry.Duration > 0;
+        if (known && entry.Fps > 0)
+        {
+            _fps = entry.Fps;
+            _nav.Fps = Fps;
+        }
         LoadFrameIndex(path, key);
         LoadBookmarks(key, entry.Path);
+        if (known)
+            ShowKnownVideo(entry.Duration);
         Title = $"{Path.GetFileName(path)} — VideoSeeker";
         _store.SaveLibrary();
         _saveTimer.Start();
+    }
+
+    private void ShowKnownVideo(double duration)
+    {
+        SetDuration(duration);
+        Seek.Position = Zoom.Position = _position;
+        if (ZoneBookmark is { } b)
+            ApplyZone((b.Start, EndOf(b)), exact: true);
+        else if (_zoomRange == null)
+            ZoomRow.Visibility = Visibility.Collapsed;
+        UpdateTimeText();
     }
 
     // El índice guardado se lee al momento; si no hay, se construye en segundo plano y se guarda.
