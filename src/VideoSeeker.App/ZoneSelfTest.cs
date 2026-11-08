@@ -187,6 +187,46 @@ public partial class MainWindow
             UndoBookmarks(redo: false);
             b = set.Find(b.Id)!;
 
+            // Sacando el fin por la derecha de la barra de zoom, avanza solo y la barra se aleja para enseñar la región
+            // entera (el inicio, quieto); al volver dentro se para; todo el arrastre es un paso de deshacer. Y el inicio por
+            // la izquierda, igual.
+            Select(b.Id);
+            UpdateLayout();
+            await Task.Delay(300);
+            var grow0 = (Start: b.Start, End: EndOf(b));
+            var endGrip = Zoom.LanePoint(grow0.End);
+            endGrip.X -= 1;
+            Zoom.SimulateLeftDown(endGrip);
+            Zoom.SimulateLeftMove(new Point(endGrip.X + 6, endGrip.Y));
+            Zoom.SimulateLeftMove(new Point(endGrip.X + 80, endGrip.Y));
+            await Task.Delay(1000);
+            var grown = set.Find(b.Id)!;
+            Check(Zoom.AutoExtending && EndOf(grown) > grow0.End + 0.2 && Near(grown.Start, grow0.Start)
+                    && Near(Zoom.View.Start, grown.Start) && Near(Zoom.View.End, EndOf(grown)) && ZoneIs(grown),
+                $"sacando el fin por la derecha de la barra de zoom avanza solo y la barra enseña la región entera ({Show(grown)})");
+            Zoom.SimulateLeftMove(new Point(endGrip.X - 20, endGrip.Y));
+            var stoppedAt = EndOf(set.Find(b.Id)!);
+            await Task.Delay(400);
+            Check(!Zoom.AutoExtending && Near(EndOf(set.Find(b.Id)!), stoppedAt), "al volver dentro de la barra se para");
+            Zoom.SimulateLeftUp();
+            UndoBookmarks(redo: false);
+            b = set.Find(b.Id)!;
+            Check(Near(b.Start, grow0.Start) && Near(EndOf(b), grow0.End) && ZoneIs(b), $"un Ctrl + Z lo deshace entero ({Show(b)})");
+            UpdateLayout();
+            await Task.Delay(300);
+            var startGrip = Zoom.LanePoint(grow0.Start);
+            startGrip.X += 1;
+            Zoom.SimulateLeftDown(startGrip);
+            Zoom.SimulateLeftMove(new Point(startGrip.X - 6, startGrip.Y));
+            Zoom.SimulateLeftMove(new Point(startGrip.X - 80, startGrip.Y));
+            await Task.Delay(1000);
+            grown = set.Find(b.Id)!;
+            Check(grown.Start < grow0.Start - 0.2 && Near(EndOf(grown), grow0.End) && Near(Zoom.View.Start, grown.Start) && Near(Zoom.View.End, EndOf(grown)),
+                $"y el inicio por la izquierda ({Show(grown)})");
+            Zoom.SimulateLeftUp();
+            UndoBookmarks(redo: false);
+            b = set.Find(b.Id)!;
+
             // Clic en una región: seleccionada y es la zona.
             CloseZone();
             OnBookmarkPressed(a, BookmarkPart.Start);

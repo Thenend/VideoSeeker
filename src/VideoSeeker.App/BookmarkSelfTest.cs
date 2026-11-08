@@ -401,10 +401,12 @@ public partial class MainWindow
                 "Ctrl + Z los devuelve y los quita de allí");
             List<BookmarkRow> RowsOf(IEnumerable<string> ids) =>
                 [.. ids.Select(id => MakeRow(_bookmarks!.Find(id)!, _bookmarks.Fingerprint, _bookmarks.VideoPath, null, "", current: true))];
-            ShowMultiMenuColor(RowsOf(two), "#2EC8D6");
-            Check(two.All(id => _bookmarks.Find(id)!.Color == "#2EC8D6"), "color de varios a la vez");
+            // Un color que no lleve ninguno de los dos (los nuevos pueden nacer con el último color elegido).
+            var paint = BookmarkColors.Palette.Select(p => p.Hex).First(h => two.All(id => !string.Equals(_bookmarks.Find(id)!.Color, h, StringComparison.OrdinalIgnoreCase)));
+            ShowMultiMenuColor(RowsOf(two), paint);
+            Check(two.All(id => _bookmarks.Find(id)!.Color == paint), "color de varios a la vez");
             UndoBookmarks(redo: false);
-            Check(two.All(id => _bookmarks.Find(id)!.Color != "#2EC8D6"), "y se deshace en un paso");
+            Check(two.All(id => _bookmarks.Find(id)!.Color != paint), "y se deshace en un paso");
 
             // Desde «todos»: borrar a la vez uno de este vídeo y uno de otro, y deshacerlo con un solo Ctrl + Z.
             var otherPath = Path.Combine(BookmarkCollections.PathOf(_store, collection), "0000000000000003.json");

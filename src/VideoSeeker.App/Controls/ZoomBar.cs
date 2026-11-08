@@ -61,6 +61,11 @@ public sealed class ZoomBar : TimelineBar
     protected override double TrackHeight => BarTrackHeight;
     protected override double TrackTop => LabelHeight + 2;
 
+    // Sacar el extremo que se arrastra por un lado de la pista lo hace avanzar solo (y la barra se aleja para enseñarlo).
+    protected override bool AutoExtendEdges => true;
+
+    protected override double FramesPerSecond => _grid.Fps;
+
     protected override double SnapTime(double time) => Math.Min(_grid.TimeOf(FrameAt(time)), Duration);
 
     // Frame bajo el cursor. El borde derecho del tramo es el inicio del frame siguiente, que ya no está

@@ -73,6 +73,28 @@ public abstract class TimelineBar : FrameworkElement
     private Bookmark? _bodyPress;
     private string? _hoveredBookmark;
 
+    // ---- Avance solo al sacar el extremo que se arrastra por un lado de la barra (solo la de zoom) ----
+    // Más allá de AutoDeadZone píxeles del borde de la pista, el extremo avanza solo hacia fuera, a una velocidad que
+    // crece de forma exponencial con la distancia: AutoSlowFrames frames por segundo nada más pasar la zona muerta y
+    // AutoFastSeconds segundos de vídeo por segundo a AutoFastDistance píxeles (y no más).
+    private const double AutoDeadZone = 4;
+    private const double AutoSlowFrames = 4;
+    private const double AutoFastSeconds = 8;
+    private const double AutoFastDistance = 180;
+    // Hacia qué lado avanza (-1, 0 o 1), dónde está el ratón y por qué instante va el extremo.
+    private int _autoDirection;
+    private double _autoX, _autoTime;
+    private readonly System.Diagnostics.Stopwatch _autoClock = new();
+
+    /// <summary>Si sacar el extremo que se arrastra por un lado de la pista lo hace avanzar solo (la barra de zoom).</summary>
+    protected virtual bool AutoExtendEdges => false;
+
+    /// <summary>Fps del vídeo, para la velocidad lenta del avance solo.</summary>
+    protected virtual double FramesPerSecond => 30;
+
+    /// <summary>Mientras el extremo que se arrastra avanza solo porque el ratón está fuera de la pista.</summary>
+    public bool AutoExtending => _autoDirection != 0;
+
     protected double? HoverX { get; private set; }
     /// <summary>Instante bajo el cursor mientras se arrastra con el botón izquierdo.</summary>
     protected double? DragTime { get; private set; }
@@ -537,8 +559,22 @@ public abstract class TimelineBar : FrameworkElement
                 && _bookmarks.FirstOrDefault(b => b.Id == press.Id) is { } bookmark)
             {
                 _bookmarkMoved = true;
-                var t = TimeAt(point.X);
-                BookmarkDragged?.Invoke(bookmark, press.Part, press.Part == BookmarkPart.Body ? t - press.Offset : t);
+                // Un extremo llevado por fuera de la pista avanza solo (OnAutoExtend); al volver dentro, sigue al ratón.
+                var outside = AutoExtendEdges && press.Part != BookmarkPart.Body
+                    ? point.X < TrackLeft - AutoDeadZone ? -1 : point.X > TrackLeft + TrackWidth + AutoDeadZone ? 1 : 0
+                    : 0;
+                _autoX = point.X;
+                if (outside != 0)
+                {
+                    if (outside != _autoDirection)
+                        StartAutoExtend(outside);
+                }
+                else
+                {
+                    StopAutoExtend();
+                    var t = TimeAt(point.X);
+                    BookmarkDragged?.Invoke(bookmark, press.Part, press.Part == BookmarkPart.Body ? t - press.Offset : t);
+                }
             }
         }
         else if (_grabbing)
@@ -587,6 +623,56 @@ public abstract class TimelineBar : FrameworkElement
         LeftUp();
     }
 
+    private void StartAutoExtend(int direction)
+    {
+        if (_autoDirection == 0)
+            CompositionTarget.Rendering += OnAutoExtend;
+        _autoDirection = direction;
+        // Empieza por el borde de la pista por el que se ha salido.
+        _autoTime = direction > 0 ? ViewEnd : ViewStart;
+        _autoClock.Restart();
+    }
+
+    private void StopAutoExtend()
+    {
+        if (_autoDirection == 0)
+            return;
+        _autoDirection = 0;
+        CompositionTarget.Rendering -= OnAutoExtend;
+        _autoClock.Stop();
+    }
+
+    // En cada frame de pintado: el extremo avanza lo que toca a la velocidad de la distancia del ratón al borde. Quien
+    // recibe el arrastre lo ajusta a frames, aplica el ancla y (la barra de zoom) se reencuadra para enseñarlo.
+    private void OnAutoExtend(object? sender, EventArgs e)
+    {
+        if (_autoDirection == 0 || _bookmarkPress is not { } press || _bookmarks.FirstOrDefault(b => b.Id == press.Id) is not { } bookmark)
+        {
+            StopAutoExtend();
+            return;
+        }
+        var dt = Math.Min(0.1, _autoClock.Elapsed.TotalSeconds);
+        _autoClock.Restart();
+        var edge = _autoDirection > 0 ? TrackLeft + TrackWidth : TrackLeft;
+        var distance = Math.Max(0, Math.Abs(_autoX - edge) - AutoDeadZone);
+        var slow = AutoSlowFrames / Math.Max(1, FramesPerSecond);
+        // slow · e^(distance / k), con k tal que a AutoFastDistance se llega a AutoFastSeconds.
+        var k = (AutoFastDistance - AutoDeadZone) / Math.Log(AutoFastSeconds / slow);
+        var speed = Math.Min(AutoFastSeconds, slow * Math.Exp(distance / k));
+        var next = Math.Clamp(_autoTime + _autoDirection * speed * dt, 0, Duration);
+        if (next == _autoTime)
+            return;
+        _autoTime = next;
+        BookmarkDragged?.Invoke(bookmark, press.Part, _autoTime);
+    }
+
+    /// <summary>Para las autopruebas: pulsar, mover y soltar el botón izquierdo por separado (con tiempo entre medias).</summary>
+    internal void SimulateLeftDown(Point point) => LeftDown(point, 1);
+
+    internal void SimulateLeftMove(Point point) => MouseMoved(point, left: true, right: false);
+
+    internal void SimulateLeftUp() => LeftUp();
+
     /// <summary>Para las autopruebas: punto del centro de la franja de bookmarks en el instante dado.</summary>
     internal Point LanePoint(double time) => new(XAt(time), LaneTop + LaneHeight / 2);
 
@@ -623,6 +709,7 @@ public abstract class TimelineBar : FrameworkElement
         }
         if (_bookmarkPress is { } press)
         {
+            StopAutoExtend();
             _bookmarkPress = null;
             ReleaseMouseCapture();
             if (_bookmarks.FirstOrDefault(b => b.Id == press.Id) is { } bookmark)
@@ -731,6 +818,7 @@ public abstract class TimelineBar : FrameworkElement
         _selectFromX = _selectToX = null;
         _selectFollow = false;
         _bodyPress = null;
+        StopAutoExtend();
         if (_bookmarkPress is { } press)
         {
             _bookmarkPress = null;

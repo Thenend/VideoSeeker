@@ -521,6 +521,10 @@ public partial class MainWindow
             edge = shown;
         }
         _bookmarkDragEdge = edge;
+        // Avanzando solo porque el ratón salió de la barra de zoom: la barra se aleja para enseñar la región entera (el
+        // otro extremo fijo en su lado), así al soltar no hay salto de escala.
+        if (Zoom.AutoExtending && _zoomRange is { } zone)
+            Zoom.SetRange(zone.Start, zone.End);
         if (_store.Settings.ShowDraggedEdgeFrame)
             _nav.DragTo(edge);
     }
