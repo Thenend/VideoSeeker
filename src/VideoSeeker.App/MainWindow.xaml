@@ -15,6 +15,8 @@
         <!-- Exportar: el bookmark (o dos, la colección) con una flecha que sale. -->
         <Geometry x:Key="ExportBookmarksIcon">M2,2.5 H7.5 V12.5 L4.75,10 L2,12.5 Z M10.5,7.5 H17 M14,4.5 L17,7.5 L14,10.5</Geometry>
         <Geometry x:Key="ExportCollectionIcon">M2,4 H7.5 V14 L4.75,11.5 L2,14 Z M4.5,4 V1.5 H10 V11.5 L7.5,9.4 M12,7.5 H17.5 M14.75,4.75 L17.5,7.5 L14.75,10.25</Geometry>
+        <!-- Guardar la zona como bookmark: la cinta con un "+". -->
+        <Geometry x:Key="AddBookmarkIcon">M2,2.5 H7.5 V12.5 L4.75,10 L2,12.5 Z M13.5,4.5 V11.5 M10,8 H17</Geometry>
         <Geometry x:Key="MarksHiddenIcon">M6.5,1.5 H12.5 V11 L9.5,8.5 L6.5,11 Z M1.5,15 H17.5 M3,1 L16,13.5</Geometry>
         <Style x:Key="IconPath" TargetType="Path">
             <Setter Property="Width" Value="19" />
@@ -118,7 +120,12 @@
                         Click="OnRangeLoopClick" />
                 <Button x:Name="MarkLastButton" DockPanel.Dock="Right" Style="{StaticResource ToolButton}" FontFamily="Segoe UI Symbol" Content="⇥"
                         ToolTip="Asignar el frame en pantalla al fin del tramo (O)" Click="OnMarkLastClick" />
-                <!-- Con una región seleccionada, el tramo es ella: su nombre con su color (sin nombre, tramo libre). -->
+                <!-- Con una región seleccionada, el tramo es ella: su nombre con su color. Con un tramo libre, en su sitio,
+                     el botón que lo guarda como bookmark (B); al guardarlo, el botón deja paso al nombre. -->
+                <Button x:Name="SaveZoneButton" DockPanel.Dock="Left" Style="{StaticResource ToolButton}" Margin="2,0,0,0"
+                        ToolTip="Guardar el tramo ampliado como bookmark (B)" Click="OnSaveZoneClick">
+                    <Path Style="{StaticResource IconPath}" Data="{StaticResource AddBookmarkIcon}" />
+                </Button>
                 <TextBlock x:Name="ZoneName" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="8,0,2,0" FontSize="12.5"
                            FontWeight="SemiBold" MaxWidth="180" TextTrimming="CharacterEllipsis" Visibility="Collapsed" />
                 <Button x:Name="MarkFirstButton" DockPanel.Dock="Left" Style="{StaticResource ToolButton}" FontFamily="Segoe UI Symbol" Content="⇤"

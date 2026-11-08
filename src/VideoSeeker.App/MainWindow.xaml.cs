@@ -702,6 +702,7 @@ public partial class MainWindow : Window
         {
             ZoneName.Visibility = Visibility.Collapsed;
         }
+        SaveZoneButton.Visibility = region == null && _zoomRange != null ? Visibility.Visible : Visibility.Collapsed;
         MarkFirstButton.ToolTip = $"Asignar el frame en pantalla al inicio {ZoneOf()} (I)";
         MarkLastButton.ToolTip = $"Asignar el frame en pantalla al fin {ZoneOf()} (O)";
         CloseZoomButton.ToolTip = region != null ? $"Cerrar zoom y deseleccionar «{region.Name}» (Esc)" : "Cerrar zoom (Esc)";
@@ -976,6 +977,13 @@ public partial class MainWindow : Window
     private void OnMarkLastClick(object sender, RoutedEventArgs e) => MarkLastFrame();
 
     private void OnCloseZoomClick(object sender, RoutedEventArgs e) => CloseZone();
+
+    // Lo mismo que B con el tramo libre: una región con sus límites, seleccionada, y el campo del nombre abierto.
+    private void OnSaveZoneClick(object sender, RoutedEventArgs e)
+    {
+        if (_zoomRange is { } z && _zoomBookmark == null)
+            AddRegion(z.Start, z.End);
+    }
 
     private void OnLoopClick(object sender, RoutedEventArgs e) => ToggleVideoLoop();
 

@@ -300,6 +300,21 @@ public partial class MainWindow
             var c = set.Find(_selectedBookmark)!;
             Check(c != null && Near(c.Start, freeZone.Start) && Near(EndOf(c), freeZone.End) && ZoneIs(c), "B con la zona libre crea una región con ella");
 
+            // El botón de la fila del zoom hace lo mismo: está con la zona libre, no con una región, y al guardar deja paso al nombre.
+            Check(SaveZoneButton.Visibility != Visibility.Visible && ZoneName.Visibility == Visibility.Visible,
+                "con una región como zona no está el botón de guardarla, sino su nombre");
+            SetFreeZoom((t1 + 6, t1 + 7.25));
+            var buttonZone = _zoomRange!.Value;
+            Check(SaveZoneButton.Visibility == Visibility.Visible && ZoneName.Visibility != Visibility.Visible, "con la zona libre está el botón de guardarla como bookmark");
+            SaveZoneButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+            CloseNaming(commit: false);
+            var d = set.Find(_selectedBookmark)!;
+            Check(d != null && d.Id != c!.Id && Near(d.Start, buttonZone.Start) && Near(EndOf(d), buttonZone.End) && ZoneIs(d)
+                    && SaveZoneButton.Visibility != Visibility.Visible && ZoneName.Visibility == Visibility.Visible && ZoneName.Text == d.Name,
+                $"el botón crea una región con la zona, que pasa a ser la zona con su nombre ({(d != null ? Show(d) : "nada")})");
+            UndoBookmarks(redo: false);
+            Check(d != null && set.Find(d.Id) == null, "Ctrl + Z deshace el bookmark del botón");
+
             // Esc cierra la zona y deselecciona.
             Select(a.Id);
             ReturnFocusToVideo();
