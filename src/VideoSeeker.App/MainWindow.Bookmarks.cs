@@ -160,20 +160,7 @@ public partial class MainWindow
     }
 
     // Texto bajo el vídeo: la región en la que se está (la más interior).
-    private string CurrentBookmarkText()
-    {
-        if (_bookmarks == null)
-            return "";
-        Bookmark? region = null;
-        foreach (var b in _bookmarks.Items)
-        {
-            if (b.Start > _position + 1e-4)
-                break;
-            if (_position >= b.Start - 1e-4 && _position < EndOf(b) - 1e-4)
-                region = b; // la que empieza más tarde: la más interior
-        }
-        return region is { } shown ? $"◆ {shown.Name}" : "";
-    }
+    private string CurrentBookmarkText() => RegionAtPosition() is { } shown ? $"◆ {shown.Name}" : "";
 
     // ---- Crear ----
 
@@ -792,16 +779,38 @@ public partial class MainWindow
         }
     }
 
-    // Clic derecho sobre la imagen sin arrastrar.
+    // Clic derecho sobre la imagen sin arrastrar: lo que tiene que ver con el frame que se ve (Mario, 8 de noviembre:
+    // ampliar sección no va aquí, está en las barras y en Z). La miniatura es de la región seleccionada o, si no hay,
+    // de la región en la que se está (la del texto bajo el vídeo); inicio y fin, como I / O, de la zona.
     private void ShowVideoMenu()
     {
+        if (BuildVideoMenu() is { } menu)
+            menu.IsOpen = true;
+    }
+
+    private ContextMenu? BuildVideoMenu()
+    {
         if (_bookmarks == null)
-            return;
+            return null;
         var menu = new ContextMenu { PlacementTarget = VideoArea, Placement = PlacementMode.MousePoint };
         AddBookmarkMenuItems(menu, _nav.CurrentTime);
-        var zoom = new MenuItem { Header = "Ampliar sección (±5 s)", InputGestureText = "Z" };
-        zoom.Click += (_, _) => ZoomAround(_nav.CurrentTime);
-        menu.Items.Add(zoom);
+        var region = ZoneBookmark ?? RegionAtPosition();
+        if (region != null || _zoomRange != null)
+            menu.Items.Add(new Separator());
+        if (region != null)
+            AddThumbnailItems(menu, region, $" de «{region.Name}»");
+        if (_zoomRange != null)
+        {
+            var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
+            var markFirst = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al inicio {ZoneOf()}", InputGestureText = "I" };
+            markFirst.Click += (_, _) => MarkFirstFrame();
+            menu.Items.Add(markFirst);
+            var markLast = new MenuItem { Header = $"Asignar el frame en pantalla ({current}) al fin {ZoneOf()}", InputGestureText = "O" };
+            markLast.Click += (_, _) => MarkLastFrame();
+            menu.Items.Add(markLast);
+        }
+        menu.Items.Add(new Separator());
+        AddRevealItem(menu, _bookmarks.VideoPath);
         menu.Items.Add(new Separator());
         // Como el botón: abre o cierra sin más, con la marca si está abierto (desde el menú el teclado nunca está
         // en el panel, así que el Ctrl + B de TogglePanel nunca lo cerraría).
@@ -809,7 +818,7 @@ public partial class MainWindow
         var panel = new MenuItem { Header = "Panel de bookmarks", InputGestureText = "Ctrl+B", IsCheckable = true, IsChecked = open };
         panel.Click += (_, _) => ToggleOpenPanel();
         menu.Items.Add(panel);
-        menu.IsOpen = true;
+        return menu;
     }
 
     // Menú de un bookmark (clic derecho en su marca o en el panel): actúa sobre él sin seleccionarlo (no cambia la zona).
@@ -826,25 +835,7 @@ public partial class MainWindow
         AddLabelOrColorMenu(menu, _labels.Find(bookmark.Label)?.Id, bookmark.Color, mixedLabels: false,
             id => SetBookmarkLabel(bookmark, id), hex => SetBookmarkColor(bookmark, hex));
         AddMoveMenu(menu, collection => MoveToCollection([bookmark.Id], collection));
-        var current = Zoom.Grid.Snap(_nav.CurrentTime);
-        var useFrame = new MenuItem { Header = $"Usar el frame actual como miniatura (frame {Zoom.Grid.FrameAt(current)})" };
-        useFrame.Click += (_, _) =>
-        {
-            // Un frame de fuera de la región seguramente es un despiste: se pregunta antes.
-            if ((current < bookmark.Start - 1e-4 || current >= EndOf(bookmark) - 1e-4)
-                && !Dialog.Confirm(this,
-                    $"El frame actual ({Zoom.Grid.FrameAt(current)}, {TimeFormat.Precise(current, Fps)}) está fuera de la región «{bookmark.Name}» " +
-                    $"({RangeText(bookmark, withFrames: true)}).\n\n¿Usarlo igualmente como miniatura?", "Usarlo"))
-                return;
-            _bookmarks?.Update(bookmark.Id, b => b.Thumb = current);
-        };
-        menu.Items.Add(useFrame);
-        if (bookmark.Thumb != null)
-        {
-            var resetThumb = new MenuItem { Header = "Volver a la miniatura del primer frame" };
-            resetThumb.Click += (_, _) => _bookmarks?.Update(bookmark.Id, b => b.Thumb = null);
-            menu.Items.Add(resetThumb);
-        }
+        AddThumbnailItems(menu, bookmark, "");
 
         menu.Items.Add(new Separator());
         AddExportMenu(menu, _bookmarks?.VideoPath, bookmark.Start, EndOf(bookmark), bookmark.Name);
@@ -859,6 +850,47 @@ public partial class MainWindow
         delete.Click += (_, _) => DeleteBookmark(bookmark);
         menu.Items.Add(delete);
         menu.IsOpen = true;
+    }
+
+    // La región en la que está el frame actual (la más interior), o null.
+    private Bookmark? RegionAtPosition()
+    {
+        if (_bookmarks == null)
+            return null;
+        Bookmark? region = null;
+        foreach (var b in _bookmarks.Items)
+        {
+            if (b.Start > _position + 1e-4)
+                break;
+            if (_position >= b.Start - 1e-4 && _position < EndOf(b) - 1e-4)
+                region = b; // la que empieza más tarde: la más interior
+        }
+        return region;
+    }
+
+    // "Usar el frame actual como miniatura" y, si tiene una elegida, volver a la del primer frame. "whose" es " de
+    // «Nombre»" donde no se sabe por el menú de qué bookmark es (el de la imagen).
+    private void AddThumbnailItems(ItemsControl menu, Bookmark bookmark, string whose)
+    {
+        var current = Zoom.Grid.Snap(_nav.CurrentTime);
+        var useFrame = new MenuItem { Header = $"Usar el frame actual ({Zoom.Grid.FrameAt(current)}) como miniatura{whose}" };
+        useFrame.Click += (_, _) =>
+        {
+            // Un frame de fuera de la región seguramente es un despiste: se pregunta antes.
+            if ((current < bookmark.Start - 1e-4 || current >= EndOf(bookmark) - 1e-4)
+                && !Dialog.Confirm(this,
+                    $"El frame actual ({Zoom.Grid.FrameAt(current)}, {TimeFormat.Precise(current, Fps)}) está fuera de la región «{bookmark.Name}» " +
+                    $"({RangeText(bookmark, withFrames: true)}).\n\n¿Usarlo igualmente como miniatura?", "Usarlo"))
+                return;
+            _bookmarks?.Update(bookmark.Id, b => b.Thumb = current);
+        };
+        menu.Items.Add(useFrame);
+        if (bookmark.Thumb != null)
+        {
+            var resetThumb = new MenuItem { Header = $"Volver a la miniatura del primer frame{whose}" };
+            resetThumb.Click += (_, _) => _bookmarks?.Update(bookmark.Id, b => b.Thumb = null);
+            menu.Items.Add(resetThumb);
+        }
     }
 
     private void ExportBookmarks()
