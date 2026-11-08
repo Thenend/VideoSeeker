@@ -427,8 +427,12 @@ public partial class MainWindow : Window
         Seek.CachedRanges = Zoom.CachedRanges = [];
         CloseZone();
         _awaitingDuration = true;
-        _nav.OnFileOpening(path, play: !keepPause);
-        _player.Load(path, start, play: !keepPause);
+        // Con "keepPause" se sigue como estaba. Hay que mirarlo antes de OnFileOpening, que para el bucle desde la caché
+        // dejando la pausa puesta: con un vídeo corto entero en caché y el bucle del vídeo, ir al bookmark de otro
+        // vídeo lo dejaba en pausa aunque se estuviera reproduciendo.
+        var play = !keepPause || _nav.Playing;
+        _nav.OnFileOpening(path, play);
+        _player.Load(path, start, play);
         LoadFrameIndex(path, key);
         LoadBookmarks(key, entry.Path);
         Title = $"{Path.GetFileName(path)} — VideoSeeker";

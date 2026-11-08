@@ -118,6 +118,9 @@ public partial class MainWindow
                     async () => { CloseZone(); _nav.SeekTo(marks[1].Start - 3); await Task.Delay(300); }),
                 ("número 2", marks[1], () => { JumpToNumber(2); return Task.CompletedTask; }, null),
             };
+            // VIDEOSEEKER_ONLY=otro: solo lo del bookmark de otro vídeo.
+            if (Environment.GetEnvironmentVariable("VIDEOSEEKER_ONLY") == "otro")
+                goto OtherVideo;
             foreach (var (tag, rangeLoop, videoLoop) in new[] { ("", false, false), ("[bucle del tramo] ", true, false), ("[bucle del vídeo] ", false, true) })
             {
                 if (_loopRange != rangeLoop)
@@ -149,6 +152,96 @@ public partial class MainWindow
             await Task.Delay(300);
             await Try("panel", true, marks[1], () => { OpenRow(_rows.First(r => r.Id == marks[1].Id)); return Task.CompletedTask; }, reverse: true);
             await SetPlaying(false);
+
+        OtherVideo:
+            // Bookmark de otro vídeo (VIDEOSEEKER_OTHER): como lo hace Mario, clic en la imagen para reproducir, otro para
+            // pausar, otro para reproducir y, al rato (también enseguida), ir al bookmark del otro vídeo.
+            if (Environment.GetEnvironmentVariable("VIDEOSEEKER_OTHER") is { Length: > 0 } other && File.Exists(other))
+            {
+                var paths = new[] { videoPath, other };
+                // Como lo tiene Mario: con el bucle del vídeo.
+                if (Environment.GetEnvironmentVariable("VIDEOSEEKER_LOOPVIDEO") == "1" && !_loopVideo)
+                    ToggleVideoLoop();
+                async Task WaitOpened(string path)
+                {
+                    for (var i = 0; i < 100 && (_awaitingDuration || !string.Equals(_currentPath, path, StringComparison.OrdinalIgnoreCase)); i++)
+                        await Task.Delay(100);
+                }
+                // Un bookmark en cada vídeo, y el panel con todos los vídeos de la colección (como el de Mario).
+                var ids = new string[2];
+                string? otherFile = null, otherSaved = null;
+                try
+                {
+                    ids[0] = _bookmarks!.Add("Este", 0, _duration, "#4A9EFF", null).Id; // el vídeo entero, como los de Mario
+                    Open(other);
+                    await WaitOpened(other);
+                    otherFile = Path.Combine(BookmarkCollections.PathOf(_store, collection), _bookmarks!.Fingerprint + ".json");
+                    otherSaved = File.Exists(otherFile) ? File.ReadAllText(otherFile) : null;
+                    ids[1] = _bookmarks.Add("Otro", 0, _duration, "#4A9EFF", null).Id;
+                    Open(videoPath);
+                    await WaitOpened(videoPath);
+                    BookmarkPanel.Visibility = System.Windows.Visibility.Visible;
+                    ScopeAll.IsChecked = true;
+                    _otherFiles = null;
+                    RefreshRows();
+                    var round = 0;
+                    foreach (var pauseMs in new[] { 150, 1500, 4000 })
+                        foreach (var playMs in new[] { 100, 400, 1500 })
+                            foreach (var reverse in new[] { false, true })
+                            {
+                                var to = paths[++round % 2];
+                                if (_nav.Paused)
+                                    OnVideoClicked();
+                                // Con la pausa larga, antes se ve el vídeo entero y da la vuelta (bucle del vídeo).
+                                await Task.Delay(pauseMs >= 4000 ? 11000 : 800);
+                                OnVideoClicked();
+                                await Task.Delay(pauseMs);
+                                if (reverse)
+                                    _nav.Backward();
+                                else
+                                    OnVideoClicked();
+                                await Task.Delay(playMs);
+                                var how = $"{(reverse ? "marcha atrás" : "reproduciendo")} (pausa {pauseMs} ms, play {playMs} ms)";
+                                Log($"   antes: {(_nav.LoopPlaying ? "bucle desde la caché" : _nav.Paused ? "en pausa" : "reproduce")}; caché {string.Join(" ", _engine?.CachedRanges().Select(r => $"{r.Start:0.000}-{r.End:0.000}") ?? [])}; duración {_duration:0.000}, bucle {_loopVideo}");
+                                var row = _rows.First(r => r.Id == ids[round % 2]);
+                                OpenRow(row);
+                                await WaitOpened(to);
+                                var before = _nav.CurrentTime;
+                                await Task.Delay(1000);
+                                var t = _nav.CurrentTime;
+                                // En marcha atrás, el otro vídeo se reproduce hacia delante (lo que importa es que no se pare).
+                                Check(!_nav.Paused && !row.IsCurrentVideo && t > before + 0.3,
+                                    $"otro vídeo {how}: {(_nav.Reversing ? "marcha atrás" : _nav.Paused ? "en pausa" : "reproduce")}, {before:0.00} → {t:0.00}");
+                                if (_nav.Reversing)
+                                    _nav.TogglePlay();
+                            }
+                    // En pausa sigue en pausa.
+                    _nav.Pause();
+                    await Task.Delay(500);
+                    var last = paths[++round % 2];
+                    OpenRow(_rows.First(r => r.Id == ids[round % 2]));
+                    await WaitOpened(last);
+                    await Task.Delay(1000);
+                    Check(_nav.Paused, "otro vídeo en pausa: sigue en pausa");
+                }
+                finally
+                {
+                    ScopeAll.IsChecked = false;
+                    if (otherFile != null)
+                    {
+                        File.Delete(otherFile + ".bak");
+                        if (otherSaved != null)
+                            File.WriteAllText(otherFile, otherSaved);
+                        else
+                            File.Delete(otherFile);
+                    }
+                    if (!string.Equals(_currentPath, videoPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Open(videoPath);
+                        await WaitOpened(videoPath);
+                    }
+                }
+            }
         }
         catch (Exception e)
         {

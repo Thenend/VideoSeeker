@@ -87,6 +87,12 @@ public sealed class Navigator(MpvPlayer player)
     /// <summary>Frames pintados por el motor (para medir en la autoprueba).</summary>
     public int EngineFrames => _shownSeq;
     public bool Paused => _paused;
+
+    /// <summary>
+    /// Si se está reproduciendo de cualquier manera: con mpv, el bucle desde la caché (mpv solo da el sonido y puede estar
+    /// en pausa por medio), marcha atrás o con una reanudación pendiente (mpv yendo al frame del motor).
+    /// </summary>
+    public bool Playing => !_paused || _loopPlaying || Reversing || _resumeAfterSeek || _dragging && _resumeAfterDrag;
     /// <summary>Duración del vídeo (para que, fuera del tramo con bucle, el bucle del vídeo dé la vuelta en el vídeo entero).</summary>
     public double Duration { get; set; }
     /// <summary>
