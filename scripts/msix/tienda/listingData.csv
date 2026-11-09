@@ -1,7 +1,7 @@
 ﻿Field,ID,Type (Type),default,es-es,en-us,fr-fr,de-de,it-it,pt-br
-Description,2,Text,,"VideoSeeker empezó en un estudio de videojuegos, para revisar animaciones: dejar un ciclo de carrera en bucle, ir hacia atrás frame a frame hasta dar con el momento en que un pie resbala, apuntar «revisar expresión» en un tramo y volver a él al día siguiente.
+Description,2,Text,,"VideoSeeker es un reproductor para mirar un vídeo con calma, frame a frame: dejar un tramo en bucle, ir hacia atrás hasta el frame exacto en que pasa algo, apuntar «revisar» en un trozo y volver a él más tarde.
 
-Sirve igual para cualquier vídeo que haya que mirar con calma: tomas de rodaje, partidas grabadas, referencias.
+Sirve para partidas grabadas, animaciones, tomas de rodaje o cualquier vídeo que haya que revisar al detalle.
 
 Cómo se usa:
 • Flecha arriba y abajo: un frame adelante o atrás, al momento. Los frames de alrededor se guardan en la tarjeta gráfica, así que ir hacia atrás no hace esperar.
@@ -15,9 +15,9 @@ Lee MKV, MP4, AVI, MOV y WebM con H.264, HEVC, AV1 o VP9 y audio AAC, AC3 o DTS,
 
 Gratis y de código abierto (GPL v3), sin anuncios ni cuentas: https://github.com/Thenend/VideoSeeker
 
-En las capturas sale «Sprite Fright» (Blender Foundation, studio.blender.org), con licencia CC BY 4.0.","VideoSeeker started in a game studio, for reviewing animation: leaving a run cycle on a loop, stepping back frame by frame to find the moment a foot slides, noting “check expression” on a range and coming back to it the next day.
+En las capturas sale «Sprite Fright» (Blender Foundation, studio.blender.org), con licencia CC BY 4.0.","VideoSeeker is a player for looking at a video carefully, frame by frame: leaving a range on a loop, stepping back to the exact frame where something happens, noting “check” on a stretch and coming back to it later.
 
-It works just as well for any video you need to look at carefully: shoot takes, recorded matches, reference footage.
+It's made for recorded gameplay, animation, shoot takes or any video you need to review in detail.
 
 How it works:
 • Up and Down arrows: one frame forward or back, instantly. Nearby frames are kept on the graphics card, so going backwards doesn't make you wait.
@@ -31,9 +31,9 @@ Plays MKV, MP4, AVI, MOV and WebM with H.264, HEVC, AV1 or VP9 and AAC, AC3 or D
 
 Free and open source (GPL v3), no ads, no accounts: https://github.com/Thenend/VideoSeeker
 
-Screenshots show “Sprite Fright” (Blender Foundation, studio.blender.org), licensed CC BY 4.0.","VideoSeeker est né dans un studio de jeux vidéo, pour relire de l'animation : laisser un cycle de course en boucle, reculer image par image jusqu'au moment où un pied glisse, noter « revoir l'expression » sur une plage et y revenir le lendemain.
+Screenshots show “Sprite Fright” (Blender Foundation, studio.blender.org), licensed CC BY 4.0.","VideoSeeker est un lecteur pour regarder une vidéo tranquillement, image par image : laisser une plage en boucle, reculer jusqu'à l'image exacte où quelque chose se passe, noter « à revoir » sur un passage et y revenir plus tard.
 
-Il convient tout autant à n'importe quelle vidéo qu'il faut regarder de près : prises de tournage, parties enregistrées, références.
+Il sert pour des parties enregistrées, de l'animation, des prises de tournage ou toute vidéo à examiner en détail.
 
 Comment ça marche :
 • Flèches haut et bas : une image en avant ou en arrière, tout de suite. Les images voisines sont gardées sur la carte graphique, donc reculer ne fait pas attendre.
@@ -47,9 +47,9 @@ Lit les MKV, MP4, AVI, MOV et WebM en H.264, HEVC, AV1 ou VP9 avec du son AAC, A
 
 Gratuit et open source (GPL v3), sans publicité ni compte : https://github.com/Thenend/VideoSeeker
 
-Les captures montrent « Sprite Fright » (Blender Foundation, studio.blender.org), sous licence CC BY 4.0.","VideoSeeker ist in einem Spielestudio entstanden, um Animationen zu prüfen: einen Laufzyklus in Schleife laufen lassen, Frame für Frame zurückgehen, bis man die Stelle findet, an der ein Fuß rutscht, „Ausdruck prüfen“ an einen Abschnitt schreiben und am nächsten Tag dorthin zurückkehren.
+Les captures montrent « Sprite Fright » (Blender Foundation, studio.blender.org), sous licence CC BY 4.0.","VideoSeeker ist ein Player, um ein Video in Ruhe anzusehen, Frame für Frame: einen Abschnitt in Schleife laufen lassen, bis zum genauen Frame zurückgehen, an dem etwas passiert, „prüfen“ an eine Stelle schreiben und später dorthin zurückkehren.
 
-Genauso gut eignet er sich für jedes Video, das man sich in Ruhe ansehen muss: Drehaufnahmen, aufgezeichnete Spiele, Referenzmaterial.
+Er eignet sich für aufgezeichnete Spiele, Animationen, Drehaufnahmen oder jedes Video, das man im Detail prüfen muss.
 
 So funktioniert es:
 • Pfeil nach oben und unten: ein Frame vor oder zurück, sofort. Die Frames in der Nähe liegen auf der Grafikkarte, deshalb muss man auch rückwärts nicht warten.
@@ -63,9 +63,9 @@ Spielt MKV, MP4, AVI, MOV und WebM mit H.264, HEVC, AV1 oder VP9 und AAC-, AC3- 
 
 Kostenlos und Open Source (GPL v3), ohne Werbung und ohne Konto: https://github.com/Thenend/VideoSeeker
 
-Die Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.org), lizenziert unter CC BY 4.0.","VideoSeeker è nato in uno studio di videogiochi, per rivedere le animazioni: lasciare un ciclo di corsa in loop, tornare indietro fotogramma per fotogramma fino al momento in cui un piede scivola, scrivere «rivedere espressione» su un tratto e riprenderlo il giorno dopo.
+Die Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.org), lizenziert unter CC BY 4.0.","VideoSeeker è un lettore per guardare un video con calma, fotogramma per fotogramma: lasciare un tratto in loop, tornare indietro fino al fotogramma esatto in cui succede qualcosa, scrivere «da rivedere» su un passaggio e riprenderlo più tardi.
 
-Va bene allo stesso modo per qualsiasi video da guardare con calma: riprese sul set, partite registrate, materiale di riferimento.
+Serve per partite registrate, animazioni, riprese sul set o qualsiasi video da rivedere nel dettaglio.
 
 Come si usa:
 • Freccia su e giù: un fotogramma avanti o indietro, subito. I fotogrammi vicini restano sulla scheda grafica, quindi anche andando indietro non si aspetta.
@@ -79,9 +79,9 @@ Riproduce MKV, MP4, AVI, MOV e WebM in H.264, HEVC, AV1 o VP9 con audio AAC, AC3
 
 Gratuito e open source (GPL v3), senza pubblicità né account: https://github.com/Thenend/VideoSeeker
 
-Nelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org), con licenza CC BY 4.0.","O VideoSeeker começou em um estúdio de games, para revisar animação: deixar um ciclo de corrida em loop, voltar quadro a quadro até achar o momento em que um pé escorrega, anotar “revisar expressão” em um trecho e voltar a ele no dia seguinte.
+Nelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org), con licenza CC BY 4.0.","O VideoSeeker é um player para ver um vídeo com calma, quadro a quadro: deixar um trecho em loop, voltar até o quadro exato em que algo acontece, anotar “revisar” em um trecho e voltar a ele depois.
 
-Serve do mesmo jeito para qualquer vídeo que precise ser visto com calma: tomadas de gravação, partidas gravadas, referências.
+Serve para partidas gravadas, animações, tomadas de gravação ou qualquer vídeo que precise ser revisado em detalhe.
 
 Como funciona:
 • Setas para cima e para baixo: um quadro para a frente ou para trás, na hora. Os quadros próximos ficam guardados na placa de vídeo, então voltar não faz esperar.
