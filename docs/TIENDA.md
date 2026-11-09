@@ -10,7 +10,7 @@ Preparado el 9 de noviembre de 2026. Lo que hay en el repo, las decisiones y los
 - **Códecs:** VideoSeeker lleva su propio libmpv y FFmpeg, así que no depende de las extensiones de códecs de Windows (la de HEVC es de pago) y reproduce lo mismo que el zip. La Store no revisa patentes. El único riesgo real es HEVC (sus patentes se licencian en consorcios), y para una app gratuita de un particular en la UE es muy bajo; AC3, MP3 y el núcleo de DTS ya no tienen patentes vigentes. Si algún día la app fuera de pago o de una empresa, conviene revisarlo.
 - **Botón «Apoyar»:** la norma 10.8.2 pide que las donaciones usen un sistema de pago seguro (PayPal lo es) y que quien dona no reciba nada a cambio en la app. Se declara en las notas para la certificación. Si lo rechazaran, se oculta en la versión de la Store (`AppLinks.SupportUrl` vacío) y se vuelve a enviar.
 - **Política de privacidad:** la Store la exige para cualquier app de escritorio, aunque no recoja nada. Está en `docs/privacidad/` y se publica con GitHub Pages en https://thenend.github.io/VideoSeeker/privacidad/.
-- **Idioma:** el paquete declara solo español (la interfaz solo está en español), así que la ficha va en español. Se puede ofrecer en todos los países.
+- **Idiomas:** el paquete declara los seis de la interfaz (español, inglés, francés, alemán, italiano y portugués de Brasil), así que Partner Center abre una ficha para cada uno. La de español es la principal; los textos de las otras cinco están en [TIENDA-fichas.md](TIENDA-fichas.md). Se puede ofrecer en todos los países.
 
 ## Qué cambia en la app instalada desde la Store
 
@@ -45,7 +45,7 @@ Versión del paquete: `año.mesdía.horaminuto.0` (por ejemplo `2026.1109.2015.0
    - **Propiedades:** categoría «Foto y vídeo»; URL de privacidad https://thenend.github.io/VideoSeeker/privacidad/; sitio web https://github.com/Thenend/VideoSeeker; contacto de soporte: https://github.com/Thenend/VideoSeeker/issues. Requisitos de hardware recomendados: tarjeta gráfica con DirectX 11.
    - **Clasificación por edades:** el cuestionario (IARC). Es una herramienta: sin contenido propio, sin chat, sin compras, sin compartir ubicación. Saldrá «Para todos» / PEGI 3.
    - **Paquetes:** sube el `.msix`. Partner Center pedirá justificar `runFullTrust`: usa el texto de abajo.
-   - **Ficha de la Store (español):** el texto de abajo, al menos una captura (1366 × 768 o más grande, sin bordes) y el logo de `scripts/msix/tienda/`.
+   - **Fichas de la Store:** una por idioma. En la de español, el texto de abajo, al menos una captura (1366 × 768 o más grande, sin bordes) y el logo de `scripts/msix/tienda/`; en las otras cinco, los textos de [TIENDA-fichas.md](TIENDA-fichas.md) y una captura con la app en ese idioma (Ajustes > General > Idioma) o, si no, la misma.
    - **Opciones de envío > Notas para la certificación:** el texto de abajo.
 7. **Enviar a certificación.** Suele tardar entre unas horas y 3 días laborables. Si la rechazan, el informe dice por qué: pásamelo.
 8. **Actualizaciones:** `make-msix.ps1` otra vez, nuevo envío en Partner Center (copia el anterior), sube el nuevo `.msix`. Los usuarios lo reciben solos.
@@ -79,4 +79,4 @@ Frame a frame instantáneo, adelante y atrás · Bookmarks de regiones con etiqu
 VideoSeeker es una aplicación de escritorio (WPF) empaquetada en MSIX. Necesita confianza total para reproducir con su motor de vídeo propio (libmpv y FFmpeg incluidos en el paquete), usar Direct3D 11 para su caché de frames, leer los vídeos locales que abre el usuario y guardar junto a ellos los clips y bookmarks que exporta.
 
 **Notas para la certificación:**
-Aplicación gratuita y de código abierto (GPL v3, https://github.com/Thenend/VideoSeeker). Para probarla, abra cualquier vídeo local (Ctrl+O o arrastrándolo a la ventana). No necesita cuenta ni conexión. El botón «Apoyar» de Ajustes solo abre en el navegador una página con un enlace de donación voluntaria por PayPal; quien dona no recibe nada a cambio en la app. El botón «Código fuente» abre el repositorio.
+Aplicación gratuita y de código abierto (GPL v3, https://github.com/Thenend/VideoSeeker). Para probarla, abra cualquier vídeo local (Ctrl+O o arrastrándolo a la ventana). No necesita cuenta ni conexión. La interfaz sigue el idioma de Windows (español, inglés, francés, alemán, italiano o portugués de Brasil; se cambia en Ajustes > General). El botón «Apoyar» («Support» en inglés) de Ajustes solo abre en el navegador una página con un enlace de donación voluntaria por PayPal; quien dona no recibe nada a cambio en la app. El botón «Código fuente» («Source code») abre el repositorio.

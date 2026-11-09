@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Actualizado el 7 de noviembre de 2026. Plan completo en [PLAN.md](PLAN.md); mediciones de la fase 0 en [spike-f0-results.md](spike-f0-results.md).
+Actualizado el 9 de noviembre de 2026. Plan completo en [PLAN.md](PLAN.md); mediciones de la fase 0 en [spike-f0-results.md](spike-f0-results.md).
 
 ## Hecho
 
@@ -88,6 +88,13 @@ Actualizado el 7 de noviembre de 2026. Plan completo en [PLAN.md](PLAN.md); medi
 - **Restablecer valores por defecto:** confirma con "Se volverán a poner los valores por defecto de todos los ajustes." y lo pone todo por defecto, también la carpeta de datos: si no era la de por defecto, sigue con las mismas preguntas que su botón (llevar los datos o no, reiniciar), sin borrar nada. No toca bookmarks, colecciones ni volumen (no son ajustes).
 - **Autoprueba `settings`:** valores por defecto (subtítulos desactivados, idiomas sin preferencia), que el "sí" guardado por la primera versión no cuenta, los idiomas (códigos, variantes, orden, texto antiguo), la carpeta de datos en una carpeta temporal (copiar a una vacía, copiar encima apartando lo que había, carpetas anidadas, apuntar y quitar la elección sin tocar los datos de verdad), que las barras no pintan la línea verde, que con "mover regiones" desactivado arrastrar el centro del tramo no lo mueve y la imagen va a donde se suelta (y activado sí lo mueve), el timecode, el contador en los dos formatos, la ventana (interruptores, sincronización con Ctrl + Shift + B, validación de números, desplegable de idioma, los dos sliders) y guarda una captura (`selftest-ajustes.png`). Deja los ajustes como estaban.
 - Fuera de esta versión (acordado): editor de atajos y opciones libres del reproductor.
+
+## Idiomas de la interfaz
+
+- **Seis idiomas** (9 de noviembre): español, inglés, francés, alemán, italiano y portugués de Brasil. Por defecto, el de Windows (catalán, gallego y euskera van a español; uno sin traducción, a inglés); se cambia en Ajustes > General > Idioma y se aplica al reiniciar, que la app ofrece en el momento. También siguen el idioma los nombres de los idiomas de audio y subtítulos, los colores de la paleta, los pasos de deshacer y los textos propios de WPF (menú de copiar y pegar), que el zip y el paquete llevan en los seis.
+- **Historia:** se hizo el 4 de noviembre (703e2e0), pero se subió por error al repo antiguo, VideoSeeker-privado, y no llegó aquí. El 9 de noviembre se portó al código actual y se tradujeron los textos nuevos.
+- **Cómo está hecho:** `src/VideoSeeker.App/Localization`. `Strings.cs` declara cada texto (con su versión en español en el comentario) y cada `Strings.<idioma>.cs` le da valor: si falta en uno, no compila. En el código, `S.Nombre`; en XAML, `{l:Tr Nombre}` (un nombre que no existe falla al abrir la ventana). Los textos sobre la zona ampliada reciben el nombre de la región, si lo es (`S.ZoneOf`: «del tramo» o «de «Región»»), en lugar de pegar trozos en español.
+- **Pruebas:** las autopruebas van en español; `selftest.ps1 -Idioma de` (o en, fr, it, pt-BR) pasa la rápida en otro idioma para ver que todo cabe.
 
 ## Icono
 
