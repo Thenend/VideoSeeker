@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using VideoSeeker.App.Data;
@@ -241,7 +242,13 @@ public partial class MainWindow
                 var formatted = new FormattedText(block.Text, CultureInfo.CurrentUICulture, block.FlowDirection,
                     new Typeface(block.FontFamily, block.FontStyle, block.FontWeight, block.FontStretch), block.FontSize,
                     Brushes.Black, VisualTreeHelper.GetDpi(block).PixelsPerDip);
-                var room = block.ActualWidth - block.Padding.Left - block.Padding.Right;
+                // Con un ancho fijo (Width, MaxWidth) o un hueco más estrecho, ActualWidth es el del texto entero y lo
+                // que no cabe lo recorta el hueco: cuenta lo más estrecho de los tres.
+                var slot = LayoutInformation.GetLayoutSlot(block).Width - block.Margin.Left - block.Margin.Right;
+                var width = Math.Min(block.ActualWidth, Math.Min(double.IsNaN(block.Width) ? double.MaxValue : block.Width, block.MaxWidth));
+                if (slot > 0)
+                    width = Math.Min(width, slot);
+                var room = width - block.Padding.Left - block.Padding.Right;
                 cut = formatted.Width > room + 1;
                 if (!cut && root is FrameworkElement)
                 {

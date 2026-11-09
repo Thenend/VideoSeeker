@@ -310,7 +310,7 @@
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
-                            <TextBlock DockPanel.Dock="Right" x:Name="ScrubText" Style="{StaticResource Small}" Width="92" Margin="10,0,0,0" />
+                            <TextBlock DockPanel.Dock="Right" x:Name="ScrubText" Style="{StaticResource Small}" MinWidth="92" Margin="10,0,0,0" />
                             <Slider DockPanel.Dock="Right" x:Name="ScrubSlider" Style="{StaticResource DarkSlider}" Width="200" Minimum="1" Maximum="20" TickFrequency="1"
                                     IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" VerticalAlignment="Center" Focusable="False" />
                             <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr ScrubTip}" Text="{l:Tr Scrub}" />
@@ -389,7 +389,7 @@
                 <Border Style="{StaticResource SectionCard}">
                     <StackPanel>
                         <DockPanel Style="{StaticResource Row}">
-                            <TextBlock DockPanel.Dock="Right" x:Name="CacheText" Style="{StaticResource Small}" Width="92" Margin="10,0,0,0" />
+                            <TextBlock DockPanel.Dock="Right" x:Name="CacheText" Style="{StaticResource Small}" MinWidth="92" Margin="10,0,0,0" />
                             <Slider DockPanel.Dock="Right" x:Name="CacheSlider" Style="{StaticResource DarkSlider}" Width="200" Minimum="512" TickFrequency="256"
                                     IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" VerticalAlignment="Center" Focusable="False" />
                             <TextBlock x:Name="CacheLabel" Style="{StaticResource Label}" Text="{l:Tr CacheMemory}" />
@@ -424,7 +424,7 @@
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
-                            <TextBlock DockPanel.Dock="Right" x:Name="LightClipText" Style="{StaticResource Small}" Width="92" Margin="10,0,0,0" />
+                            <TextBlock DockPanel.Dock="Right" x:Name="LightClipText" Style="{StaticResource Small}" MinWidth="92" Margin="10,0,0,0" />
                             <Slider DockPanel.Dock="Right" x:Name="LightClipSlider" Style="{StaticResource DarkSlider}" Width="200" Minimum="0.25" Maximum="4" TickFrequency="0.25"
                                     IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" VerticalAlignment="Center" Focusable="False" />
                             <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr LightClipTip}" Text="{l:Tr LightClip}" />

@@ -83,6 +83,13 @@ public partial class SettingsWindow : Window
             UpdateLightClipText();
             Change(() => s.LightClipMegabytesPerSecond = Math.Round(LightClipSlider.Value * 4) / 4);
         };
+        // El valor junto a cada slider, tan ancho como el más largo que puede salir en este idioma: así no se corta
+        // ("20 px per fotogramma") y el slider no se mueve al arrastrarlo.
+        FitWidest(ScrubText, S.PixelsPerFrame((int)ScrubSlider.Maximum));
+        FitWidest(CacheText, _vramMegabytes is { } vramTotal
+            ? S.CacheOfTotal(Number(CacheSlider.Maximum, "0.00"), Number(vramTotal, "0.0"))
+            : $"{(CacheSlider.Maximum / 1024).ToString("0.0", Loc.Culture)} {S.GigabytesUnit}");
+        FitWidest(LightClipText, S.MegabytesPerSecond(LightClipSlider.Maximum.ToString("0.00", Loc.Culture)));
 
         LoadValues();
         UpdateFolderUi();
@@ -289,6 +296,14 @@ public partial class SettingsWindow : Window
         CacheText.Text = _vramMegabytes is { } total ? S.CacheOfTotal(Number(mb, "0.##"), Number(total, "0.#")) : GigaBytes(mb);
         CacheText.Foreground = (Brush)FindResource(over ? "Error" : "FgMuted");
         CacheSlider.ToolTip = over ? S.CacheTooBigTip : null;
+    }
+
+    private static void FitWidest(TextBlock block, string widest)
+    {
+        var text = new FormattedText(widest, Loc.Culture, block.FlowDirection,
+            new Typeface(block.FontFamily, block.FontStyle, block.FontWeight, block.FontStretch), block.FontSize, Brushes.Black,
+            VisualTreeHelper.GetDpi(block).PixelsPerDip);
+        block.MinWidth = Math.Max(block.MinWidth, Math.Ceiling(text.Width) + 1);
     }
 
     private static string Number(double megabytes, string format) => (megabytes / 1024).ToString(format, Loc.Culture);

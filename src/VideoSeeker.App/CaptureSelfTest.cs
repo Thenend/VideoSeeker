@@ -39,7 +39,7 @@ public partial class MainWindow
              "Spray – Timing prüfen", "Sprite-Laufzyklus", "Rex' Mimik prüfen", "Lippensynchronität", "Nahaufnahme Ältester"],
             "Gruppenreaktion"),
         "it" => new(["Animazione", "Espressione", "Da rivedere"],
-            ["inquadratura 3 – sguardo alla lumaca", "contatto piede sx", "arco della mazza", "inquadratura 12 – sguardo",
+            ["inq. 3 – sguardo alla lumaca", "contatto piede sx", "arco della mazza", "inq. 12 – sguardo",
              "anticipazione lancio", "spray – controllare timing", "ciclo camminata sprite", "rivedere espressione Rex",
              "sincronizzazione labiale", "primo piano anziano"],
             "reazione del gruppo"),
