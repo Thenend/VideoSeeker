@@ -58,7 +58,7 @@ New-Item -ItemType Directory -Force $out | Out-Null
 # %TEMP% al arrancar.
 dotnet publish (Join-Path $root 'src\VideoSeeker.App') -c Release -r win-x64 --self-contained true `
     -p:PublishReadyToRun=true -p:DebugType=none -p:DebugSymbols=false `
-    -p:SatelliteResourceLanguages='es%3Ben%3Bfr%3Bde%3Bit%3Bpt-BR' -p:InformationalVersion=$shown `
+    '-p:SatelliteResourceLanguages="es;en;fr;de;it;pt-BR"' -p:InformationalVersion=$shown `
     -o $stage
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish ha fallado' }
 foreach ($file in 'VideoSeeker.exe', 'mpv\libmpv-2.dll', 'ffmpeg\ffmpeg.exe', 'ffmpeg\avcodec-63.dll') {

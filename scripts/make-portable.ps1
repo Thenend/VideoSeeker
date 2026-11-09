@@ -29,7 +29,7 @@ New-Item -ItemType Directory -Force $dist | Out-Null
 dotnet publish (Join-Path $root 'src\VideoSeeker.App') -c Release -r win-x64 --self-contained true `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:PublishReadyToRun=true -p:DebugType=none -p:DebugSymbols=false `
-    -p:SatelliteResourceLanguages='es%3Ben%3Bfr%3Bde%3Bit%3Bpt-BR' -p:InformationalVersion=$version `
+    '-p:SatelliteResourceLanguages="es;en;fr;de;it;pt-BR"' -p:InformationalVersion=$version `
     -o $stage
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish ha fallado' }
 
