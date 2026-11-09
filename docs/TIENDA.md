@@ -26,7 +26,7 @@ La app detecta que corre como paquete (`Packaged.cs`) y en ese caso:
 | --- | --- |
 | `scripts/make-msix.ps1` | Compila y genera `out\msix\VideoSeeker-<versión>-x64.msix`. Descarga una vez MakeAppx y MakePri (paquete NuGet del SDK de Windows), no hace falta Visual Studio. `-Instalar` lo instala en el PC para probarlo; `-Quitar` lo desinstala. |
 | `scripts/msix/AppxManifest.xml` | Manifiesto: identidad, iconos, tipos de vídeo, `runFullTrust` (app de escritorio normal). |
-| `scripts/msix/identidad.json` | Nombre del paquete y editor. **Hay que copiarlos de Partner Center** antes de subir el paquete; los de ahora solo sirven para probar. |
+| `scripts/msix/identidad.json` | Nombre del paquete y editor, copiados de Partner Center (editor «Dreams2Bits», Store ID 9N1XLG37QHWQ). |
 | `scripts/msix/Assets/` | Iconos del paquete (65 PNG). Los tamaños del `.ico` se copian de él; el resto se dibuja desde `docs/icono` con la misma regla (16 px pixelado, el de la barra de 24 a 44 px, el principal en el resto). Se rehacen con `scripts/msix/generar-assets.py`. |
 | `scripts/msix/tienda/` | Logo para la ficha: 300 × 300 transparente y 1080 × 1080 con el fondo de la app. |
 | `docs/privacidad/` | Política de privacidad (español e inglés). |
@@ -37,7 +37,7 @@ Versión del paquete: `año.mesdía.horaminuto.0` (por ejemplo `2026.1109.2015.0
 
 1. **Crear la cuenta.** En https://storedeveloper.microsoft.com, «Empezar» como desarrollador individual, con tu cuenta Microsoft. Verifica la identidad cuando lo pida.
 2. **Reservar el nombre.** En Partner Center: Aplicaciones y juegos > Nuevo producto > «Aplicación MSIX o PWA» > nombre «VideoSeeker». Si está cogido, prueba «VideoSeeker Player» o similar (y avísame para cambiar el nombre que se ve).
-3. **Copiar la identidad.** En la app reservada: Administración de productos > Identidad del producto. Copia `Package/Identity/Name`, `Package/Identity/Publisher` y `Package/Properties/PublisherDisplayName` en `scripts/msix/identidad.json` (o pásamelos y lo hago yo).
+3. **Copiar la identidad** (hecho el 9 de noviembre). En la app reservada: Administración de productos > Identidad del producto. Copia `Package/Identity/Name`, `Package/Identity/Publisher` y `Package/Properties/PublisherDisplayName` en `scripts/msix/identidad.json` (o pásamelos y lo hago yo).
 4. **Generar el paquete.** `pwsh scripts/make-msix.ps1` → `out\msix\VideoSeeker-<versión>-x64.msix`.
 5. **Probarlo antes (opcional).** Activa el Modo de desarrollador (Configuración > Sistema > Para programadores), cierra el VideoSeeker del zip (si está abierto, el instalado le pasaría los vídeos a él) y ejecuta `pwsh scripts/make-msix.ps1 -Instalar`. Sale en Inicio como VideoSeeker. Quítalo con `-Quitar` antes de instalar el de la Store.
 6. **Crear el envío** («Iniciar el envío») y rellenar:

@@ -235,7 +235,7 @@ Actualizado el 7 de noviembre de 2026. Plan completo en [PLAN.md](PLAN.md); medi
 
 ### Microsoft Store (MSIX)
 - Preparado el 9 de noviembre: `scripts/make-msix.ps1` genera el paquete con el manifiesto y los iconos de `scripts/msix/`; política de privacidad en `docs/privacidad/`. Instalada como paquete (`Packaged.cs`), los datos van a `LocalState\data` del paquete y los tipos de vídeo los declara el manifiesto (no se toca el registro). Decisiones, textos de la ficha y pasos de la cuenta: [TIENDA.md](TIENDA.md).
-- Pendiente de Mario: cuenta de Partner Center, reservar el nombre y copiar la identidad del paquete en `scripts/msix/identidad.json`.
+- Cuenta de Partner Center creada y nombre reservado (editor «Dreams2Bits», Store ID 9N1XLG37QHWQ); la identidad ya está en `scripts/msix/identidad.json`. Pendiente: el envío.
 
 ## Siguientes fases
 

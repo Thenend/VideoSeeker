@@ -1,6 +1,6 @@
 {
-  "comentario": "Copia aquí los tres valores de Partner Center > tu app > Identidad del producto. Los de ahora sirven solo para probar el paquete en este PC.",
-  "name": "VideoSeeker.Prueba",
-  "publisher": "CN=VideoSeeker-Prueba",
-  "publisherDisplayName": "Mario García Lázaro"
+  "comentario": "Partner Center > VideoSeeker > Identidad del producto. Store ID 9N1XLG37QHWQ, familia 9256Dreams2Bits.VideoSeeker_bhfn8kadzasdw.",
+  "name": "9256Dreams2Bits.VideoSeeker",
+  "publisher": "CN=8E1C8C19-1302-4184-8F93-D710420AE15E",
+  "publisherDisplayName": "Dreams2Bits"
 }
