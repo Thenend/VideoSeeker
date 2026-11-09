@@ -48,6 +48,6 @@ public static partial class Packaged
         }
     }
 
-    [LibraryImport("kernel32.dll")]
+    [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
     private static partial int GetCurrentPackageFamilyName(ref uint packageFamilyNameLength, [Out] char[]? packageFamilyName);
 }
