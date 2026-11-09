@@ -83,4 +83,7 @@ for scale in SCALES:
 tienda = os.path.join(HERE, 'tienda')
 save(icon(300), tienda, 'logo-300.png')
 save(canvas(1080, 1080, 720, BACKGROUND), tienda, 'logo-1080-fondo.png')
+# Logotipos de la ficha (StoreLogo1080x1080 y StoreLogo720x1080, al doble): el icono sobre el fondo de la app, sin más.
+save(canvas(2160, 2160, 1300, BACKGROUND), tienda, 'caja-2160x2160.png')
+save(canvas(1440, 2160, 1000, BACKGROUND), tienda, 'poster-1440x2160.png')
 print('Assets:', len(os.listdir(assets)), 'archivos')

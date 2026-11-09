@@ -1,0 +1,550 @@
+﻿Field,ID,Type (Type),default,es-es,en-us,fr-fr,de-de,it-it,pt-br
+Description,2,Text,,"VideoSeeker empezó en un estudio de videojuegos, para revisar animaciones: dejar un ciclo de carrera en bucle, ir hacia atrás frame a frame hasta dar con el momento en que un pie resbala, apuntar «revisar expresión» en un tramo y volver a él al día siguiente.
+
+Sirve igual para cualquier vídeo que haya que mirar con calma: tomas de rodaje, partidas grabadas, referencias.
+
+Cómo se usa:
+• Flecha arriba y abajo: un frame adelante o atrás, al momento. Los frames de alrededor se guardan en la tarjeta gráfica, así que ir hacia atrás no hace esperar.
+• Arrastrar sobre la imagen recorre el vídeo frame a frame.
+• Clic derecho y arrastrar sobre la barra amplía ese tramo en una segunda barra, con una marca por frame. Shift + R lo repite en bucle.
+• B crea un bookmark: una región con nombre y una etiqueta o un color. Están en un panel, y los números del 1 al 9 llevan a cada uno.
+• J, K y L cambian la velocidad, también marcha atrás.
+• Un tramo se exporta como clip sin salir de la app.
+
+Lee MKV, MP4, AVI, MOV y WebM con H.264, HEVC, AV1 o VP9 y audio AAC, AC3 o DTS, sin instalar códecs.
+
+Gratis y de código abierto (GPL v3), sin anuncios ni cuentas: https://github.com/Thenend/VideoSeeker
+
+En las capturas sale «Sprite Fright» (Blender Foundation, studio.blender.org), con licencia CC BY 4.0.","VideoSeeker started in a game studio, for reviewing animation: leaving a run cycle on a loop, stepping back frame by frame to find the moment a foot slides, noting “check expression” on a range and coming back to it the next day.
+
+It works just as well for any video you need to look at carefully: shoot takes, recorded matches, reference footage.
+
+How it works:
+• Up and Down arrows: one frame forward or back, instantly. Nearby frames are kept on the graphics card, so going backwards doesn't make you wait.
+• Dragging over the image scrubs through the video frame by frame.
+• Right-drag on the bar zooms into that range on a second bar, with a tick for every frame. Shift + R loops it.
+• B adds a bookmark: a region with a name and a label or a color. They're listed in a panel, and keys 1 to 9 jump to each one.
+• J, K and L change the speed, in reverse too.
+• Export a range as a clip without leaving the app.
+
+Plays MKV, MP4, AVI, MOV and WebM with H.264, HEVC, AV1 or VP9 and AAC, AC3 or DTS audio, with no codecs to install.
+
+Free and open source (GPL v3), no ads, no accounts: https://github.com/Thenend/VideoSeeker
+
+Screenshots show “Sprite Fright” (Blender Foundation, studio.blender.org), licensed CC BY 4.0.","VideoSeeker est né dans un studio de jeux vidéo, pour relire de l'animation : laisser un cycle de course en boucle, reculer image par image jusqu'au moment où un pied glisse, noter « revoir l'expression » sur une plage et y revenir le lendemain.
+
+Il convient tout autant à n'importe quelle vidéo qu'il faut regarder de près : prises de tournage, parties enregistrées, références.
+
+Comment ça marche :
+• Flèches haut et bas : une image en avant ou en arrière, tout de suite. Les images voisines sont gardées sur la carte graphique, donc reculer ne fait pas attendre.
+• Faire glisser sur l'image parcourt la vidéo image par image.
+• Un glisser avec le bouton droit sur la barre agrandit cette plage dans une seconde barre, avec un repère par image. Maj + R la met en boucle.
+• B ajoute un signet : une région avec un nom et une étiquette ou une couleur. Ils sont dans un panneau, et les touches 1 à 9 mènent à chacun.
+• J, K et L changent la vitesse, en arrière aussi.
+• Une plage s'exporte en clip sans quitter l'application.
+
+Lit les MKV, MP4, AVI, MOV et WebM en H.264, HEVC, AV1 ou VP9 avec du son AAC, AC3 ou DTS, sans codecs à installer.
+
+Gratuit et open source (GPL v3), sans publicité ni compte : https://github.com/Thenend/VideoSeeker
+
+Les captures montrent « Sprite Fright » (Blender Foundation, studio.blender.org), sous licence CC BY 4.0.","VideoSeeker ist in einem Spielestudio entstanden, um Animationen zu prüfen: einen Laufzyklus in Schleife laufen lassen, Frame für Frame zurückgehen, bis man die Stelle findet, an der ein Fuß rutscht, „Ausdruck prüfen“ an einen Abschnitt schreiben und am nächsten Tag dorthin zurückkehren.
+
+Genauso gut eignet er sich für jedes Video, das man sich in Ruhe ansehen muss: Drehaufnahmen, aufgezeichnete Spiele, Referenzmaterial.
+
+So funktioniert es:
+• Pfeil nach oben und unten: ein Frame vor oder zurück, sofort. Die Frames in der Nähe liegen auf der Grafikkarte, deshalb muss man auch rückwärts nicht warten.
+• Ziehen über das Bild spult Frame für Frame durch das Video.
+• Ziehen mit der rechten Maustaste auf der Leiste vergrößert diesen Abschnitt in einer zweiten Leiste, mit einer Markierung pro Frame. Umschalt + R wiederholt ihn.
+• B setzt ein Lesezeichen: eine Region mit Namen und einem Label oder einer Farbe. Sie stehen in einer Liste, und die Tasten 1 bis 9 springen zu jedem.
+• J, K und L ändern die Geschwindigkeit, auch rückwärts.
+• Ein Abschnitt lässt sich als Clip exportieren, ohne die App zu verlassen.
+
+Spielt MKV, MP4, AVI, MOV und WebM mit H.264, HEVC, AV1 oder VP9 und AAC-, AC3- oder DTS-Ton ab, ohne zusätzliche Codecs.
+
+Kostenlos und Open Source (GPL v3), ohne Werbung und ohne Konto: https://github.com/Thenend/VideoSeeker
+
+Die Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.org), lizenziert unter CC BY 4.0.","VideoSeeker è nato in uno studio di videogiochi, per rivedere le animazioni: lasciare un ciclo di corsa in loop, tornare indietro fotogramma per fotogramma fino al momento in cui un piede scivola, scrivere «rivedere espressione» su un tratto e riprenderlo il giorno dopo.
+
+Va bene allo stesso modo per qualsiasi video da guardare con calma: riprese sul set, partite registrate, materiale di riferimento.
+
+Come si usa:
+• Freccia su e giù: un fotogramma avanti o indietro, subito. I fotogrammi vicini restano sulla scheda grafica, quindi anche andando indietro non si aspetta.
+• Trascinando sull'immagine si scorre il video fotogramma per fotogramma.
+• Trascinando col tasto destro sulla barra, quel tratto si ingrandisce in una seconda barra, con una tacca per ogni fotogramma. Maiusc + R lo mette in loop.
+• B aggiunge un segnalibro: una regione con un nome e un'etichetta o un colore. Stanno in un pannello, e i tasti da 1 a 9 portano a ciascuno.
+• J, K e L cambiano la velocità, anche all'indietro.
+• Un tratto si esporta come clip senza uscire dall'app.
+
+Riproduce MKV, MP4, AVI, MOV e WebM in H.264, HEVC, AV1 o VP9 con audio AAC, AC3 o DTS, senza installare codec.
+
+Gratuito e open source (GPL v3), senza pubblicità né account: https://github.com/Thenend/VideoSeeker
+
+Nelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org), con licenza CC BY 4.0.","O VideoSeeker começou em um estúdio de games, para revisar animação: deixar um ciclo de corrida em loop, voltar quadro a quadro até achar o momento em que um pé escorrega, anotar “revisar expressão” em um trecho e voltar a ele no dia seguinte.
+
+Serve do mesmo jeito para qualquer vídeo que precise ser visto com calma: tomadas de gravação, partidas gravadas, referências.
+
+Como funciona:
+• Setas para cima e para baixo: um quadro para a frente ou para trás, na hora. Os quadros próximos ficam guardados na placa de vídeo, então voltar não faz esperar.
+• Arrastar sobre a imagem percorre o vídeo quadro a quadro.
+• Arrastar com o botão direito na barra amplia esse trecho em uma segunda barra, com uma marca por quadro. Shift + R coloca em loop.
+• B cria um marcador: uma região com nome e uma etiqueta ou uma cor. Eles ficam em um painel, e as teclas de 1 a 9 levam a cada um.
+• J, K e L mudam a velocidade, também de trás para a frente.
+• Um trecho pode ser exportado como clipe sem sair do app.
+
+Reproduz MKV, MP4, AVI, MOV e WebM em H.264, HEVC, AV1 ou VP9 com áudio AAC, AC3 ou DTS, sem instalar codecs.
+
+Gratuito e de código aberto (GPL v3), sem anúncios nem conta: https://github.com/Thenend/VideoSeeker
+
+As capturas mostram “Sprite Fright” (Blender Foundation, studio.blender.org), com licença CC BY 4.0."
+ReleaseNotes,3,Text,,,,,,,
+Title,4,Text,,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker
+ShortTitle,5,Text,,,,,,,
+SortTitle,6,Text,,,,,,,
+VoiceTitle,7,Text,,,,,,,
+ShortDescription,8,Text,,"Un reproductor para mirar vídeos frame a frame: adelante y atrás sin esperas, tramos marcados con nombre y una línea de tiempo que se amplía hasta ver cada frame.","A player for looking at video frame by frame: forward and back with no waiting, named regions, and a timeline you can zoom until every frame shows.","Un lecteur pour regarder une vidéo image par image : en avant et en arrière sans attendre, des plages nommées et une timeline qu'on agrandit jusqu'à voir chaque image.","Ein Player, um Videos Frame für Frame anzusehen: vor und zurück ohne Wartezeit, benannte Abschnitte und eine Zeitleiste, die sich bis auf jeden einzelnen Frame vergrößern lässt.","Un lettore per guardare i video fotogramma per fotogramma: avanti e indietro senza attese, tratti segnati con un nome e una timeline che si ingrandisce fino a vedere ogni fotogramma.","Um player para ver vídeos quadro a quadro: para a frente e para trás sem espera, trechos marcados com nome e uma linha do tempo que amplia até mostrar cada quadro."
+DevStudio,9,Text,,,,,,,
+CopyrightTrademarkInformation,12,Text,,,,,,,
+AdditionalLicenseTerms,13,Text,,,,,,,
+DesktopScreenshot1,100,Relative path (or URL to file in Partner Center),,ficha-store/es/1.png,ficha-store/en/1.png,ficha-store/fr/1.png,ficha-store/de/1.png,ficha-store/it/1.png,ficha-store/pt-BR/1.png
+DesktopScreenshot2,101,Relative path (or URL to file in Partner Center),,ficha-store/es/2.png,ficha-store/en/2.png,ficha-store/fr/2.png,ficha-store/de/2.png,ficha-store/it/2.png,ficha-store/pt-BR/2.png
+DesktopScreenshot3,102,Relative path (or URL to file in Partner Center),,ficha-store/es/3.png,ficha-store/en/3.png,ficha-store/fr/3.png,ficha-store/de/3.png,ficha-store/it/3.png,ficha-store/pt-BR/3.png
+DesktopScreenshot4,103,Relative path (or URL to file in Partner Center),,ficha-store/es/4.png,ficha-store/en/4.png,ficha-store/fr/4.png,ficha-store/de/4.png,ficha-store/it/4.png,ficha-store/pt-BR/4.png
+DesktopScreenshot5,104,Relative path (or URL to file in Partner Center),,ficha-store/es/5.png,ficha-store/en/5.png,ficha-store/fr/5.png,ficha-store/de/5.png,ficha-store/it/5.png,ficha-store/pt-BR/5.png
+DesktopScreenshot6,105,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot7,106,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot8,107,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot9,108,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot10,109,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot11,110,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot12,111,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot13,112,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot14,113,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot15,114,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot16,115,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot17,116,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot18,117,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot19,118,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot20,119,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot21,120,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot22,121,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot23,122,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot24,123,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot25,124,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot26,125,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot27,126,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot28,127,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot29,128,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshot30,129,Relative path (or URL to file in Partner Center),,,,,,,
+DesktopScreenshotCaption1,150,Text,,Pausa en un frame con el tramo ampliado y en bucle.,"Paused on a frame, with the range zoomed in and looping.","En pause sur une image, avec la plage agrandie et en boucle.","Pause auf einem Frame, mit vergrößertem Abschnitt in Schleife.","In pausa su un fotogramma, con il tratto ingrandito e in loop.","Pausado em um quadro, com o trecho ampliado e em loop."
+DesktopScreenshotCaption2,151,Text,,Panel de bookmarks: regiones con nombre y etiquetas.,Bookmarks panel: named regions with labels.,Panneau des signets : régions nommées avec étiquettes.,Lesezeichen: benannte Regionen mit Labels.,Pannello dei segnalibri: regioni con nome ed etichette.,Painel de marcadores: regiões com nome e etiquetas.
+DesktopScreenshotCaption3,152,Text,,Al pasar por la barra se ve el frame de ese punto.,Hovering over the bar shows the frame at that point.,"Au survol de la barre, on voit l'image à cet endroit.",Beim Überfahren der Leiste sieht man den Frame an dieser Stelle.,Passando sulla barra si vede il fotogramma in quel punto.,"Ao passar pela barra, aparece o quadro daquele ponto."
+DesktopScreenshotCaption4,153,Text,,"Guardar un tramo como bookmark, con nombre y etiqueta.","Saving a range as a bookmark, with a name and a label.","Enregistrer une plage comme signet, avec un nom et une étiquette.","Einen Abschnitt als Lesezeichen speichern, mit Namen und Label.","Salvare un tratto come segnalibro, con nome ed etichetta.","Salvar um trecho como marcador, com nome e etiqueta."
+DesktopScreenshotCaption5,154,Text,,Ajustes.,Settings.,Paramètres.,Einstellungen.,Impostazioni.,Configurações.
+DesktopScreenshotCaption6,155,Text,,,,,,,
+DesktopScreenshotCaption7,156,Text,,,,,,,
+DesktopScreenshotCaption8,157,Text,,,,,,,
+DesktopScreenshotCaption9,158,Text,,,,,,,
+DesktopScreenshotCaption10,159,Text,,,,,,,
+DesktopScreenshotCaption11,160,Text,,,,,,,
+DesktopScreenshotCaption12,161,Text,,,,,,,
+DesktopScreenshotCaption13,162,Text,,,,,,,
+DesktopScreenshotCaption14,163,Text,,,,,,,
+DesktopScreenshotCaption15,164,Text,,,,,,,
+DesktopScreenshotCaption16,165,Text,,,,,,,
+DesktopScreenshotCaption17,166,Text,,,,,,,
+DesktopScreenshotCaption18,167,Text,,,,,,,
+DesktopScreenshotCaption19,168,Text,,,,,,,
+DesktopScreenshotCaption20,169,Text,,,,,,,
+DesktopScreenshotCaption21,170,Text,,,,,,,
+DesktopScreenshotCaption22,171,Text,,,,,,,
+DesktopScreenshotCaption23,172,Text,,,,,,,
+DesktopScreenshotCaption24,173,Text,,,,,,,
+DesktopScreenshotCaption25,174,Text,,,,,,,
+DesktopScreenshotCaption26,175,Text,,,,,,,
+DesktopScreenshotCaption27,176,Text,,,,,,,
+DesktopScreenshotCaption28,177,Text,,,,,,,
+DesktopScreenshotCaption29,178,Text,,,,,,,
+DesktopScreenshotCaption30,179,Text,,,,,,,
+MobileScreenshot1,200,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot2,201,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot3,202,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot4,203,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot5,204,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot6,205,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot7,206,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot8,207,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot9,208,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot10,209,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot11,210,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot12,211,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot13,212,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot14,213,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot15,214,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot16,215,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot17,216,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot18,217,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot19,218,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot20,219,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot21,220,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot22,221,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot23,222,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot24,223,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot25,224,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot26,225,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot27,226,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot28,227,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot29,228,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshot30,229,Relative path (or URL to file in Partner Center),,,,,,,
+MobileScreenshotCaption1,250,Text,,,,,,,
+MobileScreenshotCaption2,251,Text,,,,,,,
+MobileScreenshotCaption3,252,Text,,,,,,,
+MobileScreenshotCaption4,253,Text,,,,,,,
+MobileScreenshotCaption5,254,Text,,,,,,,
+MobileScreenshotCaption6,255,Text,,,,,,,
+MobileScreenshotCaption7,256,Text,,,,,,,
+MobileScreenshotCaption8,257,Text,,,,,,,
+MobileScreenshotCaption9,258,Text,,,,,,,
+MobileScreenshotCaption10,259,Text,,,,,,,
+MobileScreenshotCaption11,260,Text,,,,,,,
+MobileScreenshotCaption12,261,Text,,,,,,,
+MobileScreenshotCaption13,262,Text,,,,,,,
+MobileScreenshotCaption14,263,Text,,,,,,,
+MobileScreenshotCaption15,264,Text,,,,,,,
+MobileScreenshotCaption16,265,Text,,,,,,,
+MobileScreenshotCaption17,266,Text,,,,,,,
+MobileScreenshotCaption18,267,Text,,,,,,,
+MobileScreenshotCaption19,268,Text,,,,,,,
+MobileScreenshotCaption20,269,Text,,,,,,,
+MobileScreenshotCaption21,270,Text,,,,,,,
+MobileScreenshotCaption22,271,Text,,,,,,,
+MobileScreenshotCaption23,272,Text,,,,,,,
+MobileScreenshotCaption24,273,Text,,,,,,,
+MobileScreenshotCaption25,274,Text,,,,,,,
+MobileScreenshotCaption26,275,Text,,,,,,,
+MobileScreenshotCaption27,276,Text,,,,,,,
+MobileScreenshotCaption28,277,Text,,,,,,,
+MobileScreenshotCaption29,278,Text,,,,,,,
+MobileScreenshotCaption30,279,Text,,,,,,,
+XboxScreenshot1,300,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot2,301,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot3,302,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot4,303,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot5,304,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot6,305,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot7,306,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot8,307,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot9,308,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot10,309,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot11,310,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot12,311,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot13,312,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot14,313,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot15,314,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot16,315,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot17,316,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot18,317,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot19,318,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot20,319,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot21,320,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot22,321,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot23,322,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot24,323,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot25,324,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot26,325,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot27,326,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot28,327,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot29,328,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshot30,329,Relative path (or URL to file in Partner Center),,,,,,,
+XboxScreenshotCaption1,350,Text,,,,,,,
+XboxScreenshotCaption2,351,Text,,,,,,,
+XboxScreenshotCaption3,352,Text,,,,,,,
+XboxScreenshotCaption4,353,Text,,,,,,,
+XboxScreenshotCaption5,354,Text,,,,,,,
+XboxScreenshotCaption6,355,Text,,,,,,,
+XboxScreenshotCaption7,356,Text,,,,,,,
+XboxScreenshotCaption8,357,Text,,,,,,,
+XboxScreenshotCaption9,358,Text,,,,,,,
+XboxScreenshotCaption10,359,Text,,,,,,,
+XboxScreenshotCaption11,360,Text,,,,,,,
+XboxScreenshotCaption12,361,Text,,,,,,,
+XboxScreenshotCaption13,362,Text,,,,,,,
+XboxScreenshotCaption14,363,Text,,,,,,,
+XboxScreenshotCaption15,364,Text,,,,,,,
+XboxScreenshotCaption16,365,Text,,,,,,,
+XboxScreenshotCaption17,366,Text,,,,,,,
+XboxScreenshotCaption18,367,Text,,,,,,,
+XboxScreenshotCaption19,368,Text,,,,,,,
+XboxScreenshotCaption20,369,Text,,,,,,,
+XboxScreenshotCaption21,370,Text,,,,,,,
+XboxScreenshotCaption22,371,Text,,,,,,,
+XboxScreenshotCaption23,372,Text,,,,,,,
+XboxScreenshotCaption24,373,Text,,,,,,,
+XboxScreenshotCaption25,374,Text,,,,,,,
+XboxScreenshotCaption26,375,Text,,,,,,,
+XboxScreenshotCaption27,376,Text,,,,,,,
+XboxScreenshotCaption28,377,Text,,,,,,,
+XboxScreenshotCaption29,378,Text,,,,,,,
+XboxScreenshotCaption30,379,Text,,,,,,,
+HolographicScreenshot1,400,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot2,401,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot3,402,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot4,403,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot5,404,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot6,405,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot7,406,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot8,407,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot9,408,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot10,409,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot11,410,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot12,411,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot13,412,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot14,413,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot15,414,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot16,415,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot17,416,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot18,417,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot19,418,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot20,419,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot21,420,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot22,421,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot23,422,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot24,423,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot25,424,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot26,425,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot27,426,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot28,427,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot29,428,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshot30,429,Relative path (or URL to file in Partner Center),,,,,,,
+HolographicScreenshotCaption1,450,Text,,,,,,,
+HolographicScreenshotCaption2,451,Text,,,,,,,
+HolographicScreenshotCaption3,452,Text,,,,,,,
+HolographicScreenshotCaption4,453,Text,,,,,,,
+HolographicScreenshotCaption5,454,Text,,,,,,,
+HolographicScreenshotCaption6,455,Text,,,,,,,
+HolographicScreenshotCaption7,456,Text,,,,,,,
+HolographicScreenshotCaption8,457,Text,,,,,,,
+HolographicScreenshotCaption9,458,Text,,,,,,,
+HolographicScreenshotCaption10,459,Text,,,,,,,
+HolographicScreenshotCaption11,460,Text,,,,,,,
+HolographicScreenshotCaption12,461,Text,,,,,,,
+HolographicScreenshotCaption13,462,Text,,,,,,,
+HolographicScreenshotCaption14,463,Text,,,,,,,
+HolographicScreenshotCaption15,464,Text,,,,,,,
+HolographicScreenshotCaption16,465,Text,,,,,,,
+HolographicScreenshotCaption17,466,Text,,,,,,,
+HolographicScreenshotCaption18,467,Text,,,,,,,
+HolographicScreenshotCaption19,468,Text,,,,,,,
+HolographicScreenshotCaption20,469,Text,,,,,,,
+HolographicScreenshotCaption21,470,Text,,,,,,,
+HolographicScreenshotCaption22,471,Text,,,,,,,
+HolographicScreenshotCaption23,472,Text,,,,,,,
+HolographicScreenshotCaption24,473,Text,,,,,,,
+HolographicScreenshotCaption25,474,Text,,,,,,,
+HolographicScreenshotCaption26,475,Text,,,,,,,
+HolographicScreenshotCaption27,476,Text,,,,,,,
+HolographicScreenshotCaption28,477,Text,,,,,,,
+HolographicScreenshotCaption29,478,Text,,,,,,,
+HolographicScreenshotCaption30,479,Text,,,,,,,
+SurfaceHubScreenshot11,510,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot12,511,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot13,512,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot14,513,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot15,514,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot16,515,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot17,516,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot18,517,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot19,518,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot20,519,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot21,520,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot22,521,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot23,522,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot24,523,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot25,524,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot26,525,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot27,526,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot28,527,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot29,528,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshot30,529,Relative path (or URL to file in Partner Center),,,,,,,
+SurfaceHubScreenshotCaption11,560,Text,,,,,,,
+SurfaceHubScreenshotCaption12,561,Text,,,,,,,
+SurfaceHubScreenshotCaption13,562,Text,,,,,,,
+SurfaceHubScreenshotCaption14,563,Text,,,,,,,
+SurfaceHubScreenshotCaption15,564,Text,,,,,,,
+SurfaceHubScreenshotCaption16,565,Text,,,,,,,
+SurfaceHubScreenshotCaption17,566,Text,,,,,,,
+SurfaceHubScreenshotCaption18,567,Text,,,,,,,
+SurfaceHubScreenshotCaption19,568,Text,,,,,,,
+SurfaceHubScreenshotCaption20,569,Text,,,,,,,
+SurfaceHubScreenshotCaption21,570,Text,,,,,,,
+SurfaceHubScreenshotCaption22,571,Text,,,,,,,
+SurfaceHubScreenshotCaption23,572,Text,,,,,,,
+SurfaceHubScreenshotCaption24,573,Text,,,,,,,
+SurfaceHubScreenshotCaption25,574,Text,,,,,,,
+SurfaceHubScreenshotCaption26,575,Text,,,,,,,
+SurfaceHubScreenshotCaption27,576,Text,,,,,,,
+SurfaceHubScreenshotCaption28,577,Text,,,,,,,
+SurfaceHubScreenshotCaption29,578,Text,,,,,,,
+SurfaceHubScreenshotCaption30,579,Text,,,,,,,
+StoreLogo720x1080,600,Relative path (or URL to file in Partner Center),,ficha-store/logotipos/poster-1440x2160.png,ficha-store/logotipos/poster-1440x2160.png,ficha-store/logotipos/poster-1440x2160.png,ficha-store/logotipos/poster-1440x2160.png,ficha-store/logotipos/poster-1440x2160.png,ficha-store/logotipos/poster-1440x2160.png
+StoreLogo1080x1080,601,Relative path (or URL to file in Partner Center),,ficha-store/logotipos/caja-2160x2160.png,ficha-store/logotipos/caja-2160x2160.png,ficha-store/logotipos/caja-2160x2160.png,ficha-store/logotipos/caja-2160x2160.png,ficha-store/logotipos/caja-2160x2160.png,ficha-store/logotipos/caja-2160x2160.png
+StoreLogo300x300,602,Relative path (or URL to file in Partner Center),,ficha-store/logotipos/logo-300.png,ficha-store/logotipos/logo-300.png,ficha-store/logotipos/logo-300.png,ficha-store/logotipos/logo-300.png,ficha-store/logotipos/logo-300.png,ficha-store/logotipos/logo-300.png
+OverrideLogosForWin10,603,True/False,,False,False,False,False,False,False
+StoreLogoOverride150x150,604,Relative path (or URL to file in Partner Center),,,,,,,
+StoreLogoOverride71x71,605,Relative path (or URL to file in Partner Center),,,,,,,
+PromoImage1920x1080,606,Relative path (or URL to file in Partner Center),,,,,,,
+PromoImage2400x1200,607,Relative path (or URL to file in Partner Center),,,,,,,
+XboxBrandedKeyArt584x800,608,Relative path (or URL to file in Partner Center),,,,,,,
+XboxTitledHero1920x1080,609,Relative path (or URL to file in Partner Center),,,,,,,
+XboxFeaturedPromo1080x1080,610,Relative path (or URL to file in Partner Center),,,,,,,
+OptionalPromo358x358,611,Relative path (or URL to file in Partner Center),,,,,,,
+OptionalPromo1000x800,612,Relative path (or URL to file in Partner Center),,,,,,,
+OptionalPromo414x180,613,Relative path (or URL to file in Partner Center),,,,,,,
+Feature1,700,Text,,"Frame a frame adelante y atrás, sin esperas","Frame stepping forward and back, with no waiting","Image par image en avant et en arrière, sans attendre","Frame für Frame vor und zurück, ohne Wartezeit","Fotogramma per fotogramma avanti e indietro, senza attese","Quadro a quadro para a frente e para trás, sem espera"
+Feature2,701,Text,,Arrastrar sobre la imagen para recorrer el vídeo,Drag over the image to scrub through the video,Faire glisser sur l'image pour parcourir la vidéo,"Über das Bild ziehen, um durch das Video zu spulen",Trascinare sull'immagine per scorrere il video,Arrastar sobre a imagem para percorrer o vídeo
+Feature3,702,Text,,Zona ampliada con una marca por frame y bucle,"Zoomed range with a tick per frame, and looping","Plage agrandie avec un repère par image, et boucle","Vergrößerter Abschnitt mit einer Markierung pro Frame, in Schleife","Tratto ingrandito con una tacca per fotogramma, e loop","Trecho ampliado com uma marca por quadro, e loop"
+Feature4,703,Text,,"Bookmarks de regiones con nombre, etiqueta o color","Region bookmarks with a name, label or color","Signets de régions avec nom, étiquette ou couleur","Lesezeichen für Regionen mit Namen, Label oder Farbe","Segnalibri di regioni con nome, etichetta o colore","Marcadores de regiões com nome, etiqueta ou cor"
+Feature5,704,Text,,Miniatura del frame al pasar el ratón por la barra,Frame thumbnail when hovering over the bar,Miniature de l'image au survol de la barre,Vorschaubild des Frames beim Überfahren der Leiste,Miniatura del fotogramma passando sulla barra,Miniatura do quadro ao passar o mouse na barra
+Feature6,705,Text,,Exportar un tramo como clip,Export a range as a clip,Exporter une plage en clip,Einen Abschnitt als Clip exportieren,Esportare un tratto come clip,Exportar um trecho como clipe
+Feature7,706,Text,,"MKV, MP4, HEVC, AV1, AC3, DTS… sin instalar códecs","MKV, MP4, HEVC, AV1, AC3, DTS… no codecs to install","MKV, MP4, HEVC, AV1, AC3, DTS… sans codecs à installer","MKV, MP4, HEVC, AV1, AC3, DTS… ohne zusätzliche Codecs","MKV, MP4, HEVC, AV1, AC3, DTS… senza installare codec","MKV, MP4, HEVC, AV1, AC3, DTS… sem instalar codecs"
+Feature8,707,Text,,,,,,,
+Feature9,708,Text,,,,,,,
+Feature10,709,Text,,,,,,,
+Feature11,710,Text,,,,,,,
+Feature12,711,Text,,,,,,,
+Feature13,712,Text,,,,,,,
+Feature14,713,Text,,,,,,,
+Feature15,714,Text,,,,,,,
+Feature16,715,Text,,,,,,,
+Feature17,716,Text,,,,,,,
+Feature18,717,Text,,,,,,,
+Feature19,718,Text,,,,,,,
+Feature20,719,Text,,,,,,,
+MinimumHardwareReq1,800,Text,,,,,,,
+MinimumHardwareReq2,801,Text,,,,,,,
+MinimumHardwareReq3,802,Text,,,,,,,
+MinimumHardwareReq4,803,Text,,,,,,,
+MinimumHardwareReq5,804,Text,,,,,,,
+MinimumHardwareReq6,805,Text,,,,,,,
+MinimumHardwareReq7,806,Text,,,,,,,
+MinimumHardwareReq8,807,Text,,,,,,,
+MinimumHardwareReq9,808,Text,,,,,,,
+MinimumHardwareReq10,809,Text,,,,,,,
+MinimumHardwareReq11,810,Text,,,,,,,
+RecommendedHardwareReq1,850,Text,,,,,,,
+RecommendedHardwareReq2,851,Text,,,,,,,
+RecommendedHardwareReq3,852,Text,,,,,,,
+RecommendedHardwareReq4,853,Text,,,,,,,
+RecommendedHardwareReq5,854,Text,,,,,,,
+RecommendedHardwareReq6,855,Text,,,,,,,
+RecommendedHardwareReq7,856,Text,,,,,,,
+RecommendedHardwareReq8,857,Text,,,,,,,
+RecommendedHardwareReq9,858,Text,,,,,,,
+RecommendedHardwareReq10,859,Text,,,,,,,
+RecommendedHardwareReq11,860,Text,,,,,,,
+SearchTerm1,900,Text,,reproductor de vídeo,video player,lecteur vidéo,Videoplayer,lettore video,player de vídeo
+SearchTerm2,901,Text,,frame a frame,frame by frame,image par image,Frame für Frame,fotogramma per fotogramma,quadro a quadro
+SearchTerm3,902,Text,,animación,animation,animation,Animation,animazione,animação
+SearchTerm4,903,Text,,bookmarks,bookmarks,signets,Lesezeichen,segnalibri,marcadores
+SearchTerm5,904,Text,,bucle,loop,boucle,Schleife,loop,loop
+SearchTerm6,905,Text,,revisar vídeo,video review,revue vidéo,Video prüfen,revisione video,revisar vídeo
+SearchTerm7,906,Text,,marcha atrás,reverse playback,lecture arrière,Rückwärtswiedergabe,riproduzione all'indietro,reprodução reversa
+TrailerToPlayAtTopOfListing,999,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer1,1000,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer2,1001,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer3,1002,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer4,1003,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer5,1004,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer6,1005,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer7,1006,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer8,1007,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer9,1008,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer10,1009,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer11,1010,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer12,1011,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer13,1012,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer14,1013,Relative path (or URL to file in Partner Center),,,,,,,
+Trailer15,1014,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerTitle1,1020,Text,,,,,,,
+TrailerTitle2,1021,Text,,,,,,,
+TrailerTitle3,1022,Text,,,,,,,
+TrailerTitle4,1023,Text,,,,,,,
+TrailerTitle5,1024,Text,,,,,,,
+TrailerTitle6,1025,Text,,,,,,,
+TrailerTitle7,1026,Text,,,,,,,
+TrailerTitle8,1027,Text,,,,,,,
+TrailerTitle9,1028,Text,,,,,,,
+TrailerTitle10,1029,Text,,,,,,,
+TrailerTitle11,1030,Text,,,,,,,
+TrailerTitle12,1031,Text,,,,,,,
+TrailerTitle13,1032,Text,,,,,,,
+TrailerTitle14,1033,Text,,,,,,,
+TrailerTitle15,1034,Text,,,,,,,
+TrailerThumbnail1,1040,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail2,1041,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail3,1042,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail4,1043,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail5,1044,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail6,1045,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail7,1046,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail8,1047,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail9,1048,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail10,1049,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail11,1050,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail12,1051,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail13,1052,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail14,1053,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerThumbnail15,1054,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption1,1055,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption2,1056,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption3,1057,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption4,1058,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption5,1059,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption6,1060,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption7,1061,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption8,1062,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption9,1063,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption10,1064,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption11,1065,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption12,1066,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption13,1067,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption14,1068,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerClosedCaption15,1069,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription1,1070,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription2,1071,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription3,1072,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription4,1073,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription5,1074,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription6,1075,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription7,1076,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription8,1077,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription9,1078,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription10,1079,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription11,1080,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription12,1081,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription13,1082,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription14,1083,Relative path (or URL to file in Partner Center),,,,,,,
+TrailerAudioDescription15,1084,Relative path (or URL to file in Partner Center),,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,

@@ -80,3 +80,9 @@ VideoSeeker es una aplicación de escritorio (WPF) empaquetada en MSIX. Necesita
 
 **Notas para la certificación:**
 Aplicación gratuita y de código abierto (GPL v3, https://github.com/Thenend/VideoSeeker). Para probarla, abra cualquier vídeo local (Ctrl+O o arrastrándolo a la ventana). No necesita cuenta ni conexión. La interfaz sigue el idioma de Windows (español, inglés, francés, alemán, italiano o portugués de Brasil; se cambia en Ajustes > General). El botón «Apoyar» («Support» en inglés) de Ajustes solo abre en el navegador una página con un enlace de donación voluntaria por PayPal; quien dona no recibe nada a cambio en la app. El botón «Código fuente» («Source code») abre el repositorio.
+
+## Ficha en los seis idiomas (importación)
+
+Los textos de la ficha (descripción, características, palabras clave y pies de las capturas) están en `scripts/msix/tienda/textos.json`, en los seis idiomas; sustituyen a los de arriba y a los de [TIENDA-fichas.md](TIENDA-fichas.md). Las capturas salen de la autoprueba `capturas` (Sprite Fright, CC BY) en `out\capturas-tienda\<idioma>\`.
+
+Para subirlo todo de una vez: en Partner Center, añadir los seis idiomas, «Export listings», y con ese CSV `python scripts/msix/tienda/rellenar-ficha.py <exportado.csv> out\capturas-tienda out\ficha-store`. Luego «Import listings» eligiendo la carpeta entera `ficha-store`. El CSV tiene que ser de una exportación del mismo envío (uno hecho a mano o de otro envío se rechaza entero) y las rutas de imagen empiezan por el nombre de la carpeta (`ficha-store/es/1.png`). `scripts/msix/tienda/listingData.csv` es el del primer envío ya relleno.
