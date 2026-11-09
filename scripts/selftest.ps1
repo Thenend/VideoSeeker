@@ -7,7 +7,9 @@
 #      -Video <ruta>   otro vídeo (por defecto samples\generated\h264-1080p60-gop250_aac.mp4)
 #      -NoBuild        sin compilar (la copia de out\selftest tal cual)
 #      -Idioma <código> la interfaz en otro idioma (en, fr, de, it, pt-BR; por defecto es). Solo tiene sentido con la
-#                      rápida, para ver si los textos caben: las demás buscan textos en español.
+#                      rápida, para ver si los textos caben, y con «capturas»: las demás buscan textos en español.
+#      pwsh scripts/selftest.ps1 capturas -Video "samples\Sprite Fright - Blender Open Movie.mp4" [-Idioma en]
+#                      -> las capturas de la tienda (1920 × 1080), en resultados\capturas\<idioma>\NN-nombre.png
 #      Registro y capturas de cada una: out\selftest\data\resultados\<prueba>\
 #      -TimeoutSec     tiempo máximo de cada una (por defecto 300 s; pasado, se cierra y cuenta como fallo)
 #
@@ -30,7 +32,8 @@ $exe = Join-Path $app 'VideoSeeker.exe'
 # Todas, en un orden en que las más rápidas avisan antes. «arranque» (solo mide tiempos) va aparte.
 $all = 'rapida', 'inicio', '1', 'resume', 'drag', 'reverse', 'loop', 'longdrag', 'zoom', 'settings', 'bookmarks', 'zona',
     'saltar', 'vistazo', 'historial', 'clips'
-$known = $all + 'arranque'
+# «capturas» (las de la tienda, con samples\Sprite Fright - Blender Open Movie.mp4) también va aparte.
+$known = $all + 'arranque', 'capturas'
 $modes = if ($Full) { $all } elseif ($Mode) { $Mode } else { @('rapida') }
 foreach ($m in $modes) {
     if ($m -notin $known) { throw "No hay autoprueba «$m». Las que hay: $($known -join ', ')" }
@@ -82,10 +85,14 @@ foreach ($m in $modes) {
         elseif (-not $logs) { "cerró sin escribir el registro (código $($process.ExitCode); ¿se ha colgado o cerrado de golpe?)" }
         elseif ($failed) { "$($failed.Count) fallos" }
     # Registro y capturas de cada una en resultados\<prueba>, para mirarlos después (la siguiente borra los suyos).
-    $keep = Join-Path $data ("resultados\$m" + $(if ($Idioma) { "-$Idioma" }))
+    # Las capturas de la tienda, en resultados\capturas\<idioma>\NN-nombre.png.
+    $keep = if ($m -eq 'capturas') { Join-Path $data "resultados\capturas\$(if ($Idioma) { $Idioma } else { 'es' })" }
+        else { Join-Path $data ("resultados\$m" + $(if ($Idioma) { "-$Idioma" })) }
     if (Test-Path $keep) { Remove-Item $keep -Recurse -Force }
     New-Item -ItemType Directory -Force $keep | Out-Null
-    Get-ChildItem $data -Filter 'selftest*' -File -ErrorAction SilentlyContinue | Copy-Item -Destination $keep
+    Get-ChildItem $data -Filter 'selftest*' -File -ErrorAction SilentlyContinue | ForEach-Object {
+        Copy-Item $_.FullName (Join-Path $keep ($_.Name -replace '^selftest-captura-', ''))
+    }
     $results += [pscustomobject]@{ Prueba = $m; Resultado = if ($problem) { $problem } else { 'OK' }; Segundos = [math]::Round($seconds) }
     if ($problem) {
         Write-Host "✗ $m ($([math]::Round($seconds)) s): $problem" -ForegroundColor Red

@@ -389,6 +389,8 @@ public partial class MainWindow : Window
                 _ = RunClipSelfTest();
             if (HistorySelfTestEnabled)
                 _ = RunHistorySelfTest();
+            if (CaptureSelfTestEnabled)
+                _ = RunCaptureSelfTest();
             // VIDEOSEEKER_SELFTEST=arranque: cierra al poco del primer frame (para medir el arranque y el cierre).
             if (Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") == "arranque")
                 _ = Task.Delay(int.TryParse(Environment.GetEnvironmentVariable("VIDEOSEEKER_WAIT"), out var wait) ? wait : 1500).ContinueWith(_ => Dispatcher.BeginInvoke(() =>
