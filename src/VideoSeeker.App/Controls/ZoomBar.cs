@@ -130,8 +130,11 @@ public sealed class ZoomBar : TimelineBar
         {
             if (TimeFormat.UseFrames)
                 step = Math.Max(step, 1);
-            for (var t = Math.Ceiling(_start / step - 1e-9) * step; t <= _end + 1e-9; t += step)
-                DrawTick(dc, t, TimeFormat.UseFrames ? TimeFormat.Timecode(t, fps) : TimeFormat.Format(t, withMilliseconds: step < 1), top, right);
+            // Cada marca como múltiplo del paso, redondeada: sumando el paso una y otra vez, 18,6 quedaba en 18,5999… y
+            // salía «18.599».
+            for (var k = Math.Ceiling(_start / step - 1e-9); Math.Round(k * step, 6) <= _end + 1e-9; k++)
+                if (Math.Round(k * step, 6) is var t)
+                    DrawTick(dc, t,TimeFormat.UseFrames ? TimeFormat.Timecode(t, fps) : TimeFormat.Format(t, withMilliseconds: step < 1), top, right);
         }
 
         DrawCached(dc, top + BarTrackHeight + 2);
