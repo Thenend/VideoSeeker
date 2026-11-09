@@ -14,16 +14,16 @@ It starts fast and plays the usual formats (MKV, MP4, AVI, MOV, WebM; H.264, HEV
 
 - Instant frame stepping, forward and backward, thanks to a frame cache on the graphics card.
 - Scrubbing by dragging over the image or the bar, always showing the exact frame.
-- Zoomable timeline to work on a specific range, with a mark for every frame.
-- Named region bookmarks with labels and colours, in a panel to jump between them.
+- Zoomable timeline to work on a specific range, with a tick for every frame.
+- Named region bookmarks with labels and colors, in a panel for jumping between them.
 - Loop the whole video or a range, variable speed and true reverse playback (J/K/L).
-- Export clips of a range with one click.
-- Frame thumbnail when hovering over the bar.
+- One-click export of a range as a clip.
+- Thumbnail preview when hovering over the bar.
 
 Free and open source (GPL v3): https://github.com/Thenend/VideoSeeker. No ads and no data collection.
 
 **Features:**
-Instant frame stepping, forward and backward · Region bookmarks with labels and colours · Zoomable timeline · Loops and true reverse playback · Clip export · No extra codecs: MKV, MP4, HEVC, AV1, AC3, DTS…
+Instant frame stepping, forward and backward · Region bookmarks with labels and colors · Zoomable timeline · Loops and true reverse playback · Clip export · No extra codecs: MKV, MP4, HEVC, AV1, AC3, DTS…
 
 **Keywords:** video player, frame by frame, bookmarks, scrubbing, animation, timeline, MKV, HEVC
 
@@ -33,14 +33,14 @@ Instant frame stepping, forward and backward · Region bookmarks with labels and
 Lecteur vidéo pour examiner image par image, avec signets, timeline zoomable et boucles.
 
 **Description :**
-VideoSeeker est un lecteur vidéo pour Windows conçu pour inspecter les vidéos avec précision : animations, parties de jeu, tournages ou toute vidéo à regarder à la loupe.
+VideoSeeker est un lecteur vidéo pour Windows conçu pour inspecter les vidéos avec précision : animations, séquences de jeu, rushes ou toute vidéo à regarder à la loupe.
 
-Il démarre vite et lit les formats courants (MKV, MP4, AVI, MOV, WebM ; H.264, HEVC, AV1, VP9 ; AAC, AC3, DTS…) sans installer de codecs.
+Il démarre vite et lit les formats courants (MKV, MP4, AVI, MOV, WebM ; H.264, HEVC, AV1, VP9 ; AAC, AC3, DTS…) sans installer de codecs supplémentaires.
 
-- Image par image instantané, en avant et en arrière, grâce à un cache d'images sur la carte graphique.
-- Scrubbing en faisant glisser sur l'image ou sur la barre, toujours avec l'image exacte.
-- Timeline zoomable pour travailler une plage précise, avec un repère par image.
-- Signets de régions nommés, avec étiquettes et couleurs, dans un panneau pour passer de l'un à l'autre.
+- Navigation image par image instantanée, en avant et en arrière, grâce à un cache d'images sur la carte graphique.
+- Défilement en faisant glisser sur l'image ou sur la barre, toujours avec l'image exacte.
+- Timeline zoomable pour travailler sur une plage précise, avec un repère par image.
+- Signets de région nommés, avec étiquettes et couleurs, dans un panneau pour passer de l'un à l'autre.
 - Boucle de la vidéo ou d'une plage, vitesse variable et vraie lecture arrière (J/K/L).
 - Export de clips d'une plage en un clic.
 - Miniature de l'image au survol de la barre.
@@ -48,21 +48,21 @@ Il démarre vite et lit les formats courants (MKV, MP4, AVI, MOV, WebM ; H.264, 
 Gratuit et open source (GPL v3) : https://github.com/Thenend/VideoSeeker. Sans publicité ni collecte de données.
 
 **Fonctionnalités :**
-Image par image instantané, en avant et en arrière · Signets de régions avec étiquettes et couleurs · Timeline zoomable · Boucles et vraie lecture arrière · Export de clips · Sans codecs à part : MKV, MP4, HEVC, AV1, AC3, DTS…
+Navigation image par image instantanée, en avant et en arrière · Signets de région avec étiquettes et couleurs · Timeline zoomable · Boucles et vraie lecture arrière · Export de clips · Sans codecs supplémentaires : MKV, MP4, HEVC, AV1, AC3, DTS…
 
 **Mots-clés :** lecteur vidéo, image par image, signets, scrubbing, animation, timeline, MKV, HEVC
 
 ## Deutsch (de-DE)
 
 **Kurzbeschreibung:**
-Videoplayer zum Prüfen Frame für Frame, mit Lesezeichen, zoombarer Zeitleiste und Wiederholung.
+Videoplayer für die Prüfung Frame für Frame, mit Lesezeichen, zoombarer Zeitleiste und Wiederholung.
 
 **Beschreibung:**
-VideoSeeker ist ein Videoplayer für Windows, gemacht, um Videos genau zu untersuchen: Animationen, Spielszenen, Drehaufnahmen oder jedes Video, das man sich ganz genau ansehen muss.
+VideoSeeker ist ein Videoplayer für Windows, entwickelt, um Videos genau zu untersuchen: Animationen, Spielszenen, Drehaufnahmen oder jedes Video, das man sich ganz genau ansehen muss.
 
 Er startet schnell und spielt die üblichen Formate ab (MKV, MP4, AVI, MOV, WebM; H.264, HEVC, AV1, VP9; AAC, AC3, DTS…), ohne zusätzliche Codecs.
 
-- Sofort Frame für Frame, vorwärts und rückwärts, dank eines Frame-Caches auf der Grafikkarte.
+- Sofortige Einzelbildschritte vorwärts und rückwärts dank eines Frame-Caches auf der Grafikkarte.
 - Scrubbing durch Ziehen über das Bild oder die Leiste, immer mit dem genauen Frame.
 - Zoombare Zeitleiste, um an einem bestimmten Abschnitt zu arbeiten, mit einer Markierung pro Frame.
 - Lesezeichen für Regionen mit Namen, Labels und Farben, in einem Bereich zum schnellen Springen.
@@ -73,7 +73,7 @@ Er startet schnell und spielt die üblichen Formate ab (MKV, MP4, AVI, MOV, WebM
 Kostenlos und Open Source (GPL v3): https://github.com/Thenend/VideoSeeker. Ohne Werbung und ohne Datensammlung.
 
 **Funktionen:**
-Sofort Frame für Frame, vorwärts und rückwärts · Lesezeichen für Regionen mit Labels und Farben · Zoombare Zeitleiste · Wiederholung und echte Rückwärtswiedergabe · Clips exportieren · Ohne zusätzliche Codecs: MKV, MP4, HEVC, AV1, AC3, DTS…
+Sofortige Einzelbildschritte vorwärts und rückwärts · Lesezeichen für Regionen mit Labels und Farben · Zoombare Zeitleiste · Wiederholung und echte Rückwärtswiedergabe · Clips exportieren · Ohne zusätzliche Codecs: MKV, MP4, HEVC, AV1, AC3, DTS…
 
 **Suchbegriffe:** Videoplayer, Frame für Frame, Lesezeichen, Scrubbing, Animation, Zeitleiste, MKV, HEVC
 
@@ -85,7 +85,7 @@ Lettore video per rivedere fotogramma per fotogramma, con segnalibri, timeline c
 **Descrizione:**
 VideoSeeker è un lettore video per Windows pensato per esaminare i video con precisione: animazioni, partite, riprese o qualsiasi video da guardare con la lente d'ingrandimento.
 
-Si avvia in fretta e riproduce i formati più comuni (MKV, MP4, AVI, MOV, WebM; H.264, HEVC, AV1, VP9; AAC, AC3, DTS…) senza installare codec a parte.
+Si avvia rapidamente e riproduce i formati più comuni (MKV, MP4, AVI, MOV, WebM; H.264, HEVC, AV1, VP9; AAC, AC3, DTS…) senza installare codec a parte.
 
 - Fotogramma per fotogramma all'istante, avanti e indietro, grazie a una cache di fotogrammi sulla scheda grafica.
 - Scrubbing trascinando sull'immagine o sulla barra, sempre con il fotogramma esatto.
@@ -93,7 +93,7 @@ Si avvia in fretta e riproduce i formati più comuni (MKV, MP4, AVI, MOV, WebM; 
 - Segnalibri di regioni con nome, etichette e colori, in un pannello per saltare dall'uno all'altro.
 - Loop del video o di un intervallo, velocità variabile e vera riproduzione all'indietro (J/K/L).
 - Esporta clip di un intervallo con un clic.
-- Miniatura del fotogramma passando il mouse sulla barra.
+- Miniatura del fotogramma al passaggio del mouse sulla barra.
 
 Gratuito e open source (GPL v3): https://github.com/Thenend/VideoSeeker. Senza pubblicità né raccolta di dati.
 
@@ -112,17 +112,17 @@ VideoSeeker é um player de vídeo para Windows feito para inspecionar vídeos c
 
 Abre rápido e reproduz os formatos comuns (MKV, MP4, AVI, MOV, WebM; H.264, HEVC, AV1, VP9; AAC, AC3, DTS…) sem instalar codecs à parte.
 
-- Quadro a quadro na hora, para a frente e para trás, graças a um cache de quadros na placa de vídeo.
+- Quadro a quadro instantâneo, para a frente e para trás, graças a um cache de quadros na placa de vídeo.
 - Scrubbing arrastando sobre a imagem ou sobre a barra, sempre com o quadro exato.
-- Linha do tempo com zoom para trabalhar um trecho específico, com uma marca para cada quadro.
+- Linha do tempo com zoom para trabalhar em um trecho específico, com uma marca para cada quadro.
 - Marcadores de regiões com nome, etiquetas e cores, em um painel para pular entre eles.
-- Loop do vídeo ou de um trecho, velocidade variável e reprodução de trás para a frente de verdade (J/K/L).
-- Exporta clipes de um trecho com um clique.
+- Loop do vídeo ou de um trecho, velocidade variável e reprodução reversa de verdade (J/K/L).
+- Exportação de clipes de um trecho com um clique.
 - Miniatura do quadro ao passar o mouse pela barra.
 
 Gratuito e de código aberto (GPL v3): https://github.com/Thenend/VideoSeeker. Sem anúncios nem coleta de dados.
 
 **Recursos:**
-Quadro a quadro instantâneo, para a frente e para trás · Marcadores de regiões com etiquetas e cores · Linha do tempo com zoom · Loops e reprodução de trás para a frente de verdade · Exportar clipes · Sem codecs à parte: MKV, MP4, HEVC, AV1, AC3, DTS…
+Quadro a quadro instantâneo, para a frente e para trás · Marcadores de regiões com etiquetas e cores · Linha do tempo com zoom · Loops e reprodução reversa de verdade · Exportar clipes · Sem codecs à parte: MKV, MP4, HEVC, AV1, AC3, DTS…
 
 **Palavras-chave:** player de vídeo, quadro a quadro, marcadores, scrubbing, animação, linha do tempo, MKV, HEVC

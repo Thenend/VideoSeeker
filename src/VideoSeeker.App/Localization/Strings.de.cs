@@ -42,7 +42,7 @@ public sealed class GermanStrings : Strings
     public override string SearchPlaceholder => "Suchen (Strg + F)";
     public override string ScopeThisVideo => "Dieses Video";
     public override string ScopeAllVideos => "Alle Videos";
-    public override string PanelHint => "B erstellt eine Region aus dem gezoomten Abschnitt oder, ohne ihn, eine mit einem Frame (O setzt ihr Ende). Klick oder Eingabe: hinspringen und zoomen. Strg / Umschalt + Klick: mehrere. F2 benennt um, Entf löscht, Strg + Z macht rückgängig.";
+    public override string PanelHint => "B erstellt eine Region aus dem gezoomten Abschnitt oder, falls keiner da ist, eine mit einem Frame (O setzt ihr Ende). Klick oder Eingabe: hinspringen und zoomen. Strg / Umschalt + Klick: mehrere auswählen. F2 benennt um, Entf löscht, Strg + Z macht rückgängig.";
     public override string BookmarkKeyTip => "Taste, um zu diesem Lesezeichen zu springen";
     public override string NameHint => "Eingabe speichert · Esc behält den bisherigen Namen";
     public override string NameHintWithLabels => "Eingabe speichert · Esc bricht ab · Alt + Zahl: Label";
@@ -53,8 +53,8 @@ public sealed class GermanStrings : Strings
     public override string ZoneOf(string? region) => region is null ? "des Abschnitts" : $"von „{region}“";
     public override string SaveZoneTip => "Gezoomten Abschnitt als Lesezeichen speichern (B)";
     public override string NewLabelTitle => "Neues Label";
-    public override string NewLabelBoxTip => "Eingabe erstellt und setzt es · Esc geht zurück";
-    public override string ZoneNameTip(string name) => $"Die Zone ist die Region „{name}“: I / O, ⇤ ⇥ und die Fähnchen ändern sie";
+    public override string NewLabelBoxTip => "Eingabe erstellt und weist es zu · Esc geht zurück";
+    public override string ZoneNameTip(string name) => $"Der gezoomte Abschnitt ist die Region „{name}“: I / O, ⇤ ⇥ und die Fähnchen ändern ihn";
     public override string CloseZoomDeselectTip(string name) => $"Zoom schließen und „{name}“ abwählen (Esc)";
     public override string Loading => "Wird geladen…";
 
@@ -68,17 +68,17 @@ public sealed class GermanStrings : Strings
     public override string SourceCodeTip => "Freie Software unter der Lizenz GPL v3.";
     public override string Version(string version) => $"Version {version}";
     public override string SectionBars => "LEISTEN";
-    public override string MoveRegionsTip => "Wenn man die Mitte des gezoomten Abschnitts oder einer Lesezeichen-Region zieht, wird sie ganz verschoben. Ausgeschaltet bewegt es den Cursor der Leiste.";
+    public override string MoveRegionsTip => "Zieht man die Mitte des gezoomten Abschnitts oder einer Lesezeichen-Region, wird sie als Ganzes verschoben. Ausgeschaltet bewegt das die Abspielposition.";
     public override string MoveRegions => "Ganze Regionen durch Ziehen ihrer Mitte verschieben";
-    public override string EdgeFrameTip => "Beim Ziehen eines Endes des gezoomten Abschnitts oder eines Lesezeichens. Ausgeschaltet ändert sich das Bild nicht.";
-    public override string EdgeFrame => "Frame am gezogenen Ende anzeigen";
+    public override string EdgeFrameTip => "Beim Ziehen eines Randes des gezoomten Abschnitts oder eines Lesezeichens. Ausgeschaltet bleibt das Bild unverändert.";
+    public override string EdgeFrame => "Frame am gezogenen Rand anzeigen";
     public override string CachedLineTip => "Markiert unter den Leisten, was schon im Cache ist: Dorthin springt man sofort.";
     public override string CachedLine => "Grüne Linie des Frame-Caches";
     public override string MarksTip => "Tastenkürzel: Strg + Umschalt + B.";
     public override string Marks => "Lesezeichen-Markierungen";
     public override string SectionNavigation => "NAVIGATION";
     public override string SecondsUnit => "s";
-    public override string SeekTip => "Sekunden, die jede Pfeiltaste springt: allein, mit Umschalt oder mit Strg.";
+    public override string SeekTip => "Sekunden pro Pfeiltastendruck: allein, mit Umschalt oder mit Strg.";
     public override string Seek => "Sprünge mit ← →";
     public override string ScrubTip => "Pixel, die man mit gedrückter Taste über das Bild ziehen muss, um einen Frame weiterzugehen.";
     public override string Scrub => "Scrubbing-Empfindlichkeit";
@@ -91,9 +91,9 @@ public sealed class GermanStrings : Strings
     public override string SectionTimeAndBookmarks => "ZEIT UND LESEZEICHEN";
     public override string TimeFormatTip => "In 00:01:23:11 ist die letzte Zahl der Frame innerhalb der Sekunde.";
     public override string TimeFormat => "Zeitformat";
-    public override string NewColorTip => "Ohne Label, bis etwas anderes gewählt wird (oder immer, wenn das Letzte nicht wiederholt wird).";
+    public override string NewColorTip => "Ohne Label, bis du etwas anderes wählst (oder immer, wenn die letzte Wahl nicht wiederholt wird).";
     public override string NewColor => "Farbe neuer Lesezeichen";
-    public override string RepeatLabelTip => "Ein neues bekommt das zuletzt gewählte Label oder die zuletzt gewählte Farbe; im Namensfeld lässt es sich ändern.";
+    public override string RepeatLabelTip => "Ein neues Lesezeichen bekommt das zuletzt gewählte Label bzw. die zuletzt gewählte Farbe; im Namensfeld lässt sich das ändern.";
     public override string RepeatLabel => "Letztes Label oder letzte Farbe wiederholen";
     public override string TimesInPreview => "Vorschau";
     public override string TimesInList => "Liste";
@@ -125,8 +125,8 @@ public sealed class GermanStrings : Strings
     public override string ClipFolderDialogTitle => "Ordner für exportierte Clips";
     public override string ClipClipboardTip => "Als Datei, um sie direkt in einen Chat, in Jira oder in einen Ordner einzufügen.";
     public override string ClipClipboard => "Jeden Clip in die Zwischenablage kopieren";
-    public override string LightClipTip => "Megabyte pro Sekunde Clip, mit Audio. Nie mehr als das Originalvideo.";
-    public override string LightClip => "Größe des leichten Clips";
+    public override string LightClipTip => "Megabyte pro Clipsekunde, inklusive Audio. Nie mehr als das Originalvideo.";
+    public override string LightClip => "Größe des kompakten Clips";
     public override string MegabytesPerSecond(string value) => $"{value} MB/s";
     public override string SectionGeneral => "ALLGEMEIN";
     public override string InterfaceLanguage => "Sprache";
@@ -138,7 +138,7 @@ public sealed class GermanStrings : Strings
     public override string Later => "Später";
     public override string DefaultFolder => "Standard";
     public override string DefaultFolderTip => "Der Ordner data neben dem Programm.";
-    public override string DataFolderTip => "Einstellungen, Lesezeichen und Position jedes Videos. Die Änderung gilt nach einem Neustart.";
+    public override string DataFolderTip => "Einstellungen, Lesezeichen und Wiedergabeposition jedes Videos. Die Änderung gilt nach einem Neustart.";
     public override string DataFolder => "Datenordner";
     public override string ChooseInWindows => "In Windows auswählen";
     public override string Unregister => "Entfernen";
@@ -151,10 +151,10 @@ public sealed class GermanStrings : Strings
     public override string DataFolderNested => "Der Datenordner darf nicht im aktuellen liegen und ihn auch nicht enthalten.";
     public override string DataFolderHasData(string folder) => $"{folder}\n\nenthält schon Daten von VideoSeeker. Wenn du die aktuellen dorthin kopierst, werden die vorhandenen im Unterordner „anteriores“ aufbewahrt.";
     public override string UseThatData => "Diese Daten verwenden";
-    public override string CopyCurrentData => "Aktuelle kopieren";
-    public override string MoveDataQuestion(string folder) => $"Deine Daten (Einstellungen, Lesezeichen, Position jedes Videos) nach\n{folder} mitnehmen?\n\nDer aktuelle Ordner bleibt, wie er ist.";
+    public override string CopyCurrentData => "Aktuelle Daten kopieren";
+    public override string MoveDataQuestion(string folder) => $"Deine Daten (Einstellungen, Lesezeichen, Wiedergabeposition jedes Videos) nach\n{folder} mitnehmen?\n\nDer aktuelle Ordner bleibt, wie er ist.";
     public override string MoveData => "Daten mitnehmen";
-    public override string StartEmpty => "Leer beginnen";
+    public override string StartEmpty => "Ohne Daten beginnen";
     public override string Cancel => "Abbrechen";
     public override string CannotUseFolder(string error) => $"Dieser Ordner kann nicht verwendet werden:\n{error}";
     public override string DataFolderRestart => "Der neue Datenordner wird nach dem Neustart von VideoSeeker verwendet.";
@@ -183,7 +183,7 @@ public sealed class GermanStrings : Strings
     public override string RangeLoopOn(string? region) => $"Wiederholung {ZoneOf(region)} an";
     public override string RangeLoopOff(string? region) => $"Wiederholung {ZoneOf(region)} aus";
     public override string RangeLoopMenu(string? region) => $"Wiederholung {ZoneOf(region)}";
-    public override string ZoomSection => "Abschnitt zoomen (±5 s)";
+    public override string ZoomSection => "In Abschnitt zoomen (±5 s)";
     public override string MarkFirstFromScreen(int frame, string? region) => $"Angezeigten Frame ({frame}) als Anfang {ZoneOf(region)} setzen";
     public override string MarkLastFromScreen(int frame, string? region) => $"Angezeigten Frame ({frame}) als Ende {ZoneOf(region)} setzen";
     public override string MarkFirstFromCursor(int frame, string? region) => $"Frame unter dem Cursor ({frame}) als Anfang {ZoneOf(region)} setzen";
@@ -204,7 +204,7 @@ public sealed class GermanStrings : Strings
     public override string PinControlsTip => "Steuerelemente fixieren (Tab)";
     public override string VideoGone(string name) => $"Nicht mehr vorhanden: {name}";
     public override string HistoryBackTip => "Zurück zum davor geöffneten Video (Alt + ←)";
-    public override string HistoryForwardTip => "Zum danach geöffneten Video (Alt + →)";
+    public override string HistoryForwardTip => "Vor zum danach geöffneten Video (Alt + →)";
     public override string CloseZoomDeselect(string name) => $"Zoom schließen und „{name}“ abwählen";
     public override string HistoryAllBack(int count) => $"Rechtsklick: die {count} vorherigen";
     public override string HistoryAllForward(int count) => $"Rechtsklick: die {count} nächsten";
@@ -213,7 +213,7 @@ public sealed class GermanStrings : Strings
 
     public override string NewBookmark => "Neues Lesezeichen";
     public override string RenameBookmark => "Lesezeichen umbenennen";
-    public override string SelectBookmarkFirst => "Zuerst ein Lesezeichen auswählen (Klick auf seine Markierung oder im Bereich)";
+    public override string SelectBookmarkFirst => "Zuerst ein Lesezeichen auswählen (auf den Leisten oder im Bereich anklicken)";
     public override string BookmarkDeleted(string name) => $"„{name}“ gelöscht · Strg + Z holt es zurück";
     public override string BookmarksDeleted(int count) => $"{count} Lesezeichen gelöscht · Strg + Z holt sie zurück";
     public override string UndoFailed(string error) => $"Rückgängigmachen nicht möglich: {error}";
@@ -311,7 +311,7 @@ public sealed class GermanStrings : Strings
     // ---- Etiquetas ----
 
     public override string LabelChipTip(string name) => $"Nur „{name}“ anzeigen (auf andere klicken, um sie hinzuzunehmen). Rechtsklick: umbenennen, Farbe, löschen…";
-    public override string LabelChipShortcut(string shortcut) => $"\n{shortcut} gibt es dem ausgewählten Lesezeichen.";
+    public override string LabelChipShortcut(string shortcut) => $"\n{shortcut} weist es dem ausgewählten Lesezeichen zu.";
     public override string NoLabel => "Ohne Label";
     public override string NoLabelChipTip => "Nur die ohne Label anzeigen";
     public override string AddLabelChip => "+ Label";
@@ -329,10 +329,10 @@ public sealed class GermanStrings : Strings
     public override string RenameEllipsis => "Umbenennen…";
     public override string MoveLeft => "Nach links verschieben";
     public override string MoveRight => "Nach rechts verschieben";
-    public override string AdoptLabelColor(string color, int count) => $"Allen ohne Label in der Farbe {color} geben ({count})";
-    public override string AdoptLabelSameColor(int count) => $"Allen ohne Label in seiner Farbe geben ({count})";
+    public override string AdoptLabelColor(string color, int count) => $"Allen Lesezeichen in {color} ohne Label zuweisen ({count})";
+    public override string AdoptLabelSameColor(int count) => $"Allen Lesezeichen in seiner Farbe ohne Label zuweisen ({count})";
     public override string DeleteEllipsis => "Löschen…";
-    public override string DeleteLabelQuestion(string name, int uses) => $"Label „{name}“ löschen?\n" + (uses == 1 ? "1 Lesezeichen hat es: Es bleibt ohne Label, mit seiner Farbe." : $"{uses} Lesezeichen haben es: Sie bleiben ohne Label, mit ihrer Farbe.");
+    public override string DeleteLabelQuestion(string name, int uses) => $"Label „{name}“ löschen?\n" + (uses == 1 ? "1 Lesezeichen hat es: Es bleibt ohne Label und behält seine Farbe." : $"{uses} Lesezeichen haben es: Sie bleiben ohne Label und behalten ihre Farbe.");
     public override string StepCreateLabel(string name) => $"Label „{name}“ erstellen";
     public override string StepRenameLabel(string name) => $"Label „{name}“ umbenennen";
     public override string StepLabelColor(string name) => $"Farbe des Labels „{name}“";
@@ -342,7 +342,7 @@ public sealed class GermanStrings : Strings
     public override string LabelOrColor => "Label oder Farbe";
     public override string AddLabelChipLong => "+ Neues Label";
     public override string AddLabelChipShort => "+ Neu";
-    public override string AddLabelChipNameTip => "Ein Label erstellen und setzen";
+    public override string AddLabelChipNameTip => "Label erstellen und zuweisen";
     public override string ColorWithoutLabel(string color) => $"{color} (ohne Label)";
 
     // ---- Colores de la paleta ----
@@ -385,7 +385,7 @@ public sealed class GermanStrings : Strings
     public override string ExactOriginalTip => "Gleicher Codec und gleiche Bitrate, am exakten Frame geschnitten";
     public override string CopyOriginal(string start) => $"Original ohne Neukodierung · {start}";
     public override string CopyOriginalTip => "Direkte Kopie: sofort und verlustfrei, beginnt aber an einem Keyframe";
-    public override string LightClipMenu(string rate) => $"Leicht · {rate} MB/s";
+    public override string LightClipMenu(string rate) => $"Kompakt · {rate} MB/s";
     public override string LightClipMenuTip => "MP4 (H.264 und AAC) für Chats und Jira, höchstens 1080p";
     public override string StartsAtPreviousKeyframe => "beginnt am vorherigen Keyframe";
     public override string ExactCut => "exakter Schnitt";
@@ -410,7 +410,7 @@ public sealed class GermanStrings : Strings
     public override string ClickToCancel => "\nKlicken zum Abbrechen";
     public override string ClipReady => "Clip fertig";
     public override string ExportError => "Exportfehler";
-    public override string ClickToGo => "\nKlicken, um hinzugehen";
+    public override string ClickToGo => "\nKlicken zum Anzeigen oder Öffnen";
     public override string ClickToSeeWhy => "Klicken, um den Grund zu sehen";
     public override string CancelClip(string name) => $"{name} abbrechen";
     public override string TheClip => "den Clip";
@@ -422,11 +422,11 @@ public sealed class GermanStrings : Strings
     public override string ExportingOnExit => "Gerade wird ein Clip exportiert. Wenn du jetzt beendest, wird er abgebrochen.";
     public override string Quit => "Beenden";
     public override string Wait => "Warten";
-    public override string FfmpegMissing => "ffmpeg.exe fehlt neben dem Programm.";
+    public override string FfmpegMissing => "ffmpeg.exe fehlt im Programmordner.";
     public override string FfmpegFailed => "ffmpeg konnte den Abschnitt nicht exportieren.";
     public override string FfmpegNotStarted => "ffmpeg konnte nicht gestartet werden.";
     public override string FfmpegExitCode(int code) => $"ffmpeg wurde mit Code {code} beendet.";
-    public override string LightClipSuffix => " (leicht)";
+    public override string LightClipSuffix => " (kompakt)";
 
     // ---- Otro color ----
 
@@ -435,7 +435,7 @@ public sealed class GermanStrings : Strings
     public override string ReservedRangeAmber => "Bernsteingelb des gezoomten Abschnitts";
     public override string ReservedPlayedBlue => "Blau des abgespielten Teils";
     public override string ReservedCacheGreen => "Grün des Frame-Caches";
-    public override string ColorClash(string clash) => $"Diese Farbe ähnelt stark dem {clash} auf den Leisten; man wird sie verwechseln.\n\nTrotzdem verwenden?";
+    public override string ColorClash(string clash) => $"Diese Farbe ähnelt stark dem {clash} auf den Leisten und ist leicht damit zu verwechseln.\n\nTrotzdem verwenden?";
 
     // ---- Avisos ----
 

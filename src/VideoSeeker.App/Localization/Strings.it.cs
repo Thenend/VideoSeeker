@@ -17,8 +17,8 @@ public sealed class ItalianStrings : Strings
     public override string CloseZoomTip => "Chiudi lo zoom (Esc)";
     public override string RangeLoopTip(string? region) => $"Loop {ZoneOf(region)} (Maiusc + R)";
     public override string RangeLoopOffTip(string? region) => $"Togli il loop {ZoneOf(region)} (Maiusc + R)";
-    public override string MarkLastTip(string? region) => $"Imposta il fotogramma visualizzato come fine {ZoneOf(region)} (O)";
-    public override string MarkFirstTip(string? region) => $"Imposta il fotogramma visualizzato come inizio {ZoneOf(region)} (I)";
+    public override string MarkLastTip(string? region) => $"Imposta la fine {ZoneOf(region)} sul fotogramma visualizzato (O)";
+    public override string MarkFirstTip(string? region) => $"Imposta l'inizio {ZoneOf(region)} sul fotogramma visualizzato (I)";
     public override string VideoLoopTip => "Loop del video (R)";
     public override string VideoLoopOffTip => "Togli il loop del video (R)";
     public override string PreviousFrameTip => "Fotogramma precedente (,) · rotellina: fotogramma per fotogramma";
@@ -42,7 +42,7 @@ public sealed class ItalianStrings : Strings
     public override string SearchPlaceholder => "Cerca (Ctrl + F)";
     public override string ScopeThisVideo => "Questo video";
     public override string ScopeAllVideos => "Tutti i video";
-    public override string PanelHint => "B crea una regione con l'intervallo ingrandito o, senza, di un fotogramma (O ne fissa la fine). Clic o Invio: vai e ingrandisci. Ctrl / Maiusc + clic: più di uno. F2 rinomina, Canc elimina, Ctrl + Z annulla.";
+    public override string PanelHint => "B crea una regione dall'intervallo ingrandito o, se non c'è, di un solo fotogramma (O ne fissa la fine). Clic o Invio: vai e ingrandisci. Ctrl / Maiusc + clic: selezione multipla. F2 rinomina, Canc elimina, Ctrl + Z annulla.";
     public override string BookmarkKeyTip => "Tasto per andare a questo segnalibro";
     public override string NameHint => "Invio salva · Esc lascia il nome com'era";
     public override string NameHintWithLabels => "Invio salva · Esc annulla · Alt + numero: etichetta";
@@ -54,7 +54,7 @@ public sealed class ItalianStrings : Strings
     public override string SaveZoneTip => "Salva l'intervallo ingrandito come segnalibro (B)";
     public override string NewLabelTitle => "Nuova etichetta";
     public override string NewLabelBoxTip => "Invio la crea e la applica · Esc torna indietro";
-    public override string ZoneNameTip(string name) => $"La zona è la regione «{name}»: I / O, ⇤ ⇥ e le bandierine la cambiano";
+    public override string ZoneNameTip(string name) => $"L'intervallo ingrandito è la regione «{name}»: I / O, ⇤ ⇥ e le bandierine lo modificano";
     public override string CloseZoomDeselectTip(string name) => $"Chiudi lo zoom e deseleziona «{name}» (Esc)";
     public override string Loading => "Caricamento…";
 
@@ -68,8 +68,8 @@ public sealed class ItalianStrings : Strings
     public override string SourceCodeTip => "Software libero, con licenza GPL v3.";
     public override string Version(string version) => $"Versione {version}";
     public override string SectionBars => "BARRE";
-    public override string MoveRegionsTip => "Trascinare il centro dell'intervallo ingrandito o di una regione di segnalibro la sposta tutta. Se disattivato, sposta il cursore della barra.";
-    public override string MoveRegions => "Sposta le regioni intere trascinandone il centro";
+    public override string MoveRegionsTip => "Trascinando il centro dell'intervallo ingrandito o di una regione di segnalibro la si sposta tutta. Se disattivato, si sposta l'indicatore di riproduzione.";
+    public override string MoveRegions => "Sposta regioni intere trascinandone il centro";
     public override string EdgeFrameTip => "Trascinando un estremo dell'intervallo ingrandito o di un segnalibro. Se disattivato, l'immagine non cambia.";
     public override string EdgeFrame => "Mostra il fotogramma dell'estremo trascinato";
     public override string CachedLineTip => "Indica sotto le barre ciò che è già nella cache: lì i salti sono istantanei.";
@@ -87,13 +87,13 @@ public sealed class ItalianStrings : Strings
     public override string WheelVolume => "Volume";
     public override string WheelTip => "Velocità: ±0,1× (tasto centrale: 1×). Volume: ±5%.";
     public override string Wheel => "Rotellina del mouse sul video";
-    public override string Resume => "Riprendi ogni video da dove lo si era lasciato";
+    public override string Resume => "Riprendi ogni video da dove si era interrotto";
     public override string SectionTimeAndBookmarks => "TEMPO E SEGNALIBRI";
     public override string TimeFormatTip => "In 00:01:23:11, l'ultimo numero è il fotogramma all'interno di ogni secondo.";
     public override string TimeFormat => "Formato del tempo";
-    public override string NewColorTip => "Senza etichetta, finché non se ne sceglie un altro (o sempre, se non si ripete l'ultimo).";
+    public override string NewColorTip => "Senza etichetta, finché non si sceglie altro (o sempre, se non si ripete l'ultima scelta).";
     public override string NewColor => "Colore dei nuovi segnalibri";
-    public override string RepeatLabelTip => "Il nuovo prende l'etichetta o il colore scelto l'ultima volta; nella casella del nome si cambia.";
+    public override string RepeatLabelTip => "Il nuovo segnalibro prende l'etichetta o il colore scelti l'ultima volta; si cambia nella casella del nome.";
     public override string RepeatLabel => "Ripeti l'ultima etichetta o colore";
     public override string TimesInPreview => "Anteprima";
     public override string TimesInList => "Elenco";
@@ -101,9 +101,9 @@ public sealed class ItalianStrings : Strings
     public override string BookmarkTimes => "Tempi dei segnalibri";
     public override string SectionAudioAndSubtitles => "AUDIO E SOTTOTITOLI";
     public override string AudioLanguageTip => "Si sceglie quella traccia se il video ne ha diverse. Si applica all'apertura del video successivo.";
-    public override string AudioLanguage => "Lingua preferita dell'audio";
+    public override string AudioLanguage => "Lingua audio preferita";
     public override string SubtitleLanguageTip => "Si sceglie quella traccia quando si attivano i sottotitoli. Si applica all'apertura del video successivo.";
-    public override string SubtitleLanguage => "Lingua preferita dei sottotitoli";
+    public override string SubtitleLanguage => "Lingua preferita per i sottotitoli";
     public override string AppliesOnNextVideo => "Si applica all'apertura del video successivo.";
     public override string SubtitlesOnOpen => "Attiva i sottotitoli all'apertura di un video";
     public override string NoPreference => "Nessuna preferenza";
@@ -113,7 +113,7 @@ public sealed class ItalianStrings : Strings
     public override string CacheOfTotal(string used, string total) => $"{used} di {total} GB";
     public override string GigabytesUnit => "GB";
     public override string MegabytesUnit => "MB";
-    public override string CacheTooBigTip => "Più del 90% della memoria della scheda: potrebbe mancare ad altri programmi.";
+    public override string CacheTooBigTip => "Oltre il 90% della memoria della scheda video: potrebbe non bastare per altri programmi.";
     public override string HardwareDecodingTip => "Riproduce con la scheda grafica. Disattivala solo se un video si vede male.";
     public override string HardwareDecoding => "Decodifica hardware";
     public override string SectionClips => "ESPORTA CLIP";
@@ -138,7 +138,7 @@ public sealed class ItalianStrings : Strings
     public override string Later => "Più tardi";
     public override string DefaultFolder => "Predefinita";
     public override string DefaultFolderTip => "La cartella data, accanto al programma.";
-    public override string DataFolderTip => "Impostazioni, segnalibri e posizione di ogni video. La modifica si applica al riavvio.";
+    public override string DataFolderTip => "Impostazioni, segnalibri e punto di riproduzione di ogni video. La modifica si applica al riavvio.";
     public override string DataFolder => "Cartella dei dati";
     public override string ChooseInWindows => "Scegli in Windows";
     public override string Unregister => "Rimuovi";
@@ -152,9 +152,9 @@ public sealed class ItalianStrings : Strings
     public override string DataFolderHasData(string folder) => $"{folder}\n\ncontiene già dati di VideoSeeker. Se vi copi quelli attuali, quelli che c'erano vengono conservati nella sottocartella «anteriores».";
     public override string UseThatData => "Usa quei dati";
     public override string CopyCurrentData => "Copia quelli attuali";
-    public override string MoveDataQuestion(string folder) => $"Portare i tuoi dati (impostazioni, segnalibri, posizione di ogni video) in\n{folder}?\n\nLa cartella attuale resta com'è.";
+    public override string MoveDataQuestion(string folder) => $"Portare i tuoi dati (impostazioni, segnalibri, punto di riproduzione di ogni video) in\n{folder}?\n\nLa cartella attuale resta com'è.";
     public override string MoveData => "Porta i dati";
-    public override string StartEmpty => "Inizia vuota";
+    public override string StartEmpty => "Inizia da zero";
     public override string Cancel => "Annulla";
     public override string CannotUseFolder(string error) => $"Non si può usare quella cartella:\n{error}";
     public override string DataFolderRestart => "La nuova cartella dei dati verrà usata al riavvio di VideoSeeker.";
@@ -164,8 +164,8 @@ public sealed class ItalianStrings : Strings
     public override string ResetQuestion => "Tutte le impostazioni torneranno ai valori predefiniti.";
     public override string Reset => "Ripristina";
     public override string ResetTitle => "Ripristina le impostazioni";
-    public override string DefaultFolderPackagedTip => "La cartella dell'app in Windows. Si cancella quando la si disinstalla.";
-    public override string HoverPreview => "Miniatura passando il mouse sulle barre";
+    public override string DefaultFolderPackagedTip => "La cartella dell'app in Windows. Viene eliminata quando si disinstalla l'app.";
+    public override string HoverPreview => "Miniatura al passaggio del mouse sulle barre";
     public override string HoverPreviewTip => "Per vedere cosa c'è in un punto del video senza andarci.";
     public override string DataCopyIncomplete(string file) => $"La copia di {file} non è completa";
 
@@ -184,10 +184,10 @@ public sealed class ItalianStrings : Strings
     public override string RangeLoopOff(string? region) => $"Loop {ZoneOf(region)} disattivato";
     public override string RangeLoopMenu(string? region) => $"Loop {ZoneOf(region)}";
     public override string ZoomSection => "Ingrandisci la sezione (±5 s)";
-    public override string MarkFirstFromScreen(int frame, string? region) => $"Imposta il fotogramma visualizzato ({frame}) come inizio {ZoneOf(region)}";
-    public override string MarkLastFromScreen(int frame, string? region) => $"Imposta il fotogramma visualizzato ({frame}) come fine {ZoneOf(region)}";
-    public override string MarkFirstFromCursor(int frame, string? region) => $"Imposta il fotogramma sotto il cursore ({frame}) come inizio {ZoneOf(region)}";
-    public override string MarkLastFromCursor(int frame, string? region) => $"Imposta il fotogramma sotto il cursore ({frame}) come fine {ZoneOf(region)}";
+    public override string MarkFirstFromScreen(int frame, string? region) => $"Imposta l'inizio {ZoneOf(region)} sul fotogramma visualizzato ({frame})";
+    public override string MarkLastFromScreen(int frame, string? region) => $"Imposta la fine {ZoneOf(region)} sul fotogramma visualizzato ({frame})";
+    public override string MarkFirstFromCursor(int frame, string? region) => $"Imposta l'inizio {ZoneOf(region)} sul fotogramma sotto il cursore ({frame})";
+    public override string MarkLastFromCursor(int frame, string? region) => $"Imposta la fine {ZoneOf(region)} sul fotogramma sotto il cursore ({frame})";
     public override string CloseZoom => "Chiudi lo zoom";
     public override string NormalSpeed => "1× (normale)";
     public override string SpeedToast(string speed) => $"Velocità {speed}";
@@ -203,8 +203,8 @@ public sealed class ItalianStrings : Strings
     public override string ControlsPinnedTip => "Controlli fissi (Tab)";
     public override string PinControlsTip => "Fissa i controlli (Tab)";
     public override string VideoGone(string name) => $"Non c'è più: {name}";
-    public override string HistoryBackTip => "Torna al video aperto prima (Alt + ←)";
-    public override string HistoryForwardTip => "Vai al video aperto dopo (Alt + →)";
+    public override string HistoryBackTip => "Torna al video precedente (Alt + ←)";
+    public override string HistoryForwardTip => "Vai al video successivo (Alt + →)";
     public override string CloseZoomDeselect(string name) => $"Chiudi lo zoom e deseleziona «{name}»";
     public override string HistoryAllBack(int count) => $"Clic destro: i {count} precedenti";
     public override string HistoryAllForward(int count) => $"Clic destro: i {count} successivi";
@@ -213,7 +213,7 @@ public sealed class ItalianStrings : Strings
 
     public override string NewBookmark => "Nuovo segnalibro";
     public override string RenameBookmark => "Rinomina segnalibro";
-    public override string SelectBookmarkFirst => "Prima seleziona un segnalibro (clic sul suo indicatore o nel pannello)";
+    public override string SelectBookmarkFirst => "Prima seleziona un segnalibro (cliccalo sulle barre o nel pannello)";
     public override string BookmarkDeleted(string name) => $"Eliminato «{name}» · Ctrl + Z lo recupera";
     public override string BookmarksDeleted(int count) => $"Eliminati {count} segnalibri · Ctrl + Z li recupera";
     public override string UndoFailed(string error) => $"Impossibile annullare: {error}";
@@ -410,7 +410,7 @@ public sealed class ItalianStrings : Strings
     public override string ClickToCancel => "\nClic per annullare";
     public override string ClipReady => "Clip pronta";
     public override string ExportError => "Errore di esportazione";
-    public override string ClickToGo => "\nClic per andarci";
+    public override string ClickToGo => "\nClic per mostrarlo o aprirlo";
     public override string ClickToSeeWhy => "Clic per vedere il motivo";
     public override string CancelClip(string name) => $"Annulla {name}";
     public override string TheClip => "la clip";
@@ -422,7 +422,7 @@ public sealed class ItalianStrings : Strings
     public override string ExportingOnExit => "Si sta esportando una clip. Se esci ora, verrà annullata.";
     public override string Quit => "Esci";
     public override string Wait => "Attendi";
-    public override string FfmpegMissing => "Manca ffmpeg.exe accanto al programma.";
+    public override string FfmpegMissing => "Manca ffmpeg.exe nella cartella del programma.";
     public override string FfmpegFailed => "ffmpeg non è riuscito a esportare l'intervallo.";
     public override string FfmpegNotStarted => "Impossibile avviare ffmpeg.";
     public override string FfmpegExitCode(int code) => $"ffmpeg è terminato con il codice {code}.";

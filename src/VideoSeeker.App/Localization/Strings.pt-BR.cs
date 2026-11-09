@@ -17,8 +17,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string CloseZoomTip => "Fechar o zoom (Esc)";
     public override string RangeLoopTip(string? region) => $"Loop {ZoneOf(region)} (Shift + R)";
     public override string RangeLoopOffTip(string? region) => $"Desativar o loop {ZoneOf(region)} (Shift + R)";
-    public override string MarkLastTip(string? region) => $"Definir o quadro na tela como fim {ZoneOf(region)} (O)";
-    public override string MarkFirstTip(string? region) => $"Definir o quadro na tela como início {ZoneOf(region)} (I)";
+    public override string MarkLastTip(string? region) => $"Definir o fim {ZoneOf(region)} no quadro atual (O)";
+    public override string MarkFirstTip(string? region) => $"Definir o início {ZoneOf(region)} no quadro atual (I)";
     public override string VideoLoopTip => "Loop do vídeo (R)";
     public override string VideoLoopOffTip => "Desativar o loop do vídeo (R)";
     public override string PreviousFrameTip => "Quadro anterior (,) · roda: quadro a quadro";
@@ -42,7 +42,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string SearchPlaceholder => "Pesquisar (Ctrl + F)";
     public override string ScopeThisVideo => "Este vídeo";
     public override string ScopeAllVideos => "Todos os vídeos";
-    public override string PanelHint => "B cria uma região com o trecho ampliado ou, sem ele, de um quadro (O define o fim). Clique ou Enter: ir e ampliar. Ctrl / Shift + clique: vários. F2 renomeia, Delete exclui, Ctrl + Z desfaz.";
+    public override string PanelHint => "B cria uma região com o trecho ampliado ou, se não houver, de um só quadro (O define o fim). Clique ou Enter: ir até ela e ampliar. Ctrl / Shift + clique: vários. F2 renomeia, Delete exclui, Ctrl + Z desfaz.";
     public override string BookmarkKeyTip => "Tecla para ir a este marcador";
     public override string NameHint => "Enter salva · Esc mantém o nome como estava";
     public override string NameHintWithLabels => "Enter salva · Esc cancela · Alt + número: etiqueta";
@@ -54,7 +54,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string SaveZoneTip => "Salvar o trecho ampliado como marcador (B)";
     public override string NewLabelTitle => "Nova etiqueta";
     public override string NewLabelBoxTip => "Enter cria e aplica · Esc volta";
-    public override string ZoneNameTip(string name) => $"A zona é a região “{name}”: I / O, ⇤ ⇥ e as bandeirinhas a alteram";
+    public override string ZoneNameTip(string name) => $"O trecho ampliado é a região “{name}”: I / O, ⇤ ⇥ e as bandeirinhas o alteram";
     public override string CloseZoomDeselectTip(string name) => $"Fechar o zoom e desmarcar “{name}” (Esc)";
     public override string Loading => "Carregando…";
 
@@ -62,20 +62,20 @@ public sealed class PortugueseBrazilStrings : Strings
 
     public override string SettingsTitle => "Configurações — VideoSeeker";
     public override string ResetDefaults => "Restaurar os valores padrão";
-    public override string SupportTip => "O VideoSeeker é gratuito. Se ele for útil para você, pode pagar um café ao autor.";
+    public override string SupportTip => "O VideoSeeker é gratuito. Se ele for útil para você, que tal pagar um café para o autor?";
     public override string Support => "Apoiar";
     public override string SourceCode => "Código-fonte";
     public override string SourceCodeTip => "Software livre, com licença GPL v3.";
     public override string Version(string version) => $"Versão {version}";
     public override string SectionBars => "BARRAS";
-    public override string MoveRegionsTip => "Arrastar o centro do trecho ampliado ou de uma região de marcador a move inteira. Desativado, move o cursor da barra.";
+    public override string MoveRegionsTip => "Arrastar o centro do trecho ampliado ou de uma região de marcador a move por inteiro. Desativado, move o cursor de reprodução.";
     public override string MoveRegions => "Mover regiões inteiras arrastando o centro";
-    public override string EdgeFrameTip => "Ao arrastar uma ponta do trecho ampliado ou de um marcador. Desativado, a imagem não muda.";
-    public override string EdgeFrame => "Ver o quadro da ponta que está sendo arrastada";
+    public override string EdgeFrameTip => "Ao arrastar uma extremidade do trecho ampliado ou de um marcador. Desativado, a imagem não muda.";
+    public override string EdgeFrame => "Ver o quadro da extremidade arrastada";
     public override string CachedLineTip => "Marca sob as barras o que já está no cache: ali os saltos são instantâneos.";
     public override string CachedLine => "Linha verde do cache de quadros";
     public override string MarksTip => "Atalho: Ctrl + Shift + B.";
-    public override string Marks => "Marcas dos marcadores";
+    public override string Marks => "Marcadores nas barras";
     public override string SectionNavigation => "NAVEGAÇÃO";
     public override string SecondsUnit => "s";
     public override string SeekTip => "Segundos que cada seta pula: sozinha, com Shift ou com Ctrl.";
@@ -91,9 +91,9 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string SectionTimeAndBookmarks => "TEMPO E MARCADORES";
     public override string TimeFormatTip => "Em 00:01:23:11, o último número é o quadro dentro de cada segundo.";
     public override string TimeFormat => "Formato do tempo";
-    public override string NewColorTip => "Sem etiqueta, até escolher outra coisa (ou sempre, se não repetir a última).";
+    public override string NewColorTip => "Sem etiqueta, até você escolher outra coisa (ou sempre, se a última escolha não for repetida).";
     public override string NewColor => "Cor dos novos marcadores";
-    public override string RepeatLabelTip => "O novo recebe a etiqueta ou a cor escolhida da última vez; na caixa do nome dá para trocar.";
+    public override string RepeatLabelTip => "O novo marcador recebe a etiqueta ou a cor escolhida da última vez; dá para trocar na caixa do nome.";
     public override string RepeatLabel => "Repetir a última etiqueta ou cor";
     public override string TimesInPreview => "Pré-visualização";
     public override string TimesInList => "Lista";
@@ -109,11 +109,11 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string NoPreference => "Sem preferência";
     public override string SectionPerformance => "DESEMPENHO";
     public override string CacheMemory => "Memória do cache de quadros";
-    public override string CacheMemoryTip => "Quanto mais, mais tempo de vídeo dá para percorrer quadro a quadro na hora. Vale ao abrir o próximo vídeo.";
+    public override string CacheMemoryTip => "Quanto mais, mais tempo de vídeo dá para percorrer quadro a quadro instantaneamente. Vale ao abrir o próximo vídeo.";
     public override string CacheOfTotal(string used, string total) => $"{used} de {total} GB";
     public override string GigabytesUnit => "GB";
     public override string MegabytesUnit => "MB";
-    public override string CacheTooBigTip => "Mais de 90% da memória da placa: pode faltar para outros programas.";
+    public override string CacheTooBigTip => "Mais de 90% da memória da placa de vídeo: pode faltar para outros programas.";
     public override string HardwareDecodingTip => "Reproduz com a placa de vídeo. Desative só se algum vídeo aparecer com defeito.";
     public override string HardwareDecoding => "Decodificação por hardware";
     public override string SectionClips => "EXPORTAR CLIPES";
@@ -125,7 +125,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ClipFolderDialogTitle => "Pasta para os clipes exportados";
     public override string ClipClipboardTip => "Como arquivo, para colar direto em um chat, no Jira ou em uma pasta.";
     public override string ClipClipboard => "Copiar cada clipe para a área de transferência";
-    public override string LightClipTip => "Megabytes por segundo de clipe, com o áudio. Nunca mais que o vídeo original.";
+    public override string LightClipTip => "Megabytes por segundo de clipe, áudio incluído. Nunca mais que o vídeo original.";
     public override string LightClip => "Tamanho do clipe leve";
     public override string MegabytesPerSecond(string value) => $"{value} MB/s";
     public override string SectionGeneral => "GERAL";
@@ -154,7 +154,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string CopyCurrentData => "Copiar os atuais";
     public override string MoveDataQuestion(string folder) => $"Levar seus dados (configurações, marcadores, posição de cada vídeo) para\n{folder}?\n\nA pasta atual fica como está.";
     public override string MoveData => "Levar os dados";
-    public override string StartEmpty => "Começar vazia";
+    public override string StartEmpty => "Começar do zero";
     public override string Cancel => "Cancelar";
     public override string CannotUseFolder(string error) => $"Não é possível usar essa pasta:\n{error}";
     public override string DataFolderRestart => "A nova pasta de dados será usada ao reiniciar o VideoSeeker.";
@@ -164,7 +164,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ResetQuestion => "Todas as configurações voltarão aos valores padrão.";
     public override string Reset => "Restaurar";
     public override string ResetTitle => "Restaurar configurações";
-    public override string DefaultFolderPackagedTip => "A pasta do app no Windows. É apagada ao desinstalá-lo.";
+    public override string DefaultFolderPackagedTip => "A pasta do app no Windows. É apagada ao desinstalar o app.";
     public override string HoverPreview => "Miniatura ao passar o mouse pelas barras";
     public override string HoverPreviewTip => "Para ver o que há em um ponto do vídeo sem ir até ele.";
     public override string DataCopyIncomplete(string file) => $"A cópia de {file} ficou incompleta";
@@ -184,10 +184,10 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string RangeLoopOff(string? region) => $"Loop {ZoneOf(region)} desativado";
     public override string RangeLoopMenu(string? region) => $"Loop {ZoneOf(region)}";
     public override string ZoomSection => "Ampliar seção (±5 s)";
-    public override string MarkFirstFromScreen(int frame, string? region) => $"Definir o quadro na tela ({frame}) como início {ZoneOf(region)}";
-    public override string MarkLastFromScreen(int frame, string? region) => $"Definir o quadro na tela ({frame}) como fim {ZoneOf(region)}";
-    public override string MarkFirstFromCursor(int frame, string? region) => $"Definir o quadro sob o cursor ({frame}) como início {ZoneOf(region)}";
-    public override string MarkLastFromCursor(int frame, string? region) => $"Definir o quadro sob o cursor ({frame}) como fim {ZoneOf(region)}";
+    public override string MarkFirstFromScreen(int frame, string? region) => $"Definir o início {ZoneOf(region)} no quadro atual ({frame})";
+    public override string MarkLastFromScreen(int frame, string? region) => $"Definir o fim {ZoneOf(region)} no quadro atual ({frame})";
+    public override string MarkFirstFromCursor(int frame, string? region) => $"Definir o início {ZoneOf(region)} no quadro sob o cursor ({frame})";
+    public override string MarkLastFromCursor(int frame, string? region) => $"Definir o fim {ZoneOf(region)} no quadro sob o cursor ({frame})";
     public override string CloseZoom => "Fechar o zoom";
     public override string NormalSpeed => "1× (normal)";
     public override string SpeedToast(string speed) => $"Velocidade {speed}";
@@ -202,9 +202,9 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ControlsHidden => "Controles ocultos: leve o mouse para baixo para vê-los";
     public override string ControlsPinnedTip => "Controles fixos (Tab)";
     public override string PinControlsTip => "Fixar os controles (Tab)";
-    public override string VideoGone(string name) => $"Não existe mais: {name}";
-    public override string HistoryBackTip => "Voltar ao vídeo aberto antes (Alt + ←)";
-    public override string HistoryForwardTip => "Ir ao vídeo aberto depois (Alt + →)";
+    public override string VideoGone(string name) => $"Não encontrado: {name}";
+    public override string HistoryBackTip => "Voltar ao vídeo anterior (Alt + ←)";
+    public override string HistoryForwardTip => "Avançar para o próximo vídeo (Alt + →)";
     public override string CloseZoomDeselect(string name) => $"Fechar o zoom e desmarcar “{name}”";
     public override string HistoryAllBack(int count) => $"Clique direito: os {count} anteriores";
     public override string HistoryAllForward(int count) => $"Clique direito: os {count} seguintes";
@@ -213,7 +213,7 @@ public sealed class PortugueseBrazilStrings : Strings
 
     public override string NewBookmark => "Novo marcador";
     public override string RenameBookmark => "Renomear marcador";
-    public override string SelectBookmarkFirst => "Selecione antes um marcador (clique na marca dele ou no painel)";
+    public override string SelectBookmarkFirst => "Selecione um marcador primeiro (clique nele nas barras ou no painel)";
     public override string BookmarkDeleted(string name) => $"“{name}” excluído · Ctrl + Z o recupera";
     public override string BookmarksDeleted(int count) => $"{count} marcadores excluídos · Ctrl + Z os recupera";
     public override string UndoFailed(string error) => $"Não foi possível desfazer: {error}";
@@ -238,10 +238,10 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string DeleteCount(int count) => $"Excluir os {count}";
     public override string BookmarksExported(int count) => count == 1 ? "1 marcador exportado" : $"{count} marcadores exportados";
     public override string CannotWriteBesideVideo(string error) => $"Não foi possível gravar junto ao vídeo:\n{error}";
-    public override string MarksShown => "Marcas dos marcadores visíveis";
-    public override string MarksHidden => "Marcas dos marcadores ocultas (Ctrl + Shift + B as mostra)";
-    public override string HideMarksTip => "Ocultar as marcas dos marcadores nas barras (Ctrl + Shift + B). O painel continua funcionando.";
-    public override string ShowMarksTip => "Mostrar as marcas dos marcadores nas barras (Ctrl + Shift + B)";
+    public override string MarksShown => "Marcadores visíveis nas barras";
+    public override string MarksHidden => "Marcadores ocultos nas barras (Ctrl + Shift + B os mostra)";
+    public override string HideMarksTip => "Ocultar os marcadores nas barras (Ctrl + Shift + B). O painel continua funcionando.";
+    public override string ShowMarksTip => "Mostrar os marcadores nas barras (Ctrl + Shift + B)";
     public override string CollectionButton(string name) => $"Coleção: {name}  ▾";
     public override string CollectionEmpty => "vazia";
     public override string BookmarksInVideos(int bookmarks, int videos) => videos == 1 ? $"{bookmarks} em 1 vídeo" : $"{bookmarks} em {videos} vídeos";
@@ -280,7 +280,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string CannotReadFile(string error) => $"Não foi possível ler o arquivo:\n{error}";
     public override string NotSameVideo(string chosen, string name) => $"“{chosen}” não é o mesmo vídeo que “{name}” (o conteúdo é diferente: outra cópia, outra versão ou um vídeo diferente). Os tempos dos marcadores podem não coincidir.\n\nUsá-lo mesmo assim? Os marcadores desse vídeo (em todas as coleções) passarão para este arquivo; Ctrl + Z desfaz.";
     public override string UseItAnyway => "Usar mesmo assim";
-    public override string NotAllMoved(string error) => $"Não foi possível passar todos: {error}";
+    public override string NotAllMoved(string error) => $"Não foi possível transferir todos: {error}";
     public override string VideosCountName(int count) => $"{count} vídeos";
     public override string BookmarkOfZoomedRange => "Marcador do trecho ampliado";
 
@@ -310,7 +310,7 @@ public sealed class PortugueseBrazilStrings : Strings
 
     // ---- Etiquetas ----
 
-    public override string LabelChipTip(string name) => $"Ver só os “{name}” (clique em outras para somá-las). Clique direito: renomear, cor, excluir…";
+    public override string LabelChipTip(string name) => $"Ver só os “{name}” (clique em outras para adicioná-las). Clique direito: renomear, cor, excluir…";
     public override string LabelChipShortcut(string shortcut) => $"\n{shortcut} a aplica ao marcador selecionado.";
     public override string NoLabel => "Sem etiqueta";
     public override string NoLabelChipTip => "Ver só os que não têm etiqueta";
@@ -329,8 +329,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string RenameEllipsis => "Renomear…";
     public override string MoveLeft => "Mover para a esquerda";
     public override string MoveRight => "Mover para a direita";
-    public override string AdoptLabelColor(string color, int count) => $"Aplicá-la aos sem etiqueta da cor {color} ({count})";
-    public override string AdoptLabelSameColor(int count) => $"Aplicá-la aos da mesma cor sem etiqueta ({count})";
+    public override string AdoptLabelColor(string color, int count) => $"Aplicar aos marcadores sem etiqueta na cor {color.ToLower(Loc.Culture)} ({count})";
+    public override string AdoptLabelSameColor(int count) => $"Aplicar aos marcadores sem etiqueta da mesma cor ({count})";
     public override string DeleteEllipsis => "Excluir…";
     public override string DeleteLabelQuestion(string name, int uses) => $"Excluir a etiqueta “{name}”?\n" + (uses == 1 ? "1 marcador a usa: ele fica sem etiqueta, com a sua cor." : $"{uses} marcadores a usam: eles ficam sem etiqueta, com a sua cor.");
     public override string StepCreateLabel(string name) => $"criar a etiqueta “{name}”";
@@ -410,7 +410,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ClickToCancel => "\nClique para cancelar";
     public override string ClipReady => "Clipe pronto";
     public override string ExportError => "Erro ao exportar";
-    public override string ClickToGo => "\nClique para ir até ele";
+    public override string ClickToGo => "\nClique para mostrá-lo ou abri-lo";
     public override string ClickToSeeWhy => "Clique para ver por quê";
     public override string CancelClip(string name) => $"Cancelar {name}";
     public override string TheClip => "o clipe";
@@ -418,11 +418,11 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string CopyToClipboard => "Copiar para a área de transferência";
     public override string ClipCopied => "Clipe copiado para a área de transferência";
     public override string PreviousClips => "Clipes anteriores";
-    public override string RemoveFromHere => "Tirar daqui";
+    public override string RemoveFromHere => "Remover daqui";
     public override string ExportingOnExit => "Um clipe está sendo exportado. Se você sair agora, ele será cancelado.";
     public override string Quit => "Sair";
     public override string Wait => "Esperar";
-    public override string FfmpegMissing => "Falta o ffmpeg.exe junto ao programa.";
+    public override string FfmpegMissing => "Falta o ffmpeg.exe na pasta do programa.";
     public override string FfmpegFailed => "O ffmpeg não conseguiu exportar o trecho.";
     public override string FfmpegNotStarted => "Não foi possível iniciar o ffmpeg.";
     public override string FfmpegExitCode(int code) => $"O ffmpeg terminou com o código {code}.";
