@@ -200,9 +200,18 @@ public sealed class DataStore
 
     public void SaveLibrary() => Save("library.json", Library);
 
-    /// <summary>Carpeta de datos sin elegir otra: data\ junto al exe o, si no se puede escribir ahí, %LOCALAPPDATA%\VideoSeeker.</summary>
+    /// <summary>
+    /// Carpeta de datos sin elegir otra: data\ junto al exe o, si no se puede escribir ahí, %LOCALAPPDATA%\VideoSeeker.
+    /// Instalada desde la Store, data\ en la carpeta propia del paquete (<see cref="Packaged.LocalState"/>).
+    /// </summary>
     public static string DefaultFolder()
     {
+        if (Packaged.LocalState is { } state)
+        {
+            var data = Path.Combine(state, "data");
+            Directory.CreateDirectory(data);
+            return data;
+        }
         var besideExe = Path.Combine(AppContext.BaseDirectory, "data");
         if (IsWritable(besideExe))
             return besideExe;
@@ -212,12 +221,14 @@ public sealed class DataStore
     }
 
     private static readonly string LocationBesideExe = Path.Combine(AppContext.BaseDirectory, "datalocation.json");
-    private static readonly string LocationInAppData =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VideoSeeker", "datalocation.json");
+    // En el paquete, junto a su data\ (si no, %LOCALAPPDATA% iría a una carpeta desviada).
+    private static readonly string LocationInAppData = Packaged.LocalState is { } state
+        ? Path.Combine(state, "datalocation.json")
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VideoSeeker", "datalocation.json");
 
     /// <summary>La carpeta elegida en los ajustes (aunque no se use hasta reiniciar); null si no se eligió otra.</summary>
     public static DataLocation? ReadLocation() =>
-        LoadFile<DataLocation>(LocationBesideExe) ?? LoadFile<DataLocation>(LocationInAppData);
+        (Packaged.IsPackaged ? null : LoadFile<DataLocation>(LocationBesideExe)) ?? LoadFile<DataLocation>(LocationInAppData);
 
     /// <summary>
     /// Elige la carpeta de datos para el próximo arranque; con "copyFrom", al arrancar se copian ahí esos datos.
@@ -232,7 +243,7 @@ public sealed class DataStore
         if (copyFrom == null && SamePath(folder, DefaultFolder()))
             return;
         // Junto al exe si se puede escribir ahí; si no, en %LOCALAPPDATA%.
-        var target = IsWritable(AppContext.BaseDirectory) ? LocationBesideExe : LocationInAppData;
+        var target = !Packaged.IsPackaged && IsWritable(AppContext.BaseDirectory) ? LocationBesideExe : LocationInAppData;
         SaveFile(target, new DataLocation { Folder = Path.GetFullPath(folder), CopyFrom = copyFrom });
     }
 

@@ -32,6 +32,14 @@ pwsh scripts/make-portable.ps1     # out/dist/VideoSeeker-<fecha>-<commit>-win-x
 
 Zip autocontenido (incluye .NET, libmpv y FFmpeg) para otro PC con Windows 10/11 x64: se descomprime y se ejecuta, sin instalar ni permisos de administrador. Instrucciones para el usuario en `scripts/portable/LEEME.txt` (van dentro del zip).
 
+## Microsoft Store
+
+```powershell
+pwsh scripts/make-msix.ps1         # out/msix/VideoSeeker-<versión>-x64.msix
+```
+
+Paquete MSIX para la Store (la Store lo firma). Cómo publicarlo y qué cambia en la app instalada así: [docs/TIENDA.md](docs/TIENDA.md).
+
 ## Atajos (fase 1)
 
 | Acción | Tecla / ratón |

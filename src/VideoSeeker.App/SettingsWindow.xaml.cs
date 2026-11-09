@@ -88,6 +88,12 @@ public partial class SettingsWindow : Window
         LoadValues();
         UpdateFolderUi();
         UnregisterButton.IsEnabled = FileAssociations.IsRegistered;
+        if (Packaged.IsPackaged)
+        {
+            // Instalada desde la Store los tipos de vídeo vienen con la app y se quitan al desinstalarla.
+            UnregisterButton.Visibility = Visibility.Collapsed;
+            DefaultFolderButton.ToolTip = "La carpeta de la app en Windows. Se borra al desinstalarla.";
+        }
         PreviewKeyDown += OnKeyDown;
         SourceInitialized += (_, _) =>
         {

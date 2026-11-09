@@ -1,0 +1,6 @@
+{
+  "comentario": "Copia aquí los tres valores de Partner Center > tu app > Identidad del producto. Los de ahora sirven solo para probar el paquete en este PC.",
+  "name": "VideoSeeker.Prueba",
+  "publisher": "CN=VideoSeeker-Prueba",
+  "publisherDisplayName": "Mario García Lázaro"
+}

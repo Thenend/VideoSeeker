@@ -10,6 +10,8 @@ namespace VideoSeeker.App;
 /// extensión, la entrada en "Abrir con" y las Capabilities que hacen salir a VideoSeeker en Aplicaciones
 /// predeterminadas. Desde Windows 8 un programa no puede ponerse como predeterminado: eso lo elige el usuario en
 /// Configuración, que es adonde lleva <see cref="OpenWindowsSettings"/>.
+/// Instalada desde la Store (<see cref="Packaged"/>) no se toca el registro: los tipos van en el manifiesto del
+/// paquete, Windows los registra al instalar y los quita al desinstalar.
 /// </summary>
 public static partial class FileAssociations
 {
@@ -38,6 +40,8 @@ public static partial class FileAssociations
     {
         get
         {
+            if (Packaged.IsPackaged)
+                return true;
             using var key = Registry.CurrentUser.OpenSubKey(RegisteredApplications);
             return key?.GetValue(AppName) != null;
         }
@@ -45,6 +49,8 @@ public static partial class FileAssociations
 
     public static void Register()
     {
+        if (Packaged.IsPackaged)
+            return;
         var exe = Exe;
         var icon = $"\"{exe}\",0";
         using (var capabilities = Registry.CurrentUser.CreateSubKey(CapabilitiesKey))
@@ -87,6 +93,8 @@ public static partial class FileAssociations
     /// <summary>Borra todo lo que puso <see cref="Register"/>; de cada extensión solo nuestro valor.</summary>
     public static void Unregister()
     {
+        if (Packaged.IsPackaged)
+            return;
         using (var registered = Registry.CurrentUser.OpenSubKey(RegisteredApplications, writable: true))
             registered?.DeleteValue(AppName, throwOnMissingValue: false);
         Registry.CurrentUser.DeleteSubKeyTree(@"Software\VideoSeeker", throwOnMissingSubKey: false);
@@ -108,7 +116,7 @@ public static partial class FileAssociations
     {
         try
         {
-            if (!IsRegistered)
+            if (Packaged.IsPackaged || !IsRegistered)
                 return;
             using var command = Registry.CurrentUser.OpenSubKey($@"{Classes}\{ProgId(".mkv")}\shell\open\command");
             using var associations = Registry.CurrentUser.OpenSubKey(CapabilitiesKey + @"\FileAssociations");
@@ -124,7 +132,9 @@ public static partial class FileAssociations
 
     /// <summary>La página de VideoSeeker en Aplicaciones predeterminadas (en Windows 10, la lista general).</summary>
     public static void OpenWindowsSettings() =>
-        Process.Start(new ProcessStartInfo($"ms-settings:defaultapps?registeredAppUser={AppName}") { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo(Packaged.AppUserModelId is { } aumid
+            ? $"ms-settings:defaultapps?registeredAUMID={Uri.EscapeDataString(aumid)}"
+            : $"ms-settings:defaultapps?registeredAppUser={AppName}") { UseShellExecute = true });
 
     private static void NotifyShell() => SHChangeNotify(0x08000000 /* SHCNE_ASSOCCHANGED */, 0 /* SHCNF_IDLIST */, 0, 0);
 

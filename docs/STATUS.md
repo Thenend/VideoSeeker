@@ -233,6 +233,10 @@ Actualizado el 7 de noviembre de 2026. Plan completo en [PLAN.md](PLAN.md); medi
 - `CONTRIBUTING.md`: cómo colaborar y una petición amable (no obligación de la licencia) de que los forks mantengan el botón «Apoyar» apuntando al autor.
 - El zip portable lleva `LICENSE.txt`; `LICENCIAS.txt` incluye la licencia de VideoSeeker, el enlace al código y las versiones exactas de mpv y FFmpeg.
 
+### Microsoft Store (MSIX)
+- Preparado el 9 de noviembre: `scripts/make-msix.ps1` genera el paquete con el manifiesto y los iconos de `scripts/msix/`; política de privacidad en `docs/privacidad/`. Instalada como paquete (`Packaged.cs`), los datos van a `LocalState\data` del paquete y los tipos de vídeo los declara el manifiesto (no se toca el registro). Decisiones, textos de la ficha y pasos de la cuenta: [TIENDA.md](TIENDA.md).
+- Pendiente de Mario: cuenta de Partner Center, reservar el nombre y copiar la identidad del paquete en `scripts/msix/identidad.json`.
+
 ## Siguientes fases
 
 5 · Favoritos y pulido (ver PLAN.md). Los ajustes ya están (arriba).
