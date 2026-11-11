@@ -193,6 +193,14 @@ public partial class MainWindow
             await Task.Delay(200);
             ShowBookmarkMenu(probe, Seek);
             await InspectMenu("del bookmark", "menu-bookmark");
+            // El del vídeo con una región como zona ampliada: añade miniatura, inicio y fin, los textos más largos.
+            Select(probe.Id);
+            await Task.Delay(300);
+            ShowVideoMenu();
+            await InspectMenu("del vídeo con zona", "menu-video-zona");
+            Select(null);
+            ApplyZone(null);
+            await Task.Delay(100);
             ShowSpeedMenu();
             await InspectMenu("de velocidad", "menu-velocidad");
             OnCollectionClick(this, new RoutedEventArgs());
