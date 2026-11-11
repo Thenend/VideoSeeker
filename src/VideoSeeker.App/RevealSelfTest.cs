@@ -41,10 +41,24 @@ public partial class MainWindow
             check(!PanelOpen && !BookmarkPanel.IsVisible, "el panel queda cerrado (Collapsed)");
 
             // Dar la vuelta a medio camino: se cierra desde donde estaba, sin saltar.
+            // No a la mitad del tiempo: frena al final y a esas alturas ya casi ha llegado (y un await puede volver tarde,
+            // con la animación acabada). En el mismo frame en que la imagen lleva un tercio del camino.
+            var middle = 0;
+            var reversed = new TaskCompletionSource();
+            void ReverseMidway(object? sender, EventArgs e)
+            {
+                var width = _surface.Placement.W;
+                if (PanelReveal.Animating && width > fullWidth - panelWidth / 3)
+                    return;
+                CompositionTarget.Rendering -= ReverseMidway;
+                middle = width;
+                ShowPanel(false);
+                reversed.TrySetResult();
+            }
             ShowPanel(true);
-            await Task.Delay(Reveal.Duration / 2);
-            var middle = _surface.Placement.W;
-            ShowPanel(false);
+            CompositionTarget.Rendering += ReverseMidway;
+            await Task.WhenAny(reversed.Task, Task.Delay(2000));
+            CompositionTarget.Rendering -= ReverseMidway;
             check(middle > fullWidth - panelWidth && middle < fullWidth, $"a medio abrir, la imagen mide {middle} px de {fullWidth}");
             await Task.Delay(Reveal.Duration + TimeSpan.FromMilliseconds(150));
             check(!PanelOpen && !BookmarkPanel.IsVisible && _surface.Placement.W == fullWidth,
@@ -64,13 +78,15 @@ public partial class MainWindow
             Reveal.Duration = TimeSpan.FromSeconds(2);
             try
             {
+                Activate();
+                await Task.Delay(400);
                 ShowPanel(true);
                 await Task.Delay(700);
-                CaptureWindow(Path.Combine(_store.Folder, "selftest-animacion-panel.png"), _ => { });
+                check(CaptureAnimation("selftest-animacion-panel.png", log), "captura del panel a medio abrir");
                 PanelReveal.Finish();
                 SetFreeZoom(zone);
                 await Task.Delay(700);
-                CaptureWindow(Path.Combine(_store.Folder, "selftest-animacion-zoom.png"), _ => { });
+                check(CaptureAnimation("selftest-animacion-zoom.png", log), "captura de la fila del zoom a medio abrir");
             }
             finally
             {
@@ -97,6 +113,17 @@ public partial class MainWindow
             else if (zoomed != null)
                 SetFreeZoom(zoomed);
         }
+    }
+
+    // Lo que se ve en pantalla; si otro programa tapa la ventana (Windows no deja ponerla delante si no tiene el foco),
+    // lo que pinta la ventana, que para ver la imagen a medio cambiar de tamaño vale igual.
+    private bool CaptureAnimation(string name, Action<string> log)
+    {
+        var path = Path.Combine(_store.Folder, name);
+        if (ForeignWindowOver(VisibleBounds()) is not { } foreign)
+            return CaptureWindow(path, log);
+        log($"      la tapa otro programa ({foreign}): se guarda lo que pinta la ventana");
+        return CaptureWindowContent(path, log);
     }
 
     // Lo que mide la ventana nativa en cada frame mientras dura la animación, y cuánto pasa entre frames.

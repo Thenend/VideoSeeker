@@ -404,4 +404,47 @@ public partial class MainWindow
             ReleaseDC(0, screen);
         }
     }
+
+    [DllImport("user32.dll")]
+    private static extern bool PrintWindow(nint hwnd, nint dc, uint flags);
+
+    /// <summary>
+    /// Guarda lo que pinta la ventana (con la imagen, que es una ventana hija), aunque la tape otro programa: lo compone
+    /// Windows (PrintWindow con PW_RENDERFULLCONTENT). No salen los menús ni las ventanas emergentes.
+    /// </summary>
+    private bool CaptureWindowContent(string path, Action<string> log)
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        var bounds = VisibleBounds();
+        if (!GetCaptureWindowRect(hwnd, out var whole) || bounds.Width <= 0 || bounds.Height <= 0)
+            return false;
+        var screen = GetDC(0);
+        var memory = CreateCompatibleDC(screen);
+        var bitmap = CreateCompatibleBitmap(screen, whole.Width, whole.Height);
+        var old = SelectObject(memory, bitmap);
+        try
+        {
+            if (!PrintWindow(hwnd, memory, 2 /* PW_RENDERFULLCONTENT */))
+            {
+                log($"      PrintWindow no ha podido guardar {Path.GetFileName(path)}");
+                return false;
+            }
+            SelectObject(memory, old);
+            // Sin los bordes invisibles para redimensionar.
+            var source = Imaging.CreateBitmapSourceFromHBitmap(bitmap, 0,
+                new Int32Rect(bounds.Left - whole.Left, bounds.Top - whole.Top, bounds.Width, bounds.Height),
+                BitmapSizeOptions.FromEmptyOptions());
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(new FormatConvertedBitmap(source, System.Windows.Media.PixelFormats.Bgr24, null, 0)));
+            using var stream = File.Create(path);
+            encoder.Save(stream);
+            return true;
+        }
+        finally
+        {
+            DeleteObject(bitmap);
+            DeleteDC(memory);
+            ReleaseDC(0, screen);
+        }
+    }
 }
