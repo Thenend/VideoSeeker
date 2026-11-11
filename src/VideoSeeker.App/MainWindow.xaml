@@ -24,6 +24,8 @@
         <Geometry x:Key="ThumbnailMenuIcon">M2,2.5 H17 V14 H2 Z M2,12 L7,7.5 L11,11 L13.5,9 L17,12 M13.2,5.6 A1.1,1.1 0 1 1 13.19,5.6</Geometry>
         <Geometry x:Key="MarkFirstMenuIcon">M3,3.5 V13.5 M16.5,8.5 H4.5 M8.5,4.5 L4.5,8.5 L8.5,12.5</Geometry>
         <Geometry x:Key="MarkLastMenuIcon">M16,3.5 V13.5 M2.5,8.5 H14.5 M10.5,4.5 L14.5,8.5 L10.5,12.5</Geometry>
+        <!-- Ampliar sección: una lupa con un "+". -->
+        <Geometry x:Key="ZoomMenuIcon">M7.5,2.5 A5,5 0 1 1 7.49,2.5 Z M5.2,7.5 H9.8 M7.5,5.2 V9.8 M11.2,11.2 L15.5,15.5</Geometry>
         <Geometry x:Key="FolderMenuIcon">M1.5,3 H7 L8.8,5 H17.5 V14 H1.5 Z M1.5,7.5 H17.5</Geometry>
         <Style x:Key="IconPath" TargetType="Path">
             <Setter Property="Width" Value="19" />
@@ -133,8 +135,10 @@
                         ToolTip="{l:Tr SaveZoneTip}" Click="OnSaveZoneClick">
                     <Path Style="{StaticResource IconPath}" Data="{StaticResource AddBookmarkIcon}" />
                 </Button>
+                <!-- Clic en el nombre: el menú del bookmark (renombrar, borrar, exportar clip...). -->
                 <TextBlock x:Name="ZoneName" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="8,0,2,0" FontSize="12.5"
-                           FontWeight="SemiBold" MaxWidth="180" TextTrimming="CharacterEllipsis" Visibility="Collapsed" />
+                           FontWeight="SemiBold" MaxWidth="180" TextTrimming="CharacterEllipsis" Visibility="Collapsed" Cursor="Hand"
+                           Background="Transparent" MouseLeftButtonUp="OnZoneNameClick" MouseRightButtonUp="OnZoneNameClick" />
                 <Button x:Name="MarkFirstButton" DockPanel.Dock="Left" Style="{StaticResource ToolButton}" FontFamily="Segoe UI Symbol" Content="⇤"
                         Click="OnMarkFirstClick" />
                 <c:ZoomBar x:Name="Zoom" />

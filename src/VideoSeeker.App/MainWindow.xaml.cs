@@ -935,53 +935,43 @@ public partial class MainWindow : Window
                 : $"[{Time(grid.TimeOf(frame) - grid.TimeOf(first), unit: false, scale: z.End - z.Start)} / {Time(z.End - z.Start)} · {S.FrameOfRange(frame - first + 1, last - first + 1)}]";
     }
 
+    // Bucle y cerrar la zona no van aquí: están en los botones de la derecha de la zona (Mario, 11 de noviembre). En la
+    // barra de la zona tampoco ampliar sección (ya se está en ella; va en la de abajo y en el menú de la imagen).
     private void ShowTimelineMenu(UIElement target, double time)
     {
         var menu = new ContextMenu { PlacementTarget = target, Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint };
         AddBookmarkMenuItems(menu, time);
         menu.Items.Add(new Separator());
-        var zoom = new MenuItem { Header = S.ZoomSection, InputGestureText = "Z" };
-        zoom.Click += (_, _) => ZoomAround(time);
-        menu.Items.Add(zoom);
-        var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
-        var markFirst = new MenuItem { Header = S.MarkFirstFromScreen(current, ZoneRegionName()), InputGestureText = "I" };
-        markFirst.Click += (_, _) => MarkFirstFrame();
-        menu.Items.Add(markFirst);
-        var markLast = new MenuItem { Header = S.MarkLastFromScreen(current, ZoneRegionName()), InputGestureText = "O" };
-        markLast.Click += (_, _) => MarkLastFrame();
-        menu.Items.Add(markLast);
-        if (_zoomRange != null)
+        if (target != Zoom)
+            AddZoomSectionItem(menu, time);
+        AddMarkFromScreenItems(menu);
+        // En la barra de zoom, "time" es el inicio del frame bajo el cursor: sirve para medir tramos exactos.
+        if (_zoomRange != null && target == Zoom)
         {
-            // En la barra de zoom, "time" es el inicio del frame bajo el cursor: sirve para medir tramos exactos.
-            if (target == Zoom)
-            {
-                var grid = Zoom.Grid;
-                var frame = grid.FrameAt(time);
-                menu.Items.Add(new Separator());
-                var first = new MenuItem { Header = S.MarkFirstFromCursor(frame, ZoneRegionName()) };
-                first.Click += (_, _) => SetZoomFirstFrame(frame);
-                menu.Items.Add(first);
-                var last = new MenuItem { Header = S.MarkLastFromCursor(frame, ZoneRegionName()) };
-                last.Click += (_, _) => SetZoomLastFrame(frame);
-                menu.Items.Add(last);
-                menu.Items.Add(new Separator());
-            }
-            var loop = new MenuItem { Header = S.RangeLoopMenu(ZoneRegionName()), InputGestureText = $"{S.KeyShift}+R", IsCheckable = true, IsChecked = _loopRange };
-            loop.Click += (_, _) => ToggleRangeLoop();
-            menu.Items.Add(loop);
-            var close = new MenuItem
-            {
-                Header = ZoneBookmark is { } region ? S.CloseZoomDeselect(region.Name) : S.CloseZoom, InputGestureText = S.KeyEsc,
-            };
-            close.Click += (_, _) => CloseZone();
-            menu.Items.Add(close);
-            if (ExportTarget() is { } export)
-            {
-                menu.Items.Add(new Separator());
-                AddExportMenu(menu, export.Video, export.Start, export.End, export.Name);
-            }
+            var frame = Zoom.Grid.FrameAt(time);
+            menu.Items.Add(new Separator());
+            var first = WithIcon(new MenuItem { Header = S.MarkFirstFromCursor(frame, ZoneRegionName()) }, "MarkFirstMenuIcon");
+            first.Click += (_, _) => SetZoomFirstFrame(frame);
+            menu.Items.Add(first);
+            var last = WithIcon(new MenuItem { Header = S.MarkLastFromCursor(frame, ZoneRegionName()) }, "MarkLastMenuIcon");
+            last.Click += (_, _) => SetZoomLastFrame(frame);
+            menu.Items.Add(last);
+        }
+        if (_zoomRange != null && ExportTarget() is { } export)
+        {
+            menu.Items.Add(new Separator());
+            AddExportMenu(menu, export.Video, export.Start, export.End, export.Name);
         }
         menu.IsOpen = true;
+    }
+
+    // Clic (izquierdo o derecho) en el nombre de la región que es la zona: su menú de bookmark.
+    private void OnZoneNameClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ZoneBookmark is not { } region)
+            return;
+        e.Handled = true;
+        ShowBookmarkMenu(region, ZoneName);
     }
 
     // El tramo empieza al inicio del frame; si quedaba por detrás del final, el final pasa a ser ese mismo frame.

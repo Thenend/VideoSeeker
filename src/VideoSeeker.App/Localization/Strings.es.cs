@@ -184,13 +184,11 @@ public sealed class SpanishStrings : Strings
     public override string VideoLoopOff => "Sin bucle del vídeo";
     public override string RangeLoopOn(string? region) => $"Bucle {ZoneOf(region)}";
     public override string RangeLoopOff(string? region) => $"Sin bucle {ZoneOf(region)}";
-    public override string RangeLoopMenu(string? region) => $"Bucle {ZoneOf(region)}";
     public override string ZoomSection => "Ampliar sección (±5 s)";
     public override string MarkFirstFromScreen(int frame, string? region) => $"Asignar el frame en pantalla ({frame}) al inicio {ZoneOf(region)}";
     public override string MarkLastFromScreen(int frame, string? region) => $"Asignar el frame en pantalla ({frame}) al fin {ZoneOf(region)}";
     public override string MarkFirstFromCursor(int frame, string? region) => $"Asignar el frame bajo el cursor ({frame}) al inicio {ZoneOf(region)}";
     public override string MarkLastFromCursor(int frame, string? region) => $"Asignar el frame bajo el cursor ({frame}) al fin {ZoneOf(region)}";
-    public override string CloseZoom => "Cerrar zoom";
     public override string NormalSpeed => "1× (normal)";
     public override string SpeedToast(string speed) => $"Velocidad {speed}";
     public override string VolumeToast(int volume) => $"Volumen {volume} %";
@@ -207,7 +205,6 @@ public sealed class SpanishStrings : Strings
     public override string VideoGone(string name) => $"Ya no está: {name}";
     public override string HistoryBackTip => "Volver al vídeo que se abrió antes (Alt + ←)";
     public override string HistoryForwardTip => "Ir al vídeo que se abrió después (Alt + →)";
-    public override string CloseZoomDeselect(string name) => $"Cerrar zoom y deseleccionar «{name}»";
     public override string HistoryAllBack(int count) => $"Clic derecho: los {count} anteriores";
     public override string HistoryAllForward(int count) => $"Clic derecho: los {count} siguientes";
 

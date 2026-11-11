@@ -356,8 +356,6 @@ public abstract class Strings
     public abstract string RangeLoopOn(string? region);
     /// <summary>Sin bucle del tramo</summary>
     public abstract string RangeLoopOff(string? region);
-    /// <summary>Bucle del tramo</summary>
-    public abstract string RangeLoopMenu(string? region);
     /// <summary>Ampliar sección (±5 s)</summary>
     public abstract string ZoomSection { get; }
     /// <summary>Asignar el frame en pantalla (N) al inicio del tramo</summary>
@@ -368,8 +366,6 @@ public abstract class Strings
     public abstract string MarkFirstFromCursor(int frame, string? region);
     /// <summary>Asignar el frame bajo el cursor (N) al fin del tramo</summary>
     public abstract string MarkLastFromCursor(int frame, string? region);
-    /// <summary>Cerrar zoom</summary>
-    public abstract string CloseZoom { get; }
     /// <summary>1× (normal)</summary>
     public abstract string NormalSpeed { get; }
     /// <summary>Velocidad {speed}</summary>
@@ -402,8 +398,6 @@ public abstract class Strings
     public abstract string HistoryBackTip { get; }
     /// <summary>Ir al vídeo que se abrió después (Alt + →)</summary>
     public abstract string HistoryForwardTip { get; }
-    /// <summary>Cerrar zoom y deseleccionar «{name}»</summary>
-    public abstract string CloseZoomDeselect(string name);
     /// <summary>Clic derecho: los {count} anteriores</summary>
     public abstract string HistoryAllBack(int count);
     /// <summary>Clic derecho: los {count} siguientes</summary>

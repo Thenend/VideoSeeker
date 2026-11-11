@@ -184,13 +184,11 @@ public sealed class ItalianStrings : Strings
     public override string VideoLoopOff => "Loop del video disattivato";
     public override string RangeLoopOn(string? region) => $"Loop {ZoneOf(region)} attivo";
     public override string RangeLoopOff(string? region) => $"Loop {ZoneOf(region)} disattivato";
-    public override string RangeLoopMenu(string? region) => $"Loop {ZoneOf(region)}";
     public override string ZoomSection => "Ingrandisci la sezione (±5 s)";
     public override string MarkFirstFromScreen(int frame, string? region) => $"Imposta l'inizio {ZoneOf(region)} sul fotogramma visualizzato ({frame})";
     public override string MarkLastFromScreen(int frame, string? region) => $"Imposta la fine {ZoneOf(region)} sul fotogramma visualizzato ({frame})";
     public override string MarkFirstFromCursor(int frame, string? region) => $"Imposta l'inizio {ZoneOf(region)} sul fotogramma sotto il cursore ({frame})";
     public override string MarkLastFromCursor(int frame, string? region) => $"Imposta la fine {ZoneOf(region)} sul fotogramma sotto il cursore ({frame})";
-    public override string CloseZoom => "Chiudi lo zoom";
     public override string NormalSpeed => "1× (normale)";
     public override string SpeedToast(string speed) => $"Velocità {speed}";
     public override string VolumeToast(int volume) => $"Volume {volume}%";
@@ -207,7 +205,6 @@ public sealed class ItalianStrings : Strings
     public override string VideoGone(string name) => $"Non c'è più: {name}";
     public override string HistoryBackTip => "Torna al video precedente (Alt + ←)";
     public override string HistoryForwardTip => "Vai al video successivo (Alt + →)";
-    public override string CloseZoomDeselect(string name) => $"Chiudi lo zoom e deseleziona «{name}»";
     public override string HistoryAllBack(int count) => $"Clic destro: i {count} precedenti";
     public override string HistoryAllForward(int count) => $"Clic destro: i {count} successivi";
 

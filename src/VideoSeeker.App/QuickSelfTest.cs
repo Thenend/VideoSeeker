@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -198,6 +198,19 @@ public partial class MainWindow
             await Task.Delay(300);
             ShowVideoMenu();
             await InspectMenu("del vídeo con zona", "menu-video-zona");
+            // El de la barra de la zona: sin ampliar sección, bucle ni cerrar (son los botones de la derecha, Mario).
+            ShowTimelineMenu(Zoom, _nav.CurrentTime);
+            await Task.Delay(300);
+            var zoneEntries = OpenContextMenus().FirstOrDefault() is { } zoneMenu ? MenuEntries(zoneMenu.Items).ToList() : new List<string>();
+            Check(zoneEntries.Count > 0 && !zoneEntries.Any(e => e.StartsWith(S.ZoomSection) || e.EndsWith($"[{S.KeyShift}+R]") || e.EndsWith($"[{S.KeyEsc}]")),
+                $"menú de la barra de la zona sin ampliar, bucle ni cerrar: {string.Join(" | ", zoneEntries)}");
+            await InspectMenu("de la barra de la zona", "menu-zona");
+            // Clic en el nombre de la región junto a la zona: el menú de ese bookmark (lleva su nombre arriba).
+            OnZoneNameClick(ZoneName, new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left));
+            await Task.Delay(300);
+            var nameEntries = OpenContextMenus().FirstOrDefault() is { } nameMenu ? MenuEntries(nameMenu.Items).ToList() : new List<string>();
+            Check(nameEntries.FirstOrDefault() == probe?.Name, $"clic en el nombre de la zona: menú del bookmark ({string.Join(" | ", nameEntries)})");
+            await InspectMenu("del nombre de la zona", "menu-nombre-zona");
             Select(null);
             ApplyZone(null);
             await Task.Delay(100);

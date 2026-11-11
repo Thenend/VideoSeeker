@@ -244,13 +244,13 @@ public partial class MainWindow
             await Task.Delay(500);
             Check(Math.Abs(_nav.CurrentTime - set.Items[0].Start) < 0.5 / Fps + 1e-3, "[ vuelve al anterior");
             Check(BookmarkText.Text.Contains("Jefe final"), $"texto bajo el vídeo: «{BookmarkText.Text}»");
-            // Menú de la imagen con una región seleccionada: su miniatura, inicio / fin con el frame en pantalla y el
-            // Explorador; ampliar sección no (Mario).
+            // Menú de la imagen con una región seleccionada: ampliar sección, su miniatura, inicio / fin con el frame en
+            // pantalla y el Explorador (Mario).
             var videoMenu = BuildVideoMenu()!.Items.OfType<System.Windows.Controls.MenuItem>().Select(i => (string)i.Header).ToList();
             var zoneName = ZoneBookmark?.Name ?? "?";
             Check(videoMenu.Any(h => h.Contains($"como miniatura de «{zoneName}»")) && videoMenu.Any(h => h.Contains($"al inicio de «{zoneName}»"))
                     && videoMenu.Any(h => h.Contains($"al fin de «{zoneName}»")) && videoMenu.Any(h => h.Contains("Explorador"))
-                    && !videoMenu.Any(h => h.StartsWith("Ampliar")),
+                    && videoMenu.Any(h => h.StartsWith("Ampliar")),
                 $"menú de la imagen: {string.Join(" | ", videoMenu)}");
             // Cada opción lleva su dibujo para reconocerla sin leerla, salvo el panel (la marca ya lo distingue).
             var noIcon = BuildVideoMenu()!.Items.OfType<System.Windows.Controls.MenuItem>()

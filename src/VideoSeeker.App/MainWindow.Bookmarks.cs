@@ -799,24 +799,46 @@ public partial class MainWindow
 
     // ---- Menús ----
 
-    // "Añadir bookmark aquí": región de un frame en ese punto. Con una zona libre, también un bookmark con ella (B).
+    // "Añadir bookmark aquí": región de un frame en ese punto. Con una zona libre, antes, un bookmark con ella (B; Mario,
+    // 11 de noviembre: arriba la que hace B).
     private void AddBookmarkMenuItems(ItemsControl menu, double time)
     {
         var free = _zoomRange is { } && _zoomBookmark == null;
-        var add = WithIcon(new MenuItem { Header = S.AddBookmarkHere, InputGestureText = free ? "" : "B" }, "AddBookmarkIcon");
-        add.Click += (_, _) => AddBookmarkAt(time);
-        menu.Items.Add(add);
         if (free && _zoomRange is { } z)
         {
             var region = WithIcon(new MenuItem { Header = S.BookmarkOfZoomedRange, InputGestureText = "B" }, "AddBookmarkIcon");
             region.Click += (_, _) => AddRegion(z.Start, z.End);
             menu.Items.Add(region);
         }
+        var add = WithIcon(new MenuItem { Header = S.AddBookmarkHere, InputGestureText = free ? "" : "B" }, "AddBookmarkIcon");
+        add.Click += (_, _) => AddBookmarkAt(time);
+        menu.Items.Add(add);
     }
 
-    // Clic derecho sobre la imagen sin arrastrar: lo que tiene que ver con el frame que se ve (Mario, 8 de noviembre:
-    // ampliar sección no va aquí, está en las barras y en Z). La miniatura es de la región seleccionada o, si no hay,
-    // de la región en la que se está (la del texto bajo el vídeo); inicio y fin, como I / O, de la zona.
+    // "Ampliar sección" (±5 s alrededor de "time"; Z lo hace alrededor del frame actual).
+    private void AddZoomSectionItem(ItemsControl menu, double time)
+    {
+        var zoom = WithIcon(new MenuItem { Header = S.ZoomSection, InputGestureText = "Z" }, "ZoomMenuIcon");
+        zoom.Click += (_, _) => ZoomAround(time);
+        menu.Items.Add(zoom);
+    }
+
+    // Inicio y fin de la zona con el frame en pantalla, como I / O (sin zona, abren una de 10 s que empieza o acaba ahí).
+    private void AddMarkFromScreenItems(ItemsControl menu)
+    {
+        var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
+        var markFirst = WithIcon(new MenuItem { Header = S.MarkFirstFromScreen(current, ZoneRegionName()), InputGestureText = "I" }, "MarkFirstMenuIcon");
+        markFirst.Click += (_, _) => MarkFirstFrame();
+        menu.Items.Add(markFirst);
+        var markLast = WithIcon(new MenuItem { Header = S.MarkLastFromScreen(current, ZoneRegionName()), InputGestureText = "O" }, "MarkLastMenuIcon");
+        markLast.Click += (_, _) => MarkLastFrame();
+        menu.Items.Add(markLast);
+    }
+
+    // Clic derecho sobre la imagen sin arrastrar: lo que tiene que ver con el frame que se ve. Ampliar sección, como Z,
+    // alrededor de él (Mario, 11 de noviembre: aquí y no en el menú de la barra de la zona). La miniatura es de la región
+    // seleccionada o, si no hay, de la región en la que se está (la del texto bajo el vídeo); inicio y fin, como I / O,
+    // de la zona.
     private void ShowVideoMenu()
     {
         if (BuildVideoMenu() is { } menu)
@@ -829,21 +851,12 @@ public partial class MainWindow
             return null;
         var menu = new ContextMenu { PlacementTarget = VideoArea, Placement = PlacementMode.MousePoint };
         AddBookmarkMenuItems(menu, _nav.CurrentTime);
-        var region = ZoneBookmark ?? RegionAtPosition();
-        if (region != null || _zoomRange != null)
-            menu.Items.Add(new Separator());
-        if (region != null)
+        menu.Items.Add(new Separator());
+        AddZoomSectionItem(menu, _nav.CurrentTime);
+        if ((ZoneBookmark ?? RegionAtPosition()) is { } region)
             AddThumbnailItems(menu, region, region.Name);
         if (_zoomRange != null)
-        {
-            var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
-            var markFirst = WithIcon(new MenuItem { Header = S.MarkFirstFromScreen(current, ZoneRegionName()), InputGestureText = "I" }, "MarkFirstMenuIcon");
-            markFirst.Click += (_, _) => MarkFirstFrame();
-            menu.Items.Add(markFirst);
-            var markLast = WithIcon(new MenuItem { Header = S.MarkLastFromScreen(current, ZoneRegionName()), InputGestureText = "O" }, "MarkLastMenuIcon");
-            markLast.Click += (_, _) => MarkLastFrame();
-            menu.Items.Add(markLast);
-        }
+            AddMarkFromScreenItems(menu);
         menu.Items.Add(new Separator());
         AddRevealItem(menu, _bookmarks.VideoPath);
         menu.Items.Add(new Separator());

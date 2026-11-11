@@ -184,13 +184,11 @@ public sealed class EnglishStrings : Strings
     public override string VideoLoopOff => "Video loop off";
     public override string RangeLoopOn(string? region) => $"Looping {ZoneOf(region)}";
     public override string RangeLoopOff(string? region) => $"Stopped looping {ZoneOf(region)}";
-    public override string RangeLoopMenu(string? region) => $"Loop {ZoneOf(region)}";
     public override string ZoomSection => "Zoom into section (±5 s)";
     public override string MarkFirstFromScreen(int frame, string? region) => $"Set the start of {ZoneOf(region)} to the current frame ({frame})";
     public override string MarkLastFromScreen(int frame, string? region) => $"Set the end of {ZoneOf(region)} to the current frame ({frame})";
     public override string MarkFirstFromCursor(int frame, string? region) => $"Set the start of {ZoneOf(region)} to the frame under the cursor ({frame})";
     public override string MarkLastFromCursor(int frame, string? region) => $"Set the end of {ZoneOf(region)} to the frame under the cursor ({frame})";
-    public override string CloseZoom => "Close zoom";
     public override string NormalSpeed => "1× (normal)";
     public override string SpeedToast(string speed) => $"Speed {speed}";
     public override string VolumeToast(int volume) => $"Volume {volume}%";
@@ -207,7 +205,6 @@ public sealed class EnglishStrings : Strings
     public override string VideoGone(string name) => $"Not found: {name}";
     public override string HistoryBackTip => "Back to the previous video (Alt + ←)";
     public override string HistoryForwardTip => "Forward to the next video (Alt + →)";
-    public override string CloseZoomDeselect(string name) => $"Close zoom and deselect “{name}”";
     public override string HistoryAllBack(int count) => $"Right-click: the previous {count}";
     public override string HistoryAllForward(int count) => $"Right-click: the next {count}";
 
