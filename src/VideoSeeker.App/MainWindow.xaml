@@ -188,9 +188,24 @@
                     ToolTip="{l:Tr BookmarksButtonTip}" Click="OnBookmarksButtonClick">
                 <Path Style="{StaticResource IconPath}" Data="{StaticResource PanelIcon}" />
             </Button>
-            <Button DockPanel.Dock="Right" x:Name="MarksButton" Style="{StaticResource ToolButton}" Click="OnMarksButtonClick">
-                <Path x:Name="MarksIcon" Style="{StaticResource IconPath}" Data="{StaticResource MarksShownIcon}" />
-            </Button>
+            <!-- El halo de detrás solo se ve cuando el ojo late para avisar de que las marcas están ocultas
+                 (PulseMarksButtonIfHidden); crece fuera del botón sin mover nada. -->
+            <Grid DockPanel.Dock="Right">
+                <Border x:Name="MarksPulseRing" CornerRadius="4" BorderThickness="1.5" BorderBrush="{StaticResource Accent}"
+                        Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <ScaleTransform />
+                    </Border.RenderTransform>
+                </Border>
+                <Button x:Name="MarksButton" Style="{StaticResource ToolButton}" Click="OnMarksButtonClick">
+                    <Path x:Name="MarksIcon" Style="{StaticResource IconPath}" Data="{StaticResource MarksShownIcon}"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <ScaleTransform />
+                        </Path.RenderTransform>
+                    </Path>
+                </Button>
+            </Grid>
             <Rectangle DockPanel.Dock="Right" Width="1" Margin="6,6" Fill="{StaticResource Line}" />
             <Button DockPanel.Dock="Right" x:Name="FullscreenButton" Style="{StaticResource ToolButton}"
                     FontFamily="{StaticResource Icons}" Content="&#xE740;" ToolTip="{l:Tr FullscreenTip}" Click="OnFullscreenClick" />

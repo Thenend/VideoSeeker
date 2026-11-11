@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using VideoSeeker.App.Controls;
 using VideoSeeker.App.Data;
@@ -194,11 +195,13 @@ public partial class MainWindow
         {
             Select(existing.Id);
             BeginRename(existing, isNew: false);
+            PulseMarksButtonIfHidden();
             return;
         }
         var bookmark = _bookmarks.Add(_bookmarks.NextName(), start, end, NewBookmarkColor(), NewBookmarkLabel());
         Select(bookmark.Id);
         BeginRename(bookmark, isNew: true);
+        PulseMarksButtonIfHidden();
     }
 
     // ---- Nombre en línea ----
@@ -676,7 +679,7 @@ public partial class MainWindow
         _previewTimer.Tick += (_, _) =>
         {
             _previewTimer.Stop();
-            var fade = new System.Windows.Media.Animation.DoubleAnimation(0, TimeSpan.FromMilliseconds(400));
+            var fade = new DoubleAnimation(0, TimeSpan.FromMilliseconds(400));
             fade.Completed += (_, _) =>
             {
                 if (!_previewTimer.IsEnabled && HoverPopup.Child.Opacity < 0.01)
@@ -964,6 +967,7 @@ public partial class MainWindow
     private void ApplyMarksVisibility()
     {
         var show = _store.Settings.ShowBookmarkMarks;
+        StopMarksPulse();
         Seek.ShowBookmarks = Zoom.ShowBookmarks = show;
         BookmarkText.Visibility = show ? Visibility.Visible : Visibility.Hidden;
         if (!show)
@@ -977,6 +981,78 @@ public partial class MainWindow
     }
 
     private void OnMarksButtonClick(object sender, RoutedEventArgs e) => ToggleMarks();
+
+    // ---- Aviso de marcas ocultas ----
+
+    // Con las marcas ocultas, crear un bookmark o elegirlo en el panel no deja ver nada en las barras (solo las
+    // banderitas de la zona), y parece que algo falla. El ojo late tres veces para que se note: un halo azul se abre y
+    // se apaga detrás del botón, que se enciende un momento, y el icono crece un poco y vuelve.
+    private const int MarksPulseBeats = 3;
+    private static readonly TimeSpan MarksPulseBeat = TimeSpan.FromMilliseconds(800);
+
+    private void PulseMarksButtonIfHidden()
+    {
+        if (_store.Settings.ShowBookmarkMarks)
+            return;
+        StopMarksPulse();
+        var accent = ((SolidColorBrush)FindResource("Accent")).Color;
+        var muted = ((SolidColorBrush)FindResource("FgMuted")).Color;
+        var beats = new RepeatBehavior(MarksPulseBeats);
+        var easeOut = new CubicEase { EasingMode = EasingMode.EaseOut };
+        KeyTime At(double fraction) =>
+            KeyTime.FromTimeSpan(MarksPulseBeat * fraction);
+
+        // Halo: sale del borde del botón, crece y se desvanece.
+        var ringScale = (ScaleTransform)MarksPulseRing.RenderTransform;
+        var grow = new DoubleAnimation(1, 1.6, MarksPulseBeat) { EasingFunction = easeOut, RepeatBehavior = beats };
+        ringScale.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
+        ringScale.BeginAnimation(ScaleTransform.ScaleYProperty, grow);
+        MarksPulseRing.BeginAnimation(OpacityProperty,
+            new DoubleAnimation(0.9, 0, MarksPulseBeat) { EasingFunction = easeOut, RepeatBehavior = beats });
+
+        // Icono: se enciende en azul y late (crece y vuelve) al ritmo del halo.
+        var foreground = new SolidColorBrush(muted);
+        MarksButton.Foreground = foreground;
+        var color = new ColorAnimationUsingKeyFrames { RepeatBehavior = beats };
+        color.KeyFrames.Add(new LinearColorKeyFrame(muted, At(0)));
+        color.KeyFrames.Add(new EasingColorKeyFrame(accent, At(0.15)));
+        color.KeyFrames.Add(new LinearColorKeyFrame(accent, At(0.45)));
+        color.KeyFrames.Add(new EasingColorKeyFrame(muted, At(1)));
+        foreground.BeginAnimation(SolidColorBrush.ColorProperty, color);
+        var iconScale = (ScaleTransform)MarksIcon.RenderTransform;
+        var beat = new DoubleAnimationUsingKeyFrames { RepeatBehavior = beats };
+        beat.KeyFrames.Add(new LinearDoubleKeyFrame(1, At(0)));
+        beat.KeyFrames.Add(new EasingDoubleKeyFrame(1.22, At(0.15), easeOut));
+        beat.KeyFrames.Add(new EasingDoubleKeyFrame(1, At(0.6),
+            new CubicEase { EasingMode = EasingMode.EaseInOut }));
+        beat.KeyFrames.Add(new LinearDoubleKeyFrame(1, At(1)));
+        iconScale.BeginAnimation(ScaleTransform.ScaleXProperty, beat);
+        iconScale.BeginAnimation(ScaleTransform.ScaleYProperty, beat);
+
+        // Fondo del botón: un destello azul suave en cada latido.
+        var background = new SolidColorBrush(Color.FromArgb(0, accent.R, accent.G, accent.B));
+        MarksButton.Background = background;
+        var flash = new ColorAnimationUsingKeyFrames { RepeatBehavior = beats };
+        flash.KeyFrames.Add(new LinearColorKeyFrame(Color.FromArgb(0, accent.R, accent.G, accent.B), At(0)));
+        flash.KeyFrames.Add(new EasingColorKeyFrame(Color.FromArgb(0x48, accent.R, accent.G, accent.B), At(0.15)));
+        flash.KeyFrames.Add(new EasingColorKeyFrame(Color.FromArgb(0, accent.R, accent.G, accent.B), At(1)));
+        background.BeginAnimation(SolidColorBrush.ColorProperty, flash);
+    }
+
+    // Quita el latido (también si se enseñan u ocultan las marcas a mitad) y deja el botón como estaba.
+    private void StopMarksPulse()
+    {
+        var ringScale = (ScaleTransform)MarksPulseRing.RenderTransform;
+        ringScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        ringScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        MarksPulseRing.BeginAnimation(OpacityProperty, null);
+        MarksPulseRing.Opacity = 0;
+        var iconScale = (ScaleTransform)MarksIcon.RenderTransform;
+        iconScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        iconScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        MarksButton.ClearValue(BackgroundProperty);
+        MarksButton.Foreground = (Brush)FindResource(_store.Settings.ShowBookmarkMarks ? "Fg" : "FgMuted");
+    }
 
     // ---- Colecciones ----
 
@@ -1672,6 +1748,7 @@ public partial class MainWindow
     private void OpenRow(BookmarkRow row)
     {
         DismissRowPreview(row);
+        PulseMarksButtonIfHidden();
         if (row.IsCurrentVideo)
         {
             if (_bookmarks?.Find(row.Id) is { } bookmark)
@@ -1842,7 +1919,7 @@ public partial class MainWindow
     private void FadeOutToast()
     {
         var toast = (FrameworkElement)ToastPopup.Child;
-        var fade = new System.Windows.Media.Animation.DoubleAnimation(0, TimeSpan.FromMilliseconds(400));
+        var fade = new DoubleAnimation(0, TimeSpan.FromMilliseconds(400));
         fade.Completed += (_, _) =>
         {
             // Si entretanto salió otro aviso, se queda.

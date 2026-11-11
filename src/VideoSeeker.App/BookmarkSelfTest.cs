@@ -21,6 +21,32 @@ public partial class MainWindow
 
     public static bool BookmarkSelfTestEnabled => Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") == "bookmarks";
 
+    // El ojo a mitad de un latido, con su halo y lo que tiene alrededor, a 4 aumentos.
+    private void SaveMarksPulse(string path)
+    {
+        UpdateLayout();
+        var host = (System.Windows.Media.Visual)System.Windows.Media.VisualTreeHelper.GetParent((FrameworkElement)MarksButton.Parent);
+        var area = MarksButton.TransformToAncestor(host).TransformBounds(new Rect(MarksButton.RenderSize));
+        area.Inflate(28, 14);
+        var visual = new System.Windows.Media.DrawingVisual();
+        using (var dc = visual.RenderOpen())
+        {
+            var size = new Rect(0, 0, area.Width, area.Height);
+            dc.DrawRectangle((System.Windows.Media.Brush)FindResource("Bg"), null, size);
+            dc.DrawRectangle(new System.Windows.Media.VisualBrush(host)
+            {
+                Viewbox = area, ViewboxUnits = System.Windows.Media.BrushMappingMode.Absolute,
+                Stretch = System.Windows.Media.Stretch.Fill,
+            }, null, size);
+        }
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)(area.Width * 4), (int)(area.Height * 4), 96 * 4, 96 * 4, System.Windows.Media.PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var stream = File.Create(path);
+        encoder.Save(stream);
+    }
+
     // Los dos botones de bookmarks, a 6 aumentos, para revisar los iconos.
     private void SaveIcons(string path)
     {
@@ -260,8 +286,17 @@ public partial class MainWindow
             ToggleMarks();
             Check(!Seek.ShowBookmarks && !Zoom.ShowBookmarks && BookmarkText.Visibility != Visibility.Visible, "el ojo oculta las marcas");
             SaveIcons(Path.Combine(_store.Folder, "selftest-iconos-ocultas.png"));
+            // Con las marcas ocultas, crear un bookmark o elegirlo en el panel hace latir el ojo; enseñarlas lo para.
+            PulseMarksButtonIfHidden();
+            Check(MarksPulseRing.HasAnimatedProperties && MarksIcon.RenderTransform.HasAnimatedProperties, "con las marcas ocultas, el ojo late");
+            await Task.Delay(130);
+            SaveMarksPulse(Path.Combine(_store.Folder, "selftest-iconos-latido.png"));
             ToggleMarks();
             Check(Seek.ShowBookmarks && Zoom.ShowBookmarks, "y las vuelve a mostrar");
+            Check(!MarksPulseRing.HasAnimatedProperties && !MarksIcon.RenderTransform.HasAnimatedProperties && MarksPulseRing.Opacity == 0,
+                "al mostrar las marcas el ojo deja de latir");
+            PulseMarksButtonIfHidden();
+            Check(!MarksPulseRing.HasAnimatedProperties, "con las marcas a la vista el ojo no late");
             await Task.Delay(50);
             SaveIcons(Path.Combine(_store.Folder, "selftest-iconos.png"));
             if (!shown)
