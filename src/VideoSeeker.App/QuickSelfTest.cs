@@ -214,7 +214,15 @@ public partial class MainWindow
             var nameEntries = OpenContextMenus().FirstOrDefault() is { } nameMenu ? MenuEntries(nameMenu.Items).ToList() : new List<string>();
             Check(nameEntries.FirstOrDefault() == probe.Name, $"clic en el nombre de la zona: menú del bookmark ({string.Join(" | ", nameEntries)})");
             await InspectMenu("del nombre de la zona", "menu-nombre-zona");
+            // Deseleccionada, la zona queda libre: el menú del vídeo ofrece el bookmark y el clip del tramo ampliado.
             Select(null);
+            await Task.Delay(200);
+            ShowVideoMenu();
+            await Task.Delay(300);
+            var freeEntries = OpenContextMenus().FirstOrDefault() is { } freeMenu ? MenuEntries(freeMenu.Items).ToList() : new List<string>();
+            Check(freeEntries.Any(e => e.StartsWith(S.BookmarkOfZoomedRange)) && freeEntries.Any(e => e.StartsWith(S.ExportClipOf(null))),
+                $"menú del vídeo con tramo libre: bookmark y clip del tramo ampliado ({string.Join(" | ", freeEntries)})");
+            await InspectMenu("del vídeo con tramo libre", "menu-video-tramo");
             ApplyZone(null);
             await Task.Delay(100);
             ShowSpeedMenu();
