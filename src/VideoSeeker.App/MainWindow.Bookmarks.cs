@@ -252,6 +252,29 @@ public partial class MainWindow
         }
     }
 
+    // Aceptar: lo mismo que Intro.
+    private void OnNameAcceptClick(object sender, RoutedEventArgs e) => CloseNaming(commit: true);
+
+    // Teclas con el foco en una etiqueta, un color o Aceptar (los cuadros de texto llevan las suyas): Intro guarda, Esc
+    // cancela y Alt + número pone una etiqueta. Espacio e Intro sobre una etiqueta o un color los lleva cada uno.
+    private void OnNamePopupKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Handled || e.OriginalSource is TextBox)
+            return;
+        if (HandleNameLabelKey(e))
+            e.Handled = true;
+        else if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            CloseNaming(commit: true);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape)
+        {
+            CloseNaming(commit: false);
+            e.Handled = true;
+        }
+    }
+
     // Clic fuera del campo: se guarda lo escrito.
     private void OnNamePopupClosed(object? sender, EventArgs e) => CloseNaming(commit: true);
 

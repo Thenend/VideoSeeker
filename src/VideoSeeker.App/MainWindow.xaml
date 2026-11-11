@@ -337,8 +337,10 @@
 
         <!-- Nombre de un bookmark nuevo o renombrado, encima de su marca en la barra. -->
         <Popup x:Name="NamePopup" AllowsTransparency="True" StaysOpen="False" Placement="Top" Closed="OnNamePopupClosed">
+            <!-- Todo se puede usar con el teclado: Tab recorre el nombre, las etiquetas, «+ Nueva», los colores y Aceptar (y vuelve
+                 a empezar); Intro guarda y Esc cancela desde cualquiera de ellos (MainWindow.Labels.cs). -->
             <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Accent}" BorderThickness="1"
-                    CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                    CornerRadius="4" Padding="8,6" Margin="0,0,0,4" KeyboardNavigation.TabNavigation="Cycle" KeyDown="OnNamePopupKeyDown">
                 <StackPanel Width="260">
                     <!-- Arriba qué se nombra; debajo, más tenue, de qué (el tramo de la región, el vídeo): en dos líneas
                          cabe siempre, también con horas o nombres largos. -->
@@ -356,8 +358,12 @@
                                  ToolTip="{l:Tr NewLabelBoxTip}" />
                     </DockPanel>
                     <WrapPanel x:Name="NameColors" Margin="0,0,0,0" Visibility="Collapsed" />
-                    <TextBlock x:Name="NameHint" Text="{l:Tr NameHint}" Foreground="{StaticResource FgMuted}"
-                               FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap" />
+                    <DockPanel Margin="0,4,0,0" LastChildFill="True">
+                        <Button x:Name="NameAccept" DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Content="{l:Tr Ok}"
+                                FontSize="12" Padding="10,2" Margin="8,0,0,0" VerticalAlignment="Bottom" Click="OnNameAcceptClick" />
+                        <TextBlock x:Name="NameHint" Text="{l:Tr NameHint}" Foreground="{StaticResource FgMuted}"
+                                   FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </DockPanel>
                 </StackPanel>
             </Border>
         </Popup>

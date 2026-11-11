@@ -1196,6 +1196,9 @@ public partial class MainWindow : Window
             }
             return;
         }
+        // En el cuadro del nombre (etiquetas, colores, Aceptar), Tab, flechas, Espacio, Intro y Esc son suyos.
+        if (NamePopup.IsOpen && NamePopup.IsKeyboardFocusWithin)
+            return;
         // Con el foco en la lista del panel, las flechas, Enter, F2, Supr y Esc son suyas.
         if (BookmarkList.IsKeyboardFocusWithin
             && key is Key.Up or Key.Down or Key.PageUp or Key.PageDown or Key.Home or Key.End or Key.Enter or Key.F2 or Key.Delete or Key.Escape)

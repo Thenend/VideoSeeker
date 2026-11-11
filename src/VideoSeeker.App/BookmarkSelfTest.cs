@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using VideoSeeker.App.Controls;
@@ -599,6 +599,47 @@ public partial class MainWindow
         ChooseNamingColor("#A8D84E");
         CloseNaming(commit: true);
         check(set.Find(lime.Id) is { Label: null, Color: "#A8D84E" }, "un color en el cuadro del nombre: sin etiqueta y con ese color");
+        // Con el teclado: Tab va del nombre a las etiquetas, «+ Nueva», los colores y Aceptar; Intro sobre un color lo
+        // elige y guarda.
+        _nav.SeekTo(Math.Min(_duration - 1, first.Start + 7));
+        await Task.Delay(300);
+        AddBookmarkAt(_nav.CurrentTime);
+        var keyed = set.Find(_selectedBookmark)!;
+        await Task.Delay(200);
+        var order = new List<string>();
+        Keyboard.Focus(NameBox);
+        for (var i = 0; i < _labels.Labels.Count + 1 + BookmarkColors.Palette.Length + 2; i++)
+        {
+            (Keyboard.FocusedElement as UIElement)?.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+            order.Add(Keyboard.FocusedElement switch
+            {
+                System.Windows.Controls.Border { Tag: string k } => k,
+                System.Windows.Controls.Button b when b == NameAccept => "ok",
+                System.Windows.Controls.TextBox t when t == NameBox => "nombre",
+                var other => other?.GetType().Name ?? "nada",
+            });
+        }
+        var expected = _labels.Labels.Select(l => "label:" + l.Id).Append("add").Concat(BookmarkColors.Palette.Select(c => "color:" + c.Hex))
+            .Append("ok").Append("nombre").ToList();
+        check(order.SequenceEqual(expected) && NamePopup.IsOpen, $"Tab recorre etiquetas, «+ Nueva», colores y Aceptar y vuelve al nombre ({string.Join(", ", order)})");
+        var teal = NameColors.Children.Cast<System.Windows.Controls.Border>().First(b => (string)b.Tag == "color:#2EC8D6");
+        Keyboard.Focus(teal);
+        teal.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(teal), 0, Key.Space) { RoutedEvent = Keyboard.KeyDownEvent });
+        await Task.Delay(100);
+        check(_namingLabel == null && _namingColor == "#2EC8D6" && NamePopup.IsOpen && Keyboard.FocusedElement is System.Windows.Controls.Border { Tag: "color:#2EC8D6" },
+            "Espacio elige el color y el foco se queda en él");
+        var pink = NameColors.Children.Cast<System.Windows.Controls.Border>().First(b => (string)b.Tag != "color:#2EC8D6");
+        var pinkHex = ((string)pink.Tag)["color:".Length..];
+        Keyboard.Focus(pink);
+        pink.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(pink), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
+        check(!NamePopup.IsOpen && set.Find(keyed.Id) is { Label: null } k && k.Color == pinkHex, "Intro sobre un color lo elige y guarda");
+        set.Remove(keyed.Id);
+        // Aceptar guarda como Intro.
+        BeginRename(set.Find(lime.Id)!, isNew: false);
+        await Task.Delay(200);
+        NameBox.Text = "Lima aceptada";
+        NameAccept.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        check(!NamePopup.IsOpen && set.Find(lime.Id)?.Name == "Lima aceptada", "Aceptar guarda el nombre");
         set.Remove(lime.Id);
         set.Remove(colored.Id);
         _store.Settings.RepeatLastLabel = repeat;
