@@ -495,7 +495,7 @@ public partial class MainWindow : Window
         SetDuration(duration);
         Seek.Position = Zoom.Position = _position;
         if (ZoneBookmark is { } b)
-            ApplyZone((b.Start, EndOf(b)), exact: true);
+            ApplyZone((b.Start, EndOf(b)), exact: true, animate: false);
         else if (_zoomRange == null)
             ShowZoomRow(false);
         UpdateTimeText();
@@ -609,7 +609,11 @@ public partial class MainWindow : Window
     /// Pone la barra de zoom en el tramo dado (se ajusta al vídeo); null la cierra. Con "exact" (una región) no se
     /// ensancha ni se desplaza: la zona es la región tal cual.
     /// </summary>
-    private void ApplyZone((double Start, double End)? range, bool exact = false)
+    /// <remarks>
+    /// La barra de zoom va hasta el tramo nuevo animada ("animate"), salvo con un botón del ratón pulsado (arrastres:
+    /// la escala no puede moverse bajo el ratón) o al cambiar de vídeo.
+    /// </remarks>
+    private void ApplyZone((double Start, double End)? range, bool exact = false, bool animate = true)
     {
         if (range is { } r)
         {
@@ -629,12 +633,18 @@ public partial class MainWindow : Window
         _zoomRange = range;
         Seek.Zoom = range;
         if (range is { } z && !_freezeZoomView)
-            Zoom.SetRange(z.Start, z.End);
+            Zoom.SetRange(z.Start, z.End, animate && !MouseButtonHeld);
         ShowZoomRow(range != null);
         _nav.SetRegion(range);
         ApplyLoop();
         UpdateZoomUi();
     }
+
+    // Del propio Windows: el estado de los botones que lleva WPF no se entera de lo que pasa sobre la imagen (ventana nativa).
+    private static bool MouseButtonHeld => (GetAsyncKeyState(0x01) | GetAsyncKeyState(0x02) | GetAsyncKeyState(0x04)) < 0;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int key);
 
     /// <summary>Zona libre (o null para cerrarla): suelta la región seleccionada, que no cambia.</summary>
     private void SetFreeZoom((double Start, double End)? range)

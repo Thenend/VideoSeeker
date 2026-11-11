@@ -259,7 +259,7 @@ public abstract class Strings
     public abstract string InterfaceLanguageTip { get; }
     /// <summary>Animar los paneles</summary>
     public abstract string AnimatePanels { get; }
-    /// <summary>El panel de bookmarks y la barra del zoom se abren y se cierran deslizándose.</summary>
+    /// <summary>El panel de bookmarks y la barra del zoom se abren y se cierran deslizándose, y el zoom pasa suavemente de un tramo a otro.</summary>
     public abstract string AnimatePanelsTip { get; }
     /// <summary>Automático · {language}</summary>
     public abstract string AutomaticLanguage(string language);

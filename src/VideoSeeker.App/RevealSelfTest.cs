@@ -73,6 +73,38 @@ public partial class MainWindow
             Report(log, check, "fila del zoom al cerrarse", zoomClose, s => s.H, fullHeight - rowHeight, fullHeight, decreasing: false);
             check(!ZoomReveal.IsOpen && !ZoomRow.IsVisible, "la fila del zoom queda cerrada (Collapsed)");
 
+            // Zona ampliada: al cambiar de tramo, la barra de zoom va hasta el nuevo poco a poco (extremos y escala); si
+            // el nuevo queda lejos, salta.
+            if (_duration > 45)
+            {
+                SetFreeZoom((10, 14));
+                ZoomReveal.Finish();
+                await Task.Delay(50);
+                var before = Zoom.View;
+                var views = new List<(double Start, double End)>();
+                void OnFrame(object? sender, EventArgs e) => views.Add(Zoom.View);
+                CompositionTarget.Rendering += OnFrame;
+                SetFreeZoom((11, 13));
+                var target = _zoomRange!.Value;
+                check(Zoom.AnimatingRange, $"cambiar la zona de {before.Start:0.##}–{before.End:0.##} a {target.Start:0.##}–{target.End:0.##} s la anima");
+                var limit = Stopwatch.StartNew();
+                while (Zoom.AnimatingRange && limit.ElapsedMilliseconds < 3000)
+                    await Task.Delay(10);
+                await Task.Delay(50);
+                CompositionTarget.Rendering -= OnFrame;
+                static bool Toward(double from, double to, IEnumerable<double> values) =>
+                    values.Zip(values.Skip(1)).All(p => to >= from ? p.Second >= p.First - 1e-9 : p.Second <= p.First + 1e-9);
+                var steps = views.Distinct().Count(v => v != before && v != target);
+                log($"      zona: {steps} pasos intermedios en {views.Count} frames");
+                check(steps >= 4 && Toward(before.Start, target.Start, views.Select(v => v.Start))
+                    && Toward(before.End, target.End, views.Select(v => v.End)) && Zoom.View == target,
+                    $"la barra de zoom pasa por {steps} tramos intermedios, sin pasarse, y acaba en el nuevo");
+                SetFreeZoom((40, 44));
+                check(!Zoom.AnimatingRange && Zoom.View == _zoomRange, "a una zona lejana salta, sin animar");
+                CloseZone();
+                ZoomReveal.Finish();
+            }
+
             // Capturas a mitad de camino, más despacio para que dé tiempo (lo que se ve en pantalla, con la imagen).
             var duration = Reveal.Duration;
             Reveal.Duration = TimeSpan.FromSeconds(2);

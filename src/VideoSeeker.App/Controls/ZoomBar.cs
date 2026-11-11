@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -40,10 +41,73 @@ public sealed class ZoomBar : TimelineBar
         Height = LabelHeight + 2 + BarTrackHeight + 5 + LaneHeight + 2;
     }
 
-    public void SetRange(double start, double end)
+    // Animación del tramo (SetRange con "animate"): de dónde sale, adónde va y desde cuándo.
+    private (double Start, double End) _animFrom, _animTo;
+    private Stopwatch? _animClock;
+
+    /// <summary>
+    /// Enseña el tramo dado. Con "animate" (y las animaciones puestas, Reveal.Animate) va hasta él poco a poco, como
+    /// el panel: los extremos se deslizan y la escala cambia suavemente. A medio camino, sigue desde donde está. Si el
+    /// tramo nuevo queda lejos del de antes (otro bookmark en otra parte del vídeo), salta: deslizarse tanto en tan
+    /// poco tiempo solo sería un borrón.
+    /// </summary>
+    public void SetRange(double start, double end, bool animate = false)
     {
+        if (animate && Reveal.Animate && IsVisible && _end > _start && IsNear((_start, _end), (start, end)))
+        {
+            if (_animClock != null && _animTo == (start, end))
+                return;
+            if (_start == start && _end == end)
+            {
+                StopAnimation();
+                return;
+            }
+            _animFrom = (_start, _end);
+            _animTo = (start, end);
+            if (_animClock == null)
+                CompositionTarget.Rendering += OnAnimationFrame;
+            _animClock = Stopwatch.StartNew();
+            return;
+        }
+        StopAnimation();
         _start = start;
         _end = end;
+        InvalidateVisual();
+    }
+
+    /// <summary>Si está yendo de un tramo a otro.</summary>
+    internal bool AnimatingRange => _animClock != null;
+
+    // Cerca: se solapan, o entre los dos hay menos de dos veces el más ancho.
+    private static bool IsNear((double Start, double End) a, (double Start, double End) b)
+    {
+        var width = Math.Max(a.End - a.Start, b.End - b.Start);
+        var gap = Math.Max(a.Start, b.Start) - Math.Min(a.End, b.End);
+        return gap < 2 * width;
+    }
+
+    private void StopAnimation()
+    {
+        if (_animClock == null)
+            return;
+        CompositionTarget.Rendering -= OnAnimationFrame;
+        _animClock = null;
+    }
+
+    private void OnAnimationFrame(object? sender, EventArgs e)
+    {
+        if (_animClock == null)
+            return;
+        var duration = Reveal.Duration.TotalMilliseconds;
+        var t = duration <= 0 ? 1 : Math.Min(1, _animClock.Elapsed.TotalMilliseconds / duration);
+        var eased = 1 - Math.Pow(1 - t, 3);
+        _start = _animFrom.Start + (_animTo.Start - _animFrom.Start) * eased;
+        _end = _animFrom.End + (_animTo.End - _animFrom.End) * eased;
+        if (t >= 1)
+        {
+            StopAnimation();
+            (_start, _end) = _animTo;
+        }
         InvalidateVisual();
     }
 

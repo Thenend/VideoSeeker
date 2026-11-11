@@ -593,12 +593,12 @@ public partial class MainWindow
             // Un clic: ahora sí, ir al bookmark.
             _nav.GoTo(time);
         }
-        // Soltado: la barra de zoom ya se puede reencuadrar a la zona.
+        // Soltado: la barra de zoom ya se puede reencuadrar a la zona (animada, hasta su nuevo tamaño).
         if (_freezeZoomView)
         {
             _freezeZoomView = false;
             if (_zoomRange is { } z)
-                Zoom.SetRange(z.Start, z.End);
+                Zoom.SetRange(z.Start, z.End, animate: true);
         }
         if (dragged)
             OnBookmarksChanged(); // pide la miniatura del nuevo inicio
