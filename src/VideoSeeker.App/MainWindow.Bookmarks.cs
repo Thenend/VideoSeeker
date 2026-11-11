@@ -194,11 +194,14 @@ public partial class MainWindow
         {
             Select(existing.Id);
             BeginRename(existing, isNew: false);
+            PulseMarksButton();
             return;
         }
         var bookmark = _bookmarks.Add(_bookmarks.NextName(), start, end, NewBookmarkColor(), NewBookmarkLabel());
         Select(bookmark.Id);
         BeginRename(bookmark, isNew: true);
+        // Con las marcas ocultas no se ve en la barra: que se vea por qué.
+        PulseMarksButton();
     }
 
     // ---- Nombre en línea ----
@@ -443,6 +446,7 @@ public partial class MainWindow
         // Sin cambiar cómo se reproduce: en pausa sigue en pausa; reproduciendo (también hacia atrás), sigue desde él.
         _nav.GoTo(bookmark.Start);
         ShowToast(bookmark.Name);
+        PulseMarksButton();
     }
 
     // 1–9 y 0: los diez primeros por orden de inicio.
@@ -963,6 +967,7 @@ public partial class MainWindow
 
     private void ApplyMarksVisibility()
     {
+        StopMarksPulse();
         var show = _store.Settings.ShowBookmarkMarks;
         Seek.ShowBookmarks = Zoom.ShowBookmarks = show;
         BookmarkText.Visibility = show ? Visibility.Visible : Visibility.Hidden;
@@ -977,6 +982,67 @@ public partial class MainWindow
     }
 
     private void OnMarksButtonClick(object sender, RoutedEventArgs e) => ToggleMarks();
+
+    // Mientras late el botón de las marcas (para no volver a empezar a cada bookmark si se van recorriendo seguidos).
+    private bool _marksPulsing;
+    internal int MarksPulseCount { get; private set; }
+
+    /// <summary>
+    /// Con las marcas ocultas, al crear un bookmark o ir a uno, el botón que las muestra late tres veces (un brillo de
+    /// fondo, una onda que se abre y el icono que se enciende del color de acento): si no se ve en la barra lo que se
+    /// acaba de hacer, que se vea por qué.
+    /// </summary>
+    private void PulseMarksButton()
+    {
+        if (_store.Settings.ShowBookmarkMarks || _marksPulsing)
+            return;
+        _marksPulsing = true;
+        MarksPulseCount++;
+        const int Beats = 3;
+        var beat = TimeSpan.FromMilliseconds(700);
+        var repeat = new System.Windows.Media.Animation.RepeatBehavior(Beats);
+        var easeOut = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut };
+
+        // El brillo: sube rápido y se apaga despacio.
+        var glow = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames { Duration = beat, RepeatBehavior = repeat };
+        glow.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(0, TimeSpan.Zero));
+        glow.KeyFrames.Add(new System.Windows.Media.Animation.EasingDoubleKeyFrame(0.32, TimeSpan.FromMilliseconds(140)));
+        glow.KeyFrames.Add(new System.Windows.Media.Animation.EasingDoubleKeyFrame(0, beat, easeOut));
+        // La onda: sale del borde del botón, crece y se desvanece.
+        var grow = new System.Windows.Media.Animation.DoubleAnimation(1, 1.7, beat) { RepeatBehavior = repeat, EasingFunction = easeOut };
+        var fade = new System.Windows.Media.Animation.DoubleAnimation(0.9, 0, beat) { RepeatBehavior = repeat, EasingFunction = easeOut };
+        // El icono: del gris apagado al color de acento y vuelta.
+        var muted = ((SolidColorBrush)FindResource("FgMuted")).Color;
+        var accent = ((SolidColorBrush)FindResource("Accent")).Color;
+        var stroke = new SolidColorBrush(muted);
+        MarksButton.Foreground = stroke;
+        var tint = new System.Windows.Media.Animation.ColorAnimationUsingKeyFrames { Duration = beat, RepeatBehavior = repeat };
+        tint.KeyFrames.Add(new System.Windows.Media.Animation.LinearColorKeyFrame(muted, TimeSpan.Zero));
+        tint.KeyFrames.Add(new System.Windows.Media.Animation.EasingColorKeyFrame(accent, TimeSpan.FromMilliseconds(140)));
+        tint.KeyFrames.Add(new System.Windows.Media.Animation.EasingColorKeyFrame(muted, beat, easeOut));
+        tint.Completed += (_, _) => StopMarksPulse();
+
+        var scale = (ScaleTransform)MarksWave.RenderTransform;
+        MarksGlow.BeginAnimation(OpacityProperty, glow);
+        MarksWave.BeginAnimation(OpacityProperty, fade);
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, grow);
+        stroke.BeginAnimation(SolidColorBrush.ColorProperty, tint);
+    }
+
+    // Deja el botón como estaba (también si se muestran las marcas a mitad del latido).
+    private void StopMarksPulse()
+    {
+        if (!_marksPulsing)
+            return;
+        _marksPulsing = false;
+        var scale = (ScaleTransform)MarksWave.RenderTransform;
+        MarksGlow.BeginAnimation(OpacityProperty, null);
+        MarksWave.BeginAnimation(OpacityProperty, null);
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        MarksButton.Foreground = (Brush)FindResource(_store.Settings.ShowBookmarkMarks ? "Fg" : "FgMuted");
+    }
 
     // ---- Colecciones ----
 
@@ -1774,6 +1840,7 @@ public partial class MainWindow
             if (_bookmarks?.Find(id) != null)
             {
                 Select(id);
+                PulseMarksButton();
                 return;
             }
         }

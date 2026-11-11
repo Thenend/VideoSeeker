@@ -260,8 +260,27 @@ public partial class MainWindow
             ToggleMarks();
             Check(!Seek.ShowBookmarks && !Zoom.ShowBookmarks && BookmarkText.Visibility != Visibility.Visible, "el ojo oculta las marcas");
             SaveIcons(Path.Combine(_store.Folder, "selftest-iconos-ocultas.png"));
+            // Con ellas ocultas, ir a un bookmark hace latir el ojo; mostrarlas lo para y lo deja como siempre.
+            var pulses = MarksPulseCount;
+            if (ZoneBookmark is { } zoneMark)
+            {
+                JumpTo(zoneMark);
+                Check(MarksPulseCount == pulses + 1 && _marksPulsing, "con las marcas ocultas, ir a un bookmark hace latir el ojo");
+                JumpTo(zoneMark);
+                Check(MarksPulseCount == pulses + 1, "ir a otro mientras late no lo vuelve a empezar");
+                await Task.Delay(150);
+                SaveIcons(Path.Combine(_store.Folder, "selftest-iconos-latido.png"));
+            }
             ToggleMarks();
             Check(Seek.ShowBookmarks && Zoom.ShowBookmarks, "y las vuelve a mostrar");
+            Check(!_marksPulsing && MarksGlow.Opacity == 0 && MarksWave.Opacity == 0 && MarksButton.Foreground == FindResource("Fg"),
+                "mostrarlas para el latido y el ojo queda como siempre");
+            if (ZoneBookmark is { } shownMark)
+            {
+                var pulsesShown = MarksPulseCount;
+                JumpTo(shownMark);
+                Check(MarksPulseCount == pulsesShown && !_marksPulsing, "con las marcas a la vista, ir a un bookmark no hace latir el ojo");
+            }
             await Task.Delay(50);
             SaveIcons(Path.Combine(_store.Folder, "selftest-iconos.png"));
             if (!shown)

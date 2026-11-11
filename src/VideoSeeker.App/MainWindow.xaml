@@ -188,8 +188,21 @@
                     ToolTip="{l:Tr BookmarksButtonTip}" Click="OnBookmarksButtonClick">
                 <Path Style="{StaticResource IconPath}" Data="{StaticResource PanelIcon}" />
             </Button>
+            <!-- Con las marcas ocultas, al crear un bookmark o ir a uno late unas veces (PulseMarksButton): un brillo
+                 de fondo y una onda que se abre desde el botón. Ocupan el botón entero (de ahí el margen, el de su
+                 relleno) y no cambian su tamaño. -->
             <Button DockPanel.Dock="Right" x:Name="MarksButton" Style="{StaticResource ToolButton}" Click="OnMarksButtonClick">
-                <Path x:Name="MarksIcon" Style="{StaticResource IconPath}" Data="{StaticResource MarksShownIcon}" />
+                <Grid>
+                    <Border x:Name="MarksGlow" Margin="-8,-4" CornerRadius="4" Background="{StaticResource Accent}"
+                            Opacity="0" IsHitTestVisible="False" />
+                    <Border x:Name="MarksWave" Margin="-8,-4" CornerRadius="6" BorderBrush="{StaticResource Accent}"
+                            BorderThickness="2" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <ScaleTransform />
+                        </Border.RenderTransform>
+                    </Border>
+                    <Path x:Name="MarksIcon" Style="{StaticResource IconPath}" Data="{StaticResource MarksShownIcon}" />
+                </Grid>
             </Button>
             <Rectangle DockPanel.Dock="Right" Width="1" Margin="6,6" Fill="{StaticResource Line}" />
             <Button DockPanel.Dock="Right" x:Name="FullscreenButton" Style="{StaticResource ToolButton}"
