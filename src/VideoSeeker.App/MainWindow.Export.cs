@@ -128,7 +128,7 @@ public partial class MainWindow
             ShowToast(S.ExportNeedsRange);
             return;
         }
-        var menu = new ContextMenu { PlacementTarget = VideoArea, Placement = PlacementMode.MousePoint };
+        var menu = MenuAtCursor();
         menu.Items.Add(new MenuItem { Header = S.ExportWhat(RangeLabel(target.Start, target.End, target.Name)), IsEnabled = false });
         AddExportItems(menu, target.Video, target.Start, target.End, target.Name);
         menu.IsOpen = true;

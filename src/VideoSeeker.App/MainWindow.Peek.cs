@@ -82,7 +82,7 @@ public partial class MainWindow
         }
         PeekPopup.Placement = PlacementMode.Top;
         PeekPopup.HorizontalOffset = -(PeekBox.Width + PeekChrome) / 2;
-        PeekPopup.PlacementRectangle = new Rect(Math.Clamp(x, 0, bar.ActualWidth), 0, 0, 0);
+        PeekPopup.PlacementRectangle = new Rect(KeepCenteredInWindow(bar, x, PeekBox.Width + PeekChrome), 0, 0, 0);
         PeekPopup.IsOpen = true;
     }
 
@@ -116,6 +116,8 @@ public partial class MainWindow
                 {
                     // Reabrir para que se recoloque con el tamaño nuevo (pasa una vez por vídeo, como mucho).
                     PeekPopup.HorizontalOffset = -(width + PeekChrome) / 2;
+                    if (PeekPopup.PlacementTarget is FrameworkElement bar)
+                        PeekPopup.PlacementRectangle = new Rect(KeepCenteredInWindow(bar, PeekPopup.PlacementRectangle.X, width + PeekChrome), 0, 0, 0);
                     PeekPopup.IsOpen = false;
                     PeekPopup.IsOpen = true;
                 }

@@ -188,6 +188,19 @@ public partial class MainWindow
 
             // Menús: el del vídeo, el de un bookmark (uno de prueba, que se borra al acabar), velocidad y colección.
             ShowVideoMenu();
+            // Sale en el puntero de verdad, no donde WPF lo vio por última vez (salía arriba a la izquierda: la imagen es
+            // una ventana nativa que no le pasa el ratón a WPF).
+            for (var i = 0; i < 20 && OpenContextMenus().FirstOrDefault() is not { IsLoaded: true }; i++)
+                await Task.Delay(100);
+            if (OpenContextMenus().FirstOrDefault() is { } videoMenu && GetCursorPosition(out var cursor))
+            {
+                var topLeft = videoMenu.PointToScreen(new Point(0, 0));
+                var bottomRight = videoMenu.PointToScreen(new Point(videoMenu.ActualWidth, videoMenu.ActualHeight));
+                var around = new Rect(topLeft, bottomRight);
+                around.Inflate(8, 8);
+                Check(around.Contains(new Point(cursor.X, cursor.Y)),
+                    $"el menú del vídeo sale en el puntero ({topLeft.X:0},{topLeft.Y:0}; puntero {cursor.X},{cursor.Y})");
+            }
             await InspectMenu("del vídeo", "menu-video");
             probe = _bookmarks.Add("Prueba rápida", _duration * 0.3, _duration * 0.3 + Math.Min(2, _duration * 0.05));
             await Task.Delay(200);

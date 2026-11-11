@@ -535,9 +535,11 @@ public partial class MainWindow
     {
         var set = _bookmarks!;
         var first = set.Items[0];
-        // Desde un menú (sin elemento al que anclarlo), el cuadro sale bajo el ratón.
-        var mouse = Mouse.GetPosition((UIElement)Content);
+        // Desde un menú (sin elemento al que anclarlo), el cuadro sale bajo el ratón, sin salirse de la ventana por los
+        // lados (el ratón de verdad puede estar fuera, en otro monitor).
+        var mouse = CursorInRoot();
         PromptNewLabel(null, null);
+        mouse.X = Math.Clamp(mouse.X, 0, Math.Max(0, RootGrid.ActualWidth - PopupWidth(NamePopup, 276)));
         var at = NamePopup.PlacementRectangle;
         check(ReferenceEquals(NamePopup.PlacementTarget, Content) && !at.IsEmpty && (at.Location - mouse).Length < 20,
             $"«Nueva etiqueta…» desde un menú abre el cuadro junto al ratón ({(at.IsEmpty ? "sin punto" : $"{at.X:0},{at.Y:0}")}; ratón {mouse.X:0},{mouse.Y:0}; " +

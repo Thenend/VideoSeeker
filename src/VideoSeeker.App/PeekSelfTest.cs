@@ -95,6 +95,22 @@ public partial class MainWindow
                 Check(false, "no llegó a haber nada en la caché de frames para probar la miniatura desde la GPU");
             }
 
+            // En el extremo izquierdo de la barra la miniatura no se sale de la ventana: si se saliera, Windows la
+            // llevaría entera al monitor de al lado (Mario, 11 de noviembre).
+            Seek.SimulateHover(Seek.TrackPoint(0));
+            await Task.Delay(300);
+            if (PeekPopup.IsOpen && PeekPopup.Child is FrameworkElement peekBox && PresentationSource.FromVisual(peekBox) != null)
+            {
+                var peekLeft = peekBox.PointToScreen(new Point(0, 0)).X;
+                var windowLeft = RootGrid.PointToScreen(new Point(0, 0)).X;
+                Check(peekLeft >= windowLeft - 1, $"al principio de la barra, la miniatura dentro de la ventana (izquierda {peekLeft:0}, ventana {windowLeft:0})");
+            }
+            else
+            {
+                Check(false, "al principio de la barra sale la miniatura");
+            }
+            Seek.SimulateLeave();
+
             var first = await HoverSeek(0.3);
             Check(first >= 0, $"barra principal al 30 %: se ve el frame en {first} ms (abre el archivo)");
             var second = await HoverSeek(0.7);

@@ -220,7 +220,7 @@ public partial class MainWindow
         NamePopup.Placement = PlacementMode.Top;
         NamePopup.VerticalOffset = 0;
         NamePopup.PlacementTarget = Seek;
-        NamePopup.PlacementRectangle = new Rect(Math.Clamp(Seek.XOf(bookmark.Start), 0, Seek.ActualWidth), 0, 0, 0);
+        NamePopup.PlacementRectangle = new Rect(KeepCenteredInWindow(Seek, Seek.XOf(bookmark.Start), 276), 0, 0, 0);
         NamePopup.HorizontalOffset = -138;
         NamePopup.IsOpen = true;
         Dispatcher.BeginInvoke(() =>
@@ -302,10 +302,11 @@ public partial class MainWindow
         else
         {
             // Un punto fijo en la ventana (no MousePoint): así, si se mueve la ventana, el cuadro va con ella.
-            var root = (UIElement)Content;
-            var mouse = Mouse.GetPosition(root);
-            NamePopup.PlacementTarget = root;
-            NamePopup.PlacementRectangle = new Rect(mouse.X, mouse.Y, 0, 0);
+            // Desde el puntero hacia la derecha, sin salirse de la ventana (si no, iría al monitor de al lado).
+            var mouse = CursorInRoot();
+            var x = Math.Clamp(mouse.X, 0, Math.Max(0, RootGrid.ActualWidth - PopupWidth(NamePopup, 276)));
+            NamePopup.PlacementTarget = RootGrid;
+            NamePopup.PlacementRectangle = new Rect(x, mouse.Y, 0, 0);
         }
         NamePopup.HorizontalOffset = 0;
         NamePopup.VerticalOffset = 4;
@@ -624,7 +625,7 @@ public partial class MainWindow
         HoverPopup.IsOpen = false; // reabrir para que se recoloque
         HoverPopup.PlacementTarget = bar;
         HoverPopup.Placement = PlacementMode.Top;
-        HoverPopup.PlacementRectangle = new Rect(Math.Clamp(x, 0, bar.ActualWidth), 0, 0, 0);
+        HoverPopup.PlacementRectangle = new Rect(KeepCenteredInWindow(bar, x, 250), 0, 0, 0);
         HoverPopup.HorizontalOffset = -125;
         HoverPopup.VerticalOffset = 0;
         HoverPopup.IsOpen = true;
@@ -849,7 +850,7 @@ public partial class MainWindow
     {
         if (_bookmarks == null)
             return null;
-        var menu = new ContextMenu { PlacementTarget = VideoArea, Placement = PlacementMode.MousePoint };
+        var menu = MenuAtCursor();
         AddBookmarkMenuItems(menu, _nav.CurrentTime);
         menu.Items.Add(new Separator());
         AddZoomSectionItem(menu, _nav.CurrentTime);
@@ -880,7 +881,7 @@ public partial class MainWindow
     private void ShowBookmarkMenu(Bookmark bookmark, UIElement target)
     {
         HoverPopup.IsOpen = false;
-        var menu = new ContextMenu { PlacementTarget = target, Placement = PlacementMode.MousePoint };
+        var menu = MenuAtCursor();
         var header = new MenuItem { Header = bookmark.Name, IsEnabled = false };
         menu.Items.Add(header);
 
@@ -1518,7 +1519,7 @@ public partial class MainWindow
     // borrar. Ir a uno (también de otro vídeo) es pinchar en él.
     private void ShowMultiMenu(List<BookmarkRow> rows)
     {
-        var menu = new ContextMenu { PlacementTarget = BookmarkList, Placement = PlacementMode.MousePoint };
+        var menu = MenuAtCursor();
         var videos = rows.Select(r => r.Fingerprint).Distinct().Count();
         menu.Items.Add(new MenuItem
         {

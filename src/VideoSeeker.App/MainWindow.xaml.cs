@@ -939,7 +939,7 @@ public partial class MainWindow : Window
     // barra de la zona tampoco ampliar sección (ya se está en ella; va en la de abajo y en el menú de la imagen).
     private void ShowTimelineMenu(UIElement target, double time)
     {
-        var menu = new ContextMenu { PlacementTarget = target, Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint };
+        var menu = MenuAtCursor();
         AddBookmarkMenuItems(menu, time);
         menu.Items.Add(new Separator());
         if (target != Zoom)
