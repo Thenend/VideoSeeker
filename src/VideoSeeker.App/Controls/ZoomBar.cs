@@ -8,7 +8,7 @@ namespace VideoSeeker.App.Controls;
 /// <summary>
 /// Barra de zoom: un tramo corto del vídeo con precisión de frame. Cada frame es una celda (cuando caben),
 /// el clic va al inicio del frame bajo el cursor y la etiqueta da su número. Rueda: un frame por muesca;
-/// Ctrl + rueda acerca o aleja; Shift + rueda desplaza el tramo.
+/// Ctrl + rueda acerca o aleja; Shift + rueda, o arrastrar con el botón central (como un mapa), desplaza el tramo.
 /// </summary>
 public sealed class ZoomBar : TimelineBar
 {
@@ -129,6 +129,9 @@ public sealed class ZoomBar : TimelineBar
     protected override bool AutoExtendEdges => true;
 
     protected override double FramesPerSecond => _grid.Fps;
+
+    // Arrastrar con el botón central desplaza el tramo, como un mapa.
+    protected override bool CanPan => true;
 
     protected override double SnapTime(double time) => Math.Min(_grid.TimeOf(FrameAt(time)), Duration);
 

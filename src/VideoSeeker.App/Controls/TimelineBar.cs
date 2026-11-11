@@ -72,6 +72,8 @@ public abstract class TimelineBar : FrameworkElement
     // arrastrar pasa a ser un arrastre normal de la pista.
     private Bookmark? _bodyPress;
     private string? _hoveredBookmark;
+    // Arrastrando con el botón central (la barra de zoom): dónde se pulsó y qué tramo enseñaba la barra.
+    private (double X, double Start, double End)? _panPress;
 
     // ---- Avance solo al sacar el extremo que se arrastra por un lado de la barra (solo la de zoom) ----
     // Más allá de AutoDeadZone píxeles del borde de la pista, el extremo avanza solo hacia fuera, a una velocidad que
@@ -94,6 +96,12 @@ public abstract class TimelineBar : FrameworkElement
 
     /// <summary>Mientras el extremo que se arrastra avanza solo porque el ratón está fuera de la pista.</summary>
     public bool AutoExtending => _autoDirection != 0;
+
+    /// <summary>Si arrastrar con el botón central desplaza la vista, como un mapa (la barra de zoom).</summary>
+    protected virtual bool CanPan => false;
+
+    /// <summary>Mientras se arrastra con el botón central para desplazar la vista.</summary>
+    public bool Panning => _panPress != null;
 
     protected double? HoverX { get; private set; }
     /// <summary>Instante bajo el cursor mientras se arrastra con el botón izquierdo.</summary>
@@ -124,6 +132,11 @@ public abstract class TimelineBar : FrameworkElement
     /// la barra de zoom) y su x, para enseñar ese frame en miniatura. Null al salir, al pulsar o al llegar a un bookmark.
     /// </summary>
     public event Action<double?, double>? PeekRequested;
+    /// <summary>
+    /// Arrastrando con el botón central (CanPan): el tramo que debe enseñar la barra para que lo pulsado siga bajo el
+    /// cursor (mismo ancho; quien lo recibe lo ajusta al vídeo).
+    /// </summary>
+    public event Action<double, double>? PanDragged;
 
     protected TimelineBar()
     {
@@ -509,6 +522,8 @@ public abstract class TimelineBar : FrameworkElement
 
     private bool LeftDown(Point point, int clickCount)
     {
+        if (_panPress != null)
+            return true;
         SetPeek(null);
         if (_selectFromX != null)
         {
@@ -558,7 +573,11 @@ public abstract class TimelineBar : FrameworkElement
     {
         HoverX = point.X;
         double? peekX = null;
-        if (_bodyPress != null)
+        if (_panPress != null)
+        {
+            PanTo(point.X);
+        }
+        else if (_bodyPress != null)
         {
             // Arrastrando el centro de la banda: como en la pista, la imagen sigue al cursor.
             if (left && Math.Abs(point.X - _pressX) >= DragThreshold)
@@ -671,6 +690,66 @@ public abstract class TimelineBar : FrameworkElement
         beforeRelease?.Invoke();
         LeftUp();
     }
+
+    // ---- Desplazar la vista con el botón central (la barra de zoom) ----
+
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+        base.OnMouseDown(e);
+        if (e.ChangedButton == MouseButton.Middle && MiddleDown(e.GetPosition(this)))
+            e.Handled = true;
+    }
+
+    protected override void OnMouseUp(MouseButtonEventArgs e)
+    {
+        base.OnMouseUp(e);
+        if (e.ChangedButton == MouseButton.Middle && MiddleUp(e.GetPosition(this)))
+            e.Handled = true;
+    }
+
+    // Solo si no se está haciendo otra cosa con los otros botones.
+    private bool MiddleDown(Point point)
+    {
+        if (!CanPan || _duration <= 0 || ViewEnd <= ViewStart || _panPress != null || DragTime != null || _grabbing
+            || _bookmarkPress != null || _bodyPress != null || _selectFromX != null)
+            return false;
+        SetPeek(null);
+        SetHovered(null);
+        _panPress = (point.X, ViewStart, ViewEnd);
+        Cursor = Cursors.ScrollWE;
+        CaptureMouse();
+        return true;
+    }
+
+    private bool MiddleUp(Point point)
+    {
+        if (_panPress == null)
+            return false;
+        _panPress = null;
+        ReleaseMouseCapture();
+        Cursor = CursorAt(point);
+        InvalidateVisual();
+        return true;
+    }
+
+    // Lo pulsado sigue bajo el cursor: arrastrar hacia la izquierda lleva a frames posteriores. En un extremo del vídeo la
+    // vista no pasa de ahí; se toma como nuevo punto de partida, para que al volver responda al momento.
+    private void PanTo(double x)
+    {
+        if (_panPress is not { } pan)
+            return;
+        var shift = (pan.X - x) * (pan.End - pan.Start) / TrackWidth;
+        PanDragged?.Invoke(pan.Start + shift, pan.End + shift);
+        if (Math.Abs(ViewStart - (pan.Start + shift)) > 1e-9)
+            _panPress = (x, ViewStart, ViewEnd);
+    }
+
+    /// <summary>Para las autopruebas: pulsar, mover y soltar el botón central, por los mismos caminos que el ratón.</summary>
+    internal void SimulateMiddleDown(Point point) => MiddleDown(point);
+
+    internal void SimulateMiddleMove(Point point) => MouseMoved(point, left: false, right: false);
+
+    internal void SimulateMiddleUp(Point point) => MiddleUp(point);
 
     private void StartAutoExtend(int direction)
     {
@@ -812,7 +891,7 @@ public abstract class TimelineBar : FrameworkElement
             e.Handled = true;
             return;
         }
-        if (_duration <= 0 || DragTime != null || _grabbing || _bookmarkPress != null || _bodyPress != null)
+        if (_duration <= 0 || DragTime != null || _grabbing || _bookmarkPress != null || _bodyPress != null || _panPress != null)
             return;
         _selectFromY = e.GetPosition(this).Y;
         _selectFromX = e.GetPosition(this).X;
@@ -876,6 +955,7 @@ public abstract class TimelineBar : FrameworkElement
         _selectFromX = _selectToX = null;
         _selectFollow = false;
         _bodyPress = null;
+        _panPress = null;
         StopAutoExtend();
         if (_bookmarkPress is { } press)
         {

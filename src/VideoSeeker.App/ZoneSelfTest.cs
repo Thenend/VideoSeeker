@@ -10,9 +10,9 @@ namespace VideoSeeker.App;
 /// Prueba automática de la zona ampliada unificada con la región seleccionada (VIDEOSEEKER_SELFTEST=zona): seleccionar
 /// una región la hace la zona; I/O y las banderitas cambian la región (y Ctrl + Z lo deshace con la zona siguiéndola);
 /// Ctrl + rueda y Z la sueltan sin cambiarla; Esc cierra y deselecciona; borrarla deja la zona libre; los extremos que
-/// se cruzan se intercambian con el otro de ancla; la barra de zoom no se reencuadra mientras se arrastra en ella; un
-/// bookmark antiguo sin fin se lee como región de un frame. Deja los bookmarks del vídeo como estaban, escribe
-/// selftest.log y cierra.
+/// se cruzan se intercambian con el otro de ancla; la barra de zoom no se reencuadra mientras se arrastra en ella;
+/// arrastrar con el botón central la desplaza como un mapa; un bookmark antiguo sin fin se lee como región de un frame.
+/// Deja los bookmarks del vídeo como estaban, escribe selftest.log y cierra.
 /// </summary>
 public partial class MainWindow
 {
@@ -336,6 +336,70 @@ public partial class MainWindow
             // Ctrl + M: la zona (con la región, su nombre).
             Select(a.Id);
             Check(ExportTarget() is { } target && target.Name == a.Name && Near(target.Start, a.Start) && Near(target.End, EndOf(a)), "Ctrl + M exporta la región que es la zona, con su nombre");
+            CloseZone();
+
+            // Arrastrar con el botón central en la barra de zoom desplaza el tramo como un mapa: hacia la izquierda, a frames
+            // posteriores; lo pulsado sigue bajo el cursor, el ancho no cambia y la imagen tampoco. En el principio del vídeo
+            // se para (y al volver responde al momento); con una región como zona, la suelta sin cambiarla. El izquierdo
+            // sigue moviendo el cabezal.
+            void MiddleDrag(Point from, Point to, Action? beforeRelease = null)
+            {
+                Zoom.SimulateMiddleDown(from);
+                for (var i = 1; i <= 8; i++)
+                    Zoom.SimulateMiddleMove(new Point(from.X + (to.X - from.X) * i / 8, from.Y));
+                beforeRelease?.Invoke();
+                Zoom.SimulateMiddleUp(to);
+            }
+            var panMid = grid.TimeOf(grid.FrameAt(_duration * 0.5));
+            SetFreeZoom((panMid - 1, panMid + 1));
+            _nav.ScrubTo(panMid);
+            UpdateLayout();
+            await Task.Delay(400);
+            var panShown = _nav.CurrentTime;
+            var pan0 = Zoom.View;
+            var panFrom = Zoom.TrackPoint(panMid + 0.5);
+            var panTo = new Point(panFrom.X - Zoom.ActualWidth * 0.25, panFrom.Y);
+            var panningMidway = false;
+            MiddleDrag(panFrom, panTo, () => panningMidway = Zoom.Panning);
+            await Task.Delay(300);
+            var pan1 = Zoom.View;
+            Check(panningMidway && pan1.Start > pan0.Start + 0.2 && Near(pan1.End - pan1.Start, pan0.End - pan0.Start)
+                    && Math.Abs(Zoom.TrackPoint(panMid + 0.5).X - panTo.X) < 1 && _zoomRange is { } panZone && Near(panZone.Start, pan1.Start),
+                $"arrastrar con el botón central hacia la izquierda lleva la barra de zoom a frames posteriores, con lo pulsado bajo el cursor ({pan0.Start:0.000} → {pan1.Start:0.000})");
+            Check(Math.Abs(_nav.CurrentTime - panShown) < 1e-3 && !Zoom.Panning, $"la imagen no cambia ({_nav.CurrentTime:0.000})");
+
+            var panHead = Zoom.TrackPoint(pan1.Start + (pan1.End - pan1.Start) * 0.3);
+            Zoom.SimulateLeftDrag(panHead, new Point(panHead.X + Zoom.ActualWidth * 0.2, panHead.Y));
+            await Task.Delay(500);
+            Check(_nav.CurrentTime > panShown + 0.1 && Near(Zoom.View.Start, pan1.Start),
+                $"arrastrar con el izquierdo sigue moviendo el cabezal ({panShown:0.000} → {_nav.CurrentTime:0.000}) sin desplazar el tramo");
+
+            SetFreeZoom((0.5, 2.5));
+            UpdateLayout();
+            await Task.Delay(300);
+            var panEdge = Zoom.TrackPoint(1.5);
+            Zoom.SimulateMiddleDown(panEdge);
+            Zoom.SimulateMiddleMove(new Point(panEdge.X + 10, panEdge.Y));
+            Zoom.SimulateMiddleMove(new Point(panEdge.X + Zoom.ActualWidth * 0.6, panEdge.Y));
+            var panAtStart = Zoom.View;
+            Zoom.SimulateMiddleMove(new Point(panEdge.X + Zoom.ActualWidth * 0.5, panEdge.Y));
+            var panBack = Zoom.View;
+            Zoom.SimulateMiddleUp(new Point(panEdge.X + Zoom.ActualWidth * 0.5, panEdge.Y));
+            Check(Near(panAtStart.Start, 0) && Near(panAtStart.End, 2) && panBack.Start > 0.1,
+                $"en el principio del vídeo se para ({panAtStart.Start:0.000}–{panAtStart.End:0.000}) y al volver responde al momento ({panBack.Start:0.000})");
+
+            Select(a.Id);
+            a = set.Find(a.Id)!;
+            var panRegion = (a.Start, End: EndOf(a));
+            UpdateLayout();
+            await Task.Delay(400);
+            var panRegionPoint = Zoom.TrackPoint(a.Start + (EndOf(a) - a.Start) * 0.8);
+            MiddleDrag(panRegionPoint, new Point(panRegionPoint.X - Zoom.ActualWidth * 0.2, panRegionPoint.Y));
+            await Task.Delay(300);
+            a = set.Find(a.Id)!;
+            Check(_zoomBookmark == null && _selectedBookmark == null && _zoomRange is { } panFree && panFree.Start > panRegion.Start + 1e-3
+                    && Near(panFree.End - panFree.Start, panRegion.End - panRegion.Start) && Near(a.Start, panRegion.Start) && Near(EndOf(a), panRegion.End),
+                $"con una región como zona, desplazarla la suelta sin cambiar la región: zona libre {ShowZone()}, región {Show(a)}");
             CloseZone();
 
             // Un bookmark antiguo sin fin (de antes de que todo fuera región) se lee como región de un frame, sin reescribir el archivo.

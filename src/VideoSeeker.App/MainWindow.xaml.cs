@@ -188,6 +188,8 @@ public partial class MainWindow : Window
         Seek.ZoomDragged += OnZoomDragged;
         Seek.ZoomDragEnded += OnZoomDragEnded;
         Zoom.PanRequested += s => { if (_zoomRange is { } z) SetFreeZoom((z.Start + s, z.End + s)); };
+        // Arrastrar con el botón central en la barra de zoom la desplaza bajo el ratón, sin animar (lo pulsado sigue bajo el cursor).
+        Zoom.PanDragged += (start, end) => SetFreeZoom((start, end), animate: false);
         Zoom.StepRequested += frames =>
         {
             for (var i = 0; i < Math.Abs(frames); i++)
@@ -649,11 +651,11 @@ public partial class MainWindow : Window
     private static extern short GetAsyncKeyState(int key);
 
     /// <summary>Zona libre (o null para cerrarla): suelta la región seleccionada, que no cambia.</summary>
-    private void SetFreeZoom((double Start, double End)? range)
+    private void SetFreeZoom((double Start, double End)? range, bool animate = true)
     {
         if (_zoomBookmark != null)
             Select(null);
-        ApplyZone(range);
+        ApplyZone(range, animate: animate);
     }
 
     /// <summary>Esc, la X o Alt + X: cierra la zona y deselecciona.</summary>
