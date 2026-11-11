@@ -803,12 +803,12 @@ public partial class MainWindow
     private void AddBookmarkMenuItems(ItemsControl menu, double time)
     {
         var free = _zoomRange is { } && _zoomBookmark == null;
-        var add = new MenuItem { Header = S.AddBookmarkHere, InputGestureText = free ? "" : "B" };
+        var add = WithIcon(new MenuItem { Header = S.AddBookmarkHere, InputGestureText = free ? "" : "B" }, "AddBookmarkIcon");
         add.Click += (_, _) => AddBookmarkAt(time);
         menu.Items.Add(add);
         if (free && _zoomRange is { } z)
         {
-            var region = new MenuItem { Header = S.BookmarkOfZoomedRange, InputGestureText = "B" };
+            var region = WithIcon(new MenuItem { Header = S.BookmarkOfZoomedRange, InputGestureText = "B" }, "AddBookmarkIcon");
             region.Click += (_, _) => AddRegion(z.Start, z.End);
             menu.Items.Add(region);
         }
@@ -837,10 +837,10 @@ public partial class MainWindow
         if (_zoomRange != null)
         {
             var current = Zoom.Grid.FrameAt(_nav.CurrentTime);
-            var markFirst = new MenuItem { Header = S.MarkFirstFromScreen(current, ZoneRegionName()), InputGestureText = "I" };
+            var markFirst = WithIcon(new MenuItem { Header = S.MarkFirstFromScreen(current, ZoneRegionName()), InputGestureText = "I" }, "MarkFirstMenuIcon");
             markFirst.Click += (_, _) => MarkFirstFrame();
             menu.Items.Add(markFirst);
-            var markLast = new MenuItem { Header = S.MarkLastFromScreen(current, ZoneRegionName()), InputGestureText = "O" };
+            var markLast = WithIcon(new MenuItem { Header = S.MarkLastFromScreen(current, ZoneRegionName()), InputGestureText = "O" }, "MarkLastMenuIcon");
             markLast.Click += (_, _) => MarkLastFrame();
             menu.Items.Add(markLast);
         }
@@ -887,6 +887,21 @@ public partial class MainWindow
         menu.IsOpen = true;
     }
 
+    // Pone a una opción de menú uno de los iconos de MainWindow.xaml, del tamaño y trazo de los de los botones, para
+    // reconocerla sin leer el texto (Mario, 11 de noviembre: las del menú de la imagen son largas). Del color del texto.
+    private MenuItem WithIcon(MenuItem item, string geometryKey)
+    {
+        MenuIcon.SetGlyph(item, new System.Windows.Shapes.Path
+        {
+            Data = (Geometry)FindResource(geometryKey),
+            Width = 19, Height = 17, StrokeThickness = 1.3,
+            StrokeLineJoin = PenLineJoin.Round, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round,
+            Stroke = (Brush)FindResource("Fg"),
+            SnapsToDevicePixels = true,
+        });
+        return item;
+    }
+
     // La región en la que está el frame actual (la más interior), o null.
     private Bookmark? RegionAtPosition()
     {
@@ -908,7 +923,7 @@ public partial class MainWindow
     private void AddThumbnailItems(ItemsControl menu, Bookmark bookmark, string? whose)
     {
         var current = Zoom.Grid.Snap(_nav.CurrentTime);
-        var useFrame = new MenuItem { Header = S.UseFrameAsThumbnail(Zoom.Grid.FrameAt(current), whose) };
+        var useFrame = WithIcon(new MenuItem { Header = S.UseFrameAsThumbnail(Zoom.Grid.FrameAt(current), whose) }, "ThumbnailMenuIcon");
         useFrame.Click += (_, _) =>
         {
             // Un frame de fuera de la región seguramente es un despiste: se pregunta antes.
@@ -1521,11 +1536,11 @@ public partial class MainWindow
     private void AddRevealItem(ItemsControl menu, string? videoPath)
     {
         var exists = videoPath != null && File.Exists(videoPath);
-        var reveal = new MenuItem
+        var reveal = WithIcon(new MenuItem
         {
             Header = exists ? S.ShowVideoInExplorer : S.ShowVideoInExplorerMissing,
             IsEnabled = exists,
-        };
+        }, "FolderMenuIcon");
         reveal.Click += (_, _) => System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{videoPath}\"");
         menu.Items.Add(reveal);
     }

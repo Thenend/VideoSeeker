@@ -19,6 +19,12 @@
         <!-- Guardar la zona como bookmark: la cinta con un "+". -->
         <Geometry x:Key="AddBookmarkIcon">M2,2.5 H7.5 V12.5 L4.75,10 L2,12.5 Z M13.5,4.5 V11.5 M10,8 H17</Geometry>
         <Geometry x:Key="MarksHiddenIcon">M6.5,1.5 H12.5 V11 L9.5,8.5 L6.5,11 Z M1.5,15 H17.5 M3,1 L16,13.5</Geometry>
+        <!-- Iconos de menú (con AddBookmarkIcon): la miniatura es un cuadro con un paisaje; inicio y fin, las flechas
+             contra una raya de los botones ⇤ ⇥ de la barra de la zona; mostrar en el Explorador, una carpeta. -->
+        <Geometry x:Key="ThumbnailMenuIcon">M2,2.5 H17 V14 H2 Z M2,12 L7,7.5 L11,11 L13.5,9 L17,12 M13.2,5.6 A1.1,1.1 0 1 1 13.19,5.6</Geometry>
+        <Geometry x:Key="MarkFirstMenuIcon">M3,3.5 V13.5 M16.5,8.5 H4.5 M8.5,4.5 L4.5,8.5 L8.5,12.5</Geometry>
+        <Geometry x:Key="MarkLastMenuIcon">M16,3.5 V13.5 M2.5,8.5 H14.5 M10.5,4.5 L14.5,8.5 L10.5,12.5</Geometry>
+        <Geometry x:Key="FolderMenuIcon">M1.5,3 H7 L8.8,5 H17.5 V14 H1.5 Z M1.5,7.5 H17.5</Geometry>
         <Style x:Key="IconPath" TargetType="Path">
             <Setter Property="Width" Value="19" />
             <Setter Property="Height" Value="17" />

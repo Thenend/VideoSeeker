@@ -252,6 +252,10 @@ public partial class MainWindow
                     && videoMenu.Any(h => h.Contains($"al fin de «{zoneName}»")) && videoMenu.Any(h => h.Contains("Explorador"))
                     && !videoMenu.Any(h => h.StartsWith("Ampliar")),
                 $"menú de la imagen: {string.Join(" | ", videoMenu)}");
+            // Cada opción lleva su dibujo para reconocerla sin leerla, salvo el panel (la marca ya lo distingue).
+            var noIcon = BuildVideoMenu()!.Items.OfType<System.Windows.Controls.MenuItem>()
+                .Where(i => (MenuIcon.GetGlyph(i) == null) != ((string)i.Header == S.BookmarksPanel)).Select(i => (string)i.Header).ToList();
+            Check(noIcon.Count == 0, $"iconos del menú de la imagen (sobran o faltan en: {string.Join(" | ", noIcon)})");
 
             // Ojo: ocultar y volver a mostrar las marcas.
             var shown = _store.Settings.ShowBookmarkMarks;
