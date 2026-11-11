@@ -31,7 +31,7 @@ $exe = Join-Path $app 'VideoSeeker.exe'
 
 # Todas, en un orden en que las más rápidas avisan antes. «arranque» (solo mide tiempos) va aparte.
 $all = 'rapida', 'inicio', '1', 'resume', 'drag', 'reverse', 'loop', 'longdrag', 'zoom', 'settings', 'bookmarks', 'zona',
-    'saltar', 'vistazo', 'historial', 'clips'
+    'saltar', 'vistazo', 'historial', 'clips', 'pantalla'
 # «capturas» (las de la tienda, con samples\Sprite Fright - Blender Open Movie.mp4) también va aparte.
 $known = $all + 'arranque', 'capturas'
 $modes = if ($Full) { $all } elseif ($Mode) { $Mode } else { @('rapida') }

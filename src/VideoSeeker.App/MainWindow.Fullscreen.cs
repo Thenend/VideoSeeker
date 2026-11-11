@@ -65,6 +65,21 @@ public partial class MainWindow
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(nint hwnd, int attribute, ref int value, int size);
 
+    // La ventana (sin bordes) del tamaño del monitor en que está, barra de tareas incluida.
+    private void CoverMonitor()
+    {
+        const int SWP_NOZORDER = 0x0004, SWP_NOACTIVATE = 0x0010, SWP_FRAMECHANGED = 0x0020;
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        if (!GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), ref info))
+            return;
+        var m = info.Monitor;
+        SetWindowPos(hwnd, 0, m.Left, m.Top, m.Width, m.Height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    }
+
+    [DllImport("user32.dll")]
+    private static extern nint MonitorFromWindow(nint hwnd, int flags);
+
     private void OnPinClick(object sender, RoutedEventArgs e) => TogglePinControls();
 
     private void TogglePinControls()

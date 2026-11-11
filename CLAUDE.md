@@ -30,6 +30,7 @@ Pruebas por parte:
 | Historial de vídeos (atrás / adelante) | `historial` |
 | Pasos de frame, caché, marcha atrás, bucles | `1`, `resume`, `reverse`, `loop`, `longdrag` |
 | Arranque, ventana sin vídeo | `inicio`, `arranque` |
+| Pantalla completa (entrar y salir, desde maximizada y normal) | `pantalla` |
 
 Textos nuevos o cambiados: además de la rápida en español, la rápida en los otros idiomas, `pwsh scripts/selftest.ps1 -Idioma de` (y `en`, `fr`, `it`, `pt-BR`; el alemán y el francés son los más largos), para ver que caben. Las demás pruebas van siempre en español.
 

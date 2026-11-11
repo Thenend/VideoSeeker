@@ -391,6 +391,8 @@ public partial class MainWindow : Window
                 _ = RunHistorySelfTest();
             if (CaptureSelfTestEnabled)
                 _ = RunCaptureSelfTest();
+            if (FullscreenSelfTestEnabled)
+                _ = RunFullscreenSelfTest();
             // VIDEOSEEKER_SELFTEST=arranque: cierra al poco del primer frame (para medir el arranque y el cierre).
             if (Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") == "arranque")
                 _ = Task.Delay(int.TryParse(Environment.GetEnvironmentVariable("VIDEOSEEKER_WAIT"), out var wait) ? wait : 1500).ContinueWith(_ => Dispatcher.BeginInvoke(() =>
@@ -1426,6 +1428,9 @@ public partial class MainWindow : Window
         SuspendWindowAnimations();
         if (_beforeFullscreen is { } before)
         {
+            // A una ventana normal, primero el tamaño y luego los bordes: al revés pasaba un instante por maximizada.
+            if (before.State != WindowState.Maximized)
+                WindowState = before.State;
             WindowStyle = before.Style;
             ResizeMode = before.Resize;
             WindowState = before.State;
@@ -1436,11 +1441,23 @@ public partial class MainWindow : Window
         else
         {
             _beforeFullscreen = (WindowState, WindowStyle, ResizeMode);
-            // Pasar por Normal hace que el maximizado sin bordes cubra también la barra de tareas.
-            WindowState = WindowState.Normal;
-            WindowStyle = WindowStyle.None;
-            ResizeMode = ResizeMode.NoResize;
-            WindowState = WindowState.Maximized;
+            if (WindowState == WindowState.Maximized)
+            {
+                // Ya maximizada, sin pasar por Normal: se veía encogerse a su tamaño sin maximizar (las barras a media
+                // pantalla y lo de detrás asomando) y luego crecer. Sin bordes sigue maximizada, pero sobre el área
+                // de trabajo: se estira al monitor entero, encima de la barra de tareas.
+                WindowStyle = WindowStyle.None;
+                ResizeMode = ResizeMode.NoResize;
+                CoverMonitor();
+            }
+            else
+            {
+                // Pasar por Normal hace que el maximizado sin bordes cubra también la barra de tareas.
+                WindowState = WindowState.Normal;
+                WindowStyle = WindowStyle.None;
+                ResizeMode = ResizeMode.NoResize;
+                WindowState = WindowState.Maximized;
+            }
             FullscreenButton.Content = GlyphBackToWindow;
             ApplyControlsMode();
         }
