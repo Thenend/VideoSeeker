@@ -136,9 +136,12 @@ public partial class MainWindow
 
     // Las del cuadro del nombre de un bookmark: sus etiquetas, «+ Nueva» y, debajo, los colores sueltos. O etiqueta o color:
     // lo activo se ve siempre marcado (pincharlo otra vez no hace nada) y se aplica al guardar. Elegir un color es la
-    // manera de quitar la etiqueta.
+    // manera de quitar la etiqueta. Con el teclado: Tab (o las flechas) los recorre, Espacio elige el que tiene el foco e
+    // Intro lo elige y guarda; en «+ Nueva», Espacio o Intro abren el campo.
     private void BuildNameChips()
     {
+        // Si el foco estaba en uno (se eligió con Espacio), vuelve al mismo tras rehacerlos.
+        var focused = Keyboard.FocusedElement is Border { Tag: string key } b && (IsInside(b, NameLabels) || IsInside(b, NameColors)) ? key : null;
         NameLabels.Children.Clear();
         NameColors.Children.Clear();
         var show = _naming != null;
@@ -153,17 +156,58 @@ public partial class MainWindow
             var label = _labels.Labels[i];
             var chip = MakeChip(label.Name, label.Color, _namingLabel == label.Id, ShortcutOf(i) is { Length: > 0 } s ? s : null);
             chip.MouseLeftButtonUp += (_, _) => ChooseNamingLabel(label.Id);
-            NameLabels.Children.Add(chip);
+            NameLabels.Children.Add(KeyboardRing(chip, "label:" + label.Id, new CornerRadius(11), () => ChooseNamingLabel(label.Id, keepFocus: true), closes: true));
         }
         var add = MakeChip(_labels.Labels.Count == 0 ? S.AddLabelChipLong : S.AddLabelChipShort, null, false, S.AddLabelChipNameTip);
         add.MouseLeftButtonUp += (_, _) => ShowNewLabelRow();
-        NameLabels.Children.Add(add);
+        NameLabels.Children.Add(KeyboardRing(add, "add", new CornerRadius(11), ShowNewLabelRow, closes: false));
         foreach (var (name, hex) in BookmarkColors.Palette)
         {
             var swatch = MakeColorSwatch(hex, _namingLabel == null && string.Equals(_namingColor, hex, StringComparison.OrdinalIgnoreCase), S.ColorWithoutLabel(name));
             swatch.MouseLeftButtonUp += (_, _) => ChooseNamingColor(hex);
-            NameColors.Children.Add(swatch);
+            NameColors.Children.Add(KeyboardRing(swatch, "color:" + hex, new CornerRadius(10), () => ChooseNamingColor(hex, keepFocus: true), closes: true));
         }
+        if (focused != null
+            && NameLabels.Children.Cast<UIElement>().Concat(NameColors.Children.Cast<UIElement>()).FirstOrDefault(c => c is Border { Tag: string k } && k == focused) is { } again)
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (NamePopup.IsOpen)
+                    Keyboard.Focus(again);
+            }, System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    /// <summary>
+    /// Envuelve un botoncito o un color del cuadro del nombre para que se pueda usar con el teclado: entra en el orden de Tab,
+    /// con el foco se le ve un anillo del color de acento (fuera de su propio borde, que ya marca si está elegido), Espacio
+    /// hace lo suyo e Intro, además, guarda y cierra el cuadro si "closes".
+    /// </summary>
+    private Border KeyboardRing(FrameworkElement inner, string key, CornerRadius radius, Action activate, bool closes)
+    {
+        inner.Margin = new Thickness(0);
+        var ring = new Border
+        {
+            Child = inner, Tag = key, CornerRadius = radius, BorderThickness = new Thickness(1), BorderBrush = Brushes.Transparent,
+            Margin = new Thickness(0, 0, 3, 2), Focusable = true, FocusVisualStyle = null,
+        };
+        ring.GotKeyboardFocus += (_, _) => ring.BorderBrush = (Brush)FindResource("Accent");
+        ring.LostKeyboardFocus += (_, _) => ring.BorderBrush = Brushes.Transparent;
+        ring.KeyDown += (_, e) =>
+        {
+            if (Keyboard.Modifiers != ModifierKeys.None)
+                return;
+            if (e.Key == Key.Space)
+                activate();
+            else if (e.Key == Key.Enter)
+            {
+                activate();
+                if (closes)
+                    CloseNaming(commit: true);
+            }
+            else
+                return;
+            e.Handled = true;
+        };
+        return ring;
     }
 
     /// <summary>Muestra de un color suelto para el cuadro del nombre; la elegida, con un anillo claro.</summary>
@@ -183,20 +227,23 @@ public partial class MainWindow
         return swatch;
     }
 
-    private void ChooseNamingLabel(string id)
+    // Con el ratón, el foco vuelve al nombre; con el teclado (keepFocus), se queda en lo elegido.
+    private void ChooseNamingLabel(string id, bool keepFocus = false)
     {
         _namingLabel = id;
         BuildNameChips();
-        Keyboard.Focus(NameBox);
+        if (!keepFocus)
+            Keyboard.Focus(NameBox);
     }
 
     // Un color suelto: sin etiqueta y con ese color.
-    private void ChooseNamingColor(string hex)
+    private void ChooseNamingColor(string hex, bool keepFocus = false)
     {
         _namingLabel = null;
         _namingColor = hex;
         BuildNameChips();
-        Keyboard.Focus(NameBox);
+        if (!keepFocus)
+            Keyboard.Focus(NameBox);
     }
 
     // «+ Nueva»: un campo dentro del mismo cuadro para el nombre de la etiqueta.
