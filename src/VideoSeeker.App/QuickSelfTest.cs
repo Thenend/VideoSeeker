@@ -206,10 +206,13 @@ public partial class MainWindow
                 $"menú de la barra de la zona sin ampliar, bucle ni cerrar: {string.Join(" | ", zoneEntries)}");
             await InspectMenu("de la barra de la zona", "menu-zona");
             // Clic en el nombre de la región junto a la zona: el menú de ese bookmark (lleva su nombre arriba).
-            OnZoneNameClick(ZoneName, new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left));
+            OnZoneNameClick(ZoneName, new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
+            {
+                RoutedEvent = UIElement.MouseLeftButtonUpEvent,
+            });
             await Task.Delay(300);
             var nameEntries = OpenContextMenus().FirstOrDefault() is { } nameMenu ? MenuEntries(nameMenu.Items).ToList() : new List<string>();
-            Check(nameEntries.FirstOrDefault() == probe?.Name, $"clic en el nombre de la zona: menú del bookmark ({string.Join(" | ", nameEntries)})");
+            Check(nameEntries.FirstOrDefault() == probe.Name, $"clic en el nombre de la zona: menú del bookmark ({string.Join(" | ", nameEntries)})");
             await InspectMenu("del nombre de la zona", "menu-nombre-zona");
             Select(null);
             ApplyZone(null);
