@@ -76,6 +76,8 @@ public sealed class EnglishStrings : Strings
     public override string CachedLine => "Green line for cached frames";
     public override string MarksTip => "Shortcut: Ctrl + Shift + B.";
     public override string Marks => "Bookmarks on the bars";
+    public override string PulseMarksTip => "When you create or go to a bookmark while they're hidden, their button (bottom right) pulses a few times.";
+    public override string PulseMarks => "Remind me when they're hidden";
     public override string SectionNavigation => "NAVIGATION";
     public override string SecondsUnit => "s";
     public override string SeekTip => "Seconds jumped by each arrow key press: alone, with Shift or with Ctrl.";

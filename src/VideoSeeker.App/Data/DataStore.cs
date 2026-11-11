@@ -45,6 +45,8 @@ public sealed class Settings
     public bool HoverPreview { get; set; } = true;
     /// <summary>Línea verde de la caché de frames bajo las barras (la caché funciona igual sin ella).</summary>
     public bool ShowCachedFrames { get; set; }
+    /// <summary>Con las marcas ocultas, al crear un bookmark o ir a uno, su botón late unas veces (para ver por qué no salen).</summary>
+    public bool PulseHiddenMarks { get; set; } = true;
     /// <summary>Segundos que saltan ← / → (y la rueda sobre la barra principal), con Shift y con Ctrl.</summary>
     public double SeekSeconds { get; set; } = 5;
     public double SeekSecondsShift { get; set; } = 1;
@@ -113,6 +115,7 @@ public sealed class Settings
         HoverPreview = d.HoverPreview;
         ShowCachedFrames = d.ShowCachedFrames;
         ShowBookmarkMarks = d.ShowBookmarkMarks;
+        PulseHiddenMarks = d.PulseHiddenMarks;
         SeekSeconds = d.SeekSeconds;
         SeekSecondsShift = d.SeekSecondsShift;
         SeekSecondsCtrl = d.SeekSecondsCtrl;

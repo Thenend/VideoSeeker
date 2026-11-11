@@ -76,6 +76,8 @@ public sealed class FrenchStrings : Strings
     public override string CachedLine => "Ligne verte du cache d'images";
     public override string MarksTip => "Raccourci : Ctrl + Maj + B.";
     public override string Marks => "Repères des signets";
+    public override string PulseMarksTip => "Quand vous créez un signet ou y allez alors qu'ils sont masqués, leur bouton (en bas à droite) pulse quelques fois.";
+    public override string PulseMarks => "Signaler s'ils sont masqués";
     public override string SectionNavigation => "NAVIGATION";
     public override string SecondsUnit => "s";
     public override string SeekTip => "Secondes que saute chaque flèche : seule, avec Maj ou avec Ctrl.";

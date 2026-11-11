@@ -994,7 +994,7 @@ public partial class MainWindow
     /// </summary>
     private void PulseMarksButton()
     {
-        if (_store.Settings.ShowBookmarkMarks || _marksPulsing)
+        if (_store.Settings.ShowBookmarkMarks || !_store.Settings.PulseHiddenMarks || _marksPulsing)
             return;
         _marksPulsing = true;
         MarksPulseCount++;

@@ -288,6 +288,11 @@
                             <CheckBox DockPanel.Dock="Right" x:Name="MarksCheck" Style="{StaticResource Switch}" />
                             <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr MarksTip}" Text="{l:Tr Marks}" />
                         </DockPanel>
+                        <Rectangle Style="{StaticResource Divider}" />
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" x:Name="PulseMarksCheck" Style="{StaticResource Switch}" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr PulseMarksTip}" Text="{l:Tr PulseMarks}" />
+                        </DockPanel>
                     </StackPanel>
                 </Border>
 

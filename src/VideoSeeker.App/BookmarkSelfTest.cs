@@ -270,6 +270,13 @@ public partial class MainWindow
                 Check(MarksPulseCount == pulses + 1, "ir a otro mientras late no lo vuelve a empezar");
                 await Task.Delay(150);
                 SaveIcons(Path.Combine(_store.Folder, "selftest-iconos-latido.png"));
+                // Sin el aviso en los ajustes, no late.
+                StopMarksPulse();
+                var pulse = _store.Settings.PulseHiddenMarks;
+                _store.Settings.PulseHiddenMarks = false;
+                JumpTo(zoneMark);
+                Check(MarksPulseCount == pulses + 1 && !_marksPulsing, "con el aviso quitado en los ajustes, no late");
+                _store.Settings.PulseHiddenMarks = pulse;
             }
             ToggleMarks();
             Check(Seek.ShowBookmarks && Zoom.ShowBookmarks, "y las vuelve a mostrar");

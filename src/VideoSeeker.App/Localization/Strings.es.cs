@@ -76,6 +76,8 @@ public sealed class SpanishStrings : Strings
     public override string CachedLine => "Línea verde de la caché de frames";
     public override string MarksTip => "Atajo: Ctrl + Shift + B.";
     public override string Marks => "Marcas de los bookmarks";
+    public override string PulseMarksTip => "Al crear un bookmark o ir a uno con las marcas ocultas, su botón (abajo a la derecha) late unas veces.";
+    public override string PulseMarks => "Avisar si están ocultas";
     public override string SectionNavigation => "NAVEGACIÓN";
     public override string SecondsUnit => "s";
     public override string SeekTip => "Segundos que salta cada flecha: sola, con Shift o con Ctrl.";
