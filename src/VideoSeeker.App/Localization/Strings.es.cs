@@ -380,6 +380,7 @@ public sealed class SpanishStrings : Strings
     // ---- Exportar clips ----
 
     public override string ExportClip => "Exportar clip";
+    public override string ExportClipOf(string? region) => $"Exportar clip {ZoneOf(region)}";
     public override string ExactOriginal => "Original exacto";
     public override string ExactOriginalTip => "Mismo códec y bitrate, cortado en el frame exacto";
     public override string CopyOriginal(string start) => $"Original sin recodificar · {start}";

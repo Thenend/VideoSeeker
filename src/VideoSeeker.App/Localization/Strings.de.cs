@@ -380,6 +380,7 @@ public sealed class GermanStrings : Strings
     // ---- Exportar clips ----
 
     public override string ExportClip => "Clip exportieren";
+    public override string ExportClipOf(string? region) => $"Clip {ZoneOf(region)} exportieren";
     public override string ExactOriginal => "Exaktes Original";
     public override string ExactOriginalTip => "Gleicher Codec und gleiche Bitrate, am exakten Frame geschnitten";
     public override string CopyOriginal(string start) => $"Original ohne Neukodierung · {start}";

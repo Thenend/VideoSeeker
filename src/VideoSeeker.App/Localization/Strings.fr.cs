@@ -380,6 +380,7 @@ public sealed class FrenchStrings : Strings
     // ---- Exportar clips ----
 
     public override string ExportClip => "Exporter un clip";
+    public override string ExportClipOf(string? region) => $"Exporter un clip {ZoneOf(region)}";
     public override string ExactOriginal => "Original exact";
     public override string ExactOriginalTip => "Même codec et même débit, coupé à l'image exacte";
     public override string CopyOriginal(string start) => $"Original sans réencodage · {start}";

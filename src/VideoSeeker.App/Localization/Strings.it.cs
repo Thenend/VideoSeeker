@@ -380,6 +380,7 @@ public sealed class ItalianStrings : Strings
     // ---- Exportar clips ----
 
     public override string ExportClip => "Esporta clip";
+    public override string ExportClipOf(string? region) => $"Esporta clip {ZoneOf(region)}";
     public override string ExactOriginal => "Originale esatto";
     public override string ExactOriginalTip => "Stesso codec e bitrate, tagliato al fotogramma esatto";
     public override string CopyOriginal(string start) => $"Originale senza ricodifica · {start}";

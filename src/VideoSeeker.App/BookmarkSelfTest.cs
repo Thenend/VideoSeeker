@@ -250,6 +250,7 @@ public partial class MainWindow
             var zoneName = ZoneBookmark?.Name ?? "?";
             Check(videoMenu.Any(h => h.Contains($"como miniatura de «{zoneName}»")) && videoMenu.Any(h => h.Contains($"al inicio de «{zoneName}»"))
                     && videoMenu.Any(h => h.Contains($"al fin de «{zoneName}»")) && videoMenu.Any(h => h.Contains("Explorador"))
+                    && videoMenu.Any(h => h == $"Exportar clip de «{zoneName}»")
                     && videoMenu.Any(h => h.StartsWith("Ampliar")),
                 $"menú de la imagen: {string.Join(" | ", videoMenu)}");
             // Cada opción lleva su dibujo para reconocerla sin leerla, salvo el panel (la marca ya lo distingue).

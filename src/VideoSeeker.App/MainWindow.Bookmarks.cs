@@ -838,7 +838,7 @@ public partial class MainWindow
     // Clic derecho sobre la imagen sin arrastrar: lo que tiene que ver con el frame que se ve. Ampliar sección, como Z,
     // alrededor de él (Mario, 11 de noviembre: aquí y no en el menú de la barra de la zona). La miniatura es de la región
     // seleccionada o, si no hay, de la región en la que se está (la del texto bajo el vídeo); inicio y fin, como I / O,
-    // de la zona.
+    // de la zona; el clip, de la zona o, sin ella, de esa región.
     private void ShowVideoMenu()
     {
         if (BuildVideoMenu() is { } menu)
@@ -858,6 +858,11 @@ public partial class MainWindow
         if (_zoomRange != null)
             AddMarkFromScreenItems(menu);
         menu.Items.Add(new Separator());
+        // Exportar clip de la zona (región o tramo libre) o, sin zona, de la región en la que se está (Mario, 11 de noviembre).
+        if (ExportTarget() is { } zone)
+            AddExportMenu(menu, zone.Video, zone.Start, zone.End, zone.Name, S.ExportClipOf(zone.Name));
+        else if (RegionAtPosition() is { } here)
+            AddExportMenu(menu, _bookmarks.VideoPath, here.Start, EndOf(here), here.Name, S.ExportClipOf(here.Name), zone: false);
         AddRevealItem(menu, _bookmarks.VideoPath);
         menu.Items.Add(new Separator());
         // Como el botón: abre o cierra sin más, con la marca si está abierto (desde el menú el teclado nunca está

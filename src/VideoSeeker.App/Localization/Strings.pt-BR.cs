@@ -380,6 +380,7 @@ public sealed class PortugueseBrazilStrings : Strings
     // ---- Exportar clips ----
 
     public override string ExportClip => "Exportar clipe";
+    public override string ExportClipOf(string? region) => $"Exportar clipe {ZoneOf(region)}";
     public override string ExactOriginal => "Original exato";
     public override string ExactOriginalTip => "Mesmo codec e bitrate, cortado no quadro exato";
     public override string CopyOriginal(string start) => $"Original sem recodificar · {start}";

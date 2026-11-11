@@ -730,6 +730,8 @@ public abstract class Strings
 
     /// <summary>Exportar clip</summary>
     public abstract string ExportClip { get; }
+    /// <summary>Exportar clip de «{region}» / del tramo (menú de la imagen)</summary>
+    public abstract string ExportClipOf(string? region);
     /// <summary>Original exacto</summary>
     public abstract string ExactOriginal { get; }
     /// <summary>Mismo códec y bitrate, cortado en el frame exacto</summary>

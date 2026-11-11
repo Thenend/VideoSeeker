@@ -62,9 +62,10 @@ public partial class MainWindow
     }
 
     /// <summary>El submenú «Exportar clip» con las tres maneras, para un tramo de un vídeo.</summary>
-    private void AddExportMenu(ItemsControl menu, string? video, double start, double end, string? name)
+    // Con la claqueta. "header" cambia el texto (en el menú de la imagen dice de qué es el clip); Ctrl + M solo si exporta la zona.
+    private void AddExportMenu(ItemsControl menu, string? video, double start, double end, string? name, string? header = null, bool zone = true)
     {
-        var export = new MenuItem { Header = S.ExportClip, InputGestureText = $"{S.KeyCtrl}+M" };
+        var export = WithIcon(new MenuItem { Header = header ?? S.ExportClip, InputGestureText = zone ? $"{S.KeyCtrl}+M" : "" }, "ClipMenuIcon");
         if (video == null || !File.Exists(video) || end <= start)
         {
             export.IsEnabled = false;
