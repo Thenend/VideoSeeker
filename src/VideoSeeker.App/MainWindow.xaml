@@ -121,6 +121,8 @@
         <StackPanel>
         <c:SeekBar x:Name="Seek" Margin="8,4,8,0" />
 
+        <!-- Se abre y se cierra en altura, quieta, mientras la barra de arriba sube o baja (Reveal). -->
+        <c:Reveal x:Name="ZoomReveal" Orientation="Vertical" Fade="True">
         <Border x:Name="ZoomRow" Margin="8,2,8,2" Background="{StaticResource Panel}" CornerRadius="4"
                 Visibility="Collapsed">
             <DockPanel>
@@ -146,6 +148,7 @@
                 <c:ZoomBar x:Name="Zoom" />
             </DockPanel>
         </Border>
+        </c:Reveal>
 
         <!-- Controles: a la izquierda abrir y los tiempos; en el centro, como en los editores, frame atrás, reproducir,
              frame adelante y el bucle; a la derecha, volumen, pistas, ajustes, pantalla completa y bookmarks. -->
@@ -252,7 +255,8 @@
 
         <!-- Panel de bookmarks: a la derecha del vídeo y solo a su altura, para que las barras y los botones de abajo no
              se muevan. El vídeo se estrecha (la imagen es una ventana nativa y no se puede tapar). -->
-        <Border x:Name="BookmarkPanel" Grid.Column="1" Width="330" MinWidth="260" Background="{StaticResource Panel}"
+        <c:Reveal x:Name="PanelReveal" Grid.Column="1" Slide="True">
+        <Border x:Name="BookmarkPanel" Width="330" MinWidth="260" Background="{StaticResource Panel}"
                 BorderBrush="{StaticResource Line}" BorderThickness="1,0,0,1" Visibility="Collapsed">
           <Grid>
             <DockPanel Margin="8">
@@ -359,6 +363,7 @@
             </Thumb>
           </Grid>
         </Border>
+        </c:Reveal>
 
         <!-- Nombre de un bookmark nuevo o renombrado, encima de su marca en la barra. -->
         <Popup x:Name="NamePopup" AllowsTransparency="True" StaysOpen="False" Placement="Top" Closed="OnNamePopupClosed">

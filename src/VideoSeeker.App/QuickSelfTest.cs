@@ -113,7 +113,7 @@ public partial class MainWindow
         }
 
         Bookmark? probe = null;
-        var panelWasOpen = BookmarkPanel.Visibility == Visibility.Visible;
+        var panelWasOpen = PanelOpen;
         try
         {
             // Arranque: el vídeo se abre, se ve y el motor de inspección arranca.
@@ -268,7 +268,7 @@ public partial class MainWindow
             _settingsWindow?.Close();
             if (probe != null)
                 _bookmarks?.Remove(probe.Id);
-            if (!panelWasOpen && BookmarkPanel.Visibility == Visibility.Visible)
+            if (!panelWasOpen && PanelOpen)
                 ToggleOpenPanel();
         }
         List<string> errors;

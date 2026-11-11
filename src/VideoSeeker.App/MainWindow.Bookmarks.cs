@@ -868,7 +868,7 @@ public partial class MainWindow
         menu.Items.Add(new Separator());
         // Como el botón: abre o cierra sin más, con la marca si está abierto (desde el menú el teclado nunca está
         // en el panel, así que el Ctrl + B de TogglePanel nunca lo cerraría).
-        var open = BookmarkPanel.Visibility == Visibility.Visible;
+        var open = PanelOpen;
         var panel = new MenuItem { Header = S.BookmarksPanel, InputGestureText = $"{S.KeyCtrl}+B", IsCheckable = true, IsChecked = open };
         panel.Click += (_, _) => ToggleOpenPanel();
         menu.Items.Add(panel);
@@ -1207,15 +1207,18 @@ public partial class MainWindow
     // el buscador; si ya lo tiene, lo cierra. Esc o un clic fuera devuelven el teclado al vídeo.
     private void TogglePanel()
     {
-        if (BookmarkPanel.Visibility == Visibility.Visible && BookmarkPanel.IsKeyboardFocusWithin)
+        if (PanelOpen && BookmarkPanel.IsKeyboardFocusWithin)
             ShowPanel(false);
         else
             OpenSearch();
     }
 
+    /// <summary>Si el panel está abierto (aunque aún se esté abriendo o cerrando).</summary>
+    private bool PanelOpen => PanelReveal.IsOpen;
+
     private void ShowPanel(bool show)
     {
-        BookmarkPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        PanelReveal.SetOpen(show);
         BookmarksButton.Foreground = (Brush)FindResource(show ? "Accent" : "Fg");
         _otherFiles = null;
         if (show)
@@ -1271,7 +1274,7 @@ public partial class MainWindow
 
     private void ToggleOpenPanel()
     {
-        if (BookmarkPanel.Visibility == Visibility.Visible)
+        if (PanelOpen)
             ShowPanel(false);
         else
             OpenSearch();
@@ -1320,7 +1323,7 @@ public partial class MainWindow
 
     private void RefreshRows()
     {
-        if (BookmarkPanel == null || BookmarkPanel.Visibility != Visibility.Visible)
+        if (PanelReveal == null || !PanelOpen)
             return;
         var terms = Fold(BookmarkSearch.Text).Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var all = ScopeAll.IsChecked == true;
@@ -1883,7 +1886,7 @@ public partial class MainWindow
         // Al abrir el bookmark de otro vídeo la fila del zoom se queda abierta esperando su región (Open): si ya no
         // está, se cierra.
         if (_zoomRange == null)
-            ZoomRow.Visibility = Visibility.Collapsed;
+            ShowZoomRow(false);
     }
 
     // El teclado vuelve al vídeo: flechas, espacio, etc. dejan de ir a la lista o al buscador. Hay que olvidar

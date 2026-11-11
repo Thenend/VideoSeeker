@@ -257,6 +257,10 @@ public abstract class Strings
     public abstract string InterfaceLanguage { get; }
     /// <summary>El idioma de VideoSeeker. Automático: el de Windows. El cambio se aplica al reiniciar.</summary>
     public abstract string InterfaceLanguageTip { get; }
+    /// <summary>Animar los paneles</summary>
+    public abstract string AnimatePanels { get; }
+    /// <summary>El panel de bookmarks y la barra del zoom se abren y se cierran deslizándose.</summary>
+    public abstract string AnimatePanelsTip { get; }
     /// <summary>Automático · {language}</summary>
     public abstract string AutomaticLanguage(string language);
     /// <summary>El nuevo idioma se usará al reiniciar VideoSeeker.</summary>

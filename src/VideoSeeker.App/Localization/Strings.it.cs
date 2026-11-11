@@ -133,6 +133,8 @@ public sealed class ItalianStrings : Strings
     public override string SectionGeneral => "GENERALE";
     public override string InterfaceLanguage => "Lingua";
     public override string InterfaceLanguageTip => "La lingua di VideoSeeker. Automatica: quella di Windows. La modifica si applica al riavvio.";
+    public override string AnimatePanels => "Anima i pannelli";
+    public override string AnimatePanelsTip => "Il pannello dei segnalibri e la barra dello zoom si aprono e si chiudono scorrendo.";
     public override string AutomaticLanguage(string language) => $"Automatica · {language}";
     public override string LanguageChangedRestart => "La nuova lingua verrà usata al riavvio di VideoSeeker.";
     public override string LanguageCaption => "Lingua";

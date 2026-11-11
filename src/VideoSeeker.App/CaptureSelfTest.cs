@@ -118,7 +118,7 @@ public partial class MainWindow
             Check(set.Items.Count == CaptureBookmarks.Length, $"{set.Items.Count} bookmarks de prueba");
 
             PlaceForCapture(Log);
-            if (BookmarkPanel.Visibility == Visibility.Visible)
+            if (PanelOpen)
                 ShowPanel(false);
 
             async Task Show(double time, int waitMs = 2500)

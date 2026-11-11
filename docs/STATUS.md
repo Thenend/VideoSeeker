@@ -117,6 +117,11 @@ Actualizado el 9 de noviembre de 2026. Plan completo en [PLAN.md](PLAN.md); medi
 
 - Todos los avisos breves (velocidad, bucle, volumen, bookmark elegido, deshacer…) salen **centrados abajo** sobre la imagen, a 22 pt y con fondo oscuro, en vez de pequeños arriba a la izquierda. Pulsar un bookmark en las barras también enseña su nombre, como en el panel. Si sale otro aviso mientras se ve uno, solo cambia el texto (antes se cerraba y reabría y parpadeaba); al acabar se desvanece en 0,4 s.
 
+### Paneles animados
+
+- El **panel de bookmarks** entra deslizándose desde la derecha y la **fila de la zona ampliada** se abre en altura (y se funde), en 200 ms frenando al final; la imagen se estrecha o se hace más baja a la vez, poco a poco (`Controls/Reveal.cs`, petición de Mario, 11 de noviembre). Como la imagen es una ventana nativa, no se desliza: se le cambia de verdad el tamaño en cada frame de la animación (mpv y el motor la vuelven a pintar). Cerrar o abrir a medio camino da la vuelta desde donde está. Lo que vale es `Reveal.IsOpen` (`PanelOpen`): mientras se cierra aún se ve, pero ya no se puede tocar.
+- Ajuste «Animar los paneles» en General (por defecto sí). Tampoco se anima con las animaciones de Windows quitadas ni en las autopruebas, que miran la ventana justo después de abrir o cerrar; la de `bookmarks` las prueba aparte (`RevealSelfTest.cs`: pasos, siempre hacia el mismo lado, final exacto, frame más lento, dar la vuelta, capturas `selftest-animacion-*.png` a mitad de camino).
+
 ### Pantalla completa sin interfaz
 
 - En pantalla completa (F, Enter, doble clic) las barras y los botones desaparecen y la imagen ocupa toda la pantalla. Salen, flotando sobre la parte de abajo de la imagen (ControlsPopup, semitransparente; la imagen no cambia de tamaño), al llevar el ratón a esa franja, y se esconden 1,5 s después de salir de ella. No se esconden mientras se arrastra algo de ellos, hay un menú abierto o se pone nombre a un bookmark. El cursor se esconde a los 2 s con el ratón quieto sobre la imagen. Los avisos salen por encima de los controles si están a la vista.

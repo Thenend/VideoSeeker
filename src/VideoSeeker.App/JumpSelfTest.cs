@@ -18,7 +18,7 @@ public partial class MainWindow
     private Func<bool> WatchSmoothOpen()
     {
         var closed = false;
-        void Watch(object? sender, EventArgs e) => closed |= ZoomRow.Visibility != System.Windows.Visibility.Visible;
+        void Watch(object? sender, EventArgs e) => closed |= !ZoomReveal.IsOpen;
         LayoutUpdated += Watch;
         return () =>
         {
@@ -63,7 +63,7 @@ public partial class MainWindow
                     grid.TimeOf(grid.FrameAt(_duration * p + length)), "#4A9EFF", null))
                 .ToList();
             // El panel abierto, para ir desde sus filas.
-            BookmarkPanel.Visibility = System.Windows.Visibility.Visible;
+            PanelReveal.SetOpen(true);
             RefreshRows();
 
             async Task SetPlaying(bool playing)
@@ -193,7 +193,7 @@ public partial class MainWindow
                     ids[1] = _bookmarks.Add("Otro", 0, _duration, "#4A9EFF", null).Id;
                     Open(videoPath);
                     await WaitOpened(videoPath);
-                    BookmarkPanel.Visibility = System.Windows.Visibility.Visible;
+                    PanelReveal.SetOpen(true);
                     ScopeAll.IsChecked = true;
                     _otherFiles = null;
                     RefreshRows();

@@ -46,6 +46,10 @@ public partial class MainWindow
         }
         if (Seek.ShowBookmarks != s.ShowBookmarkMarks)
             ApplyMarksVisibility();
+        // Sin animar si en Windows están quitadas (Accesibilidad > Efectos visuales) y en las autopruebas, que miran
+        // la ventana justo después de abrir o cerrar algo (la de los bookmarks las prueba aparte).
+        Reveal.Animate = s.AnimatePanels && SystemParameters.ClientAreaAnimation
+            && Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") == null;
 
         // Idiomas y subtítulos: al abrir el siguiente vídeo.
         _player.AudioLanguages = Languages.MpvList(s.AudioLanguage);
@@ -111,6 +115,7 @@ public partial class MainWindow
             Check(!d.ShowCachedFrames, "por defecto no se ve la línea verde");
             Check(d.ShowBookmarkMarks, "por defecto se ven las marcas de los bookmarks");
             Check(d.PulseHiddenMarks, "por defecto, con las marcas ocultas, su botón late al crear un bookmark o ir a uno");
+            Check(d.AnimatePanels, "por defecto el panel de bookmarks y la fila del zoom se abren animados");
             Check(d.SeekSeconds == 5 && d.SeekSecondsShift == 1 && d.SeekSecondsCtrl == 30, "saltos 5 / 1 / 30 s");
             Check(d.ScrubPixelsPerFrame == 6, "scrubbing 6 px por frame");
             Check(d.WheelOnVideo == Settings.WheelSpeed, "la rueda sobre el vídeo cambia la velocidad");

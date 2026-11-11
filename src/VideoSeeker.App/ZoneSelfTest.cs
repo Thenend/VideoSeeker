@@ -319,7 +319,7 @@ public partial class MainWindow
             Select(a.Id);
             ReturnFocusToVideo();
             OnPreviewKeyDown(this, new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(this)!, 0, Key.Escape) { RoutedEvent = PreviewKeyDownEvent });
-            Check(_zoomRange == null && _selectedBookmark == null && ZoomRow.Visibility != Visibility.Visible, "Esc cierra la zona y deselecciona");
+            Check(_zoomRange == null && _selectedBookmark == null && !ZoomReveal.IsOpen, "Esc cierra la zona y deselecciona");
 
             // Borrar la región deja la zona libre con los mismos límites.
             Select(c!.Id);

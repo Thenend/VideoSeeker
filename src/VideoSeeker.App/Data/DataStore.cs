@@ -102,6 +102,8 @@ public sealed class Settings
     /// reiniciar; no vuelve al de por defecto al restablecer los ajustes.
     /// </summary>
     public string? UiLanguage { get; set; }
+    /// <summary>El panel de bookmarks y la fila del zoom se abren y se cierran animados (Controls.Reveal).</summary>
+    public bool AnimatePanels { get; set; } = true;
 
     /// <summary>
     /// Vuelve a los valores por defecto lo que se cambia en la ventana de ajustes (no el volumen, la colección ni el
@@ -134,6 +136,7 @@ public sealed class Settings
         ClipFolder = d.ClipFolder;
         CopyClipToClipboard = d.CopyClipToClipboard;
         LightClipMegabytesPerSecond = d.LightClipMegabytesPerSecond;
+        AnimatePanels = d.AnimatePanels;
     }
 }
 

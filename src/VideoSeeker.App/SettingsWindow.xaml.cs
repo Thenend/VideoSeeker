@@ -45,6 +45,7 @@ public partial class SettingsWindow : Window
         Bind(CachedLineCheck, v => s.ShowCachedFrames = v);
         Bind(MarksCheck, v => s.ShowBookmarkMarks = v);
         Bind(PulseMarksCheck, v => s.PulseHiddenMarks = v);
+        Bind(AnimatePanelsCheck, v => s.AnimatePanels = v);
         BindNumber(SeekBox, v => s.SeekSeconds = v);
         BindNumber(SeekShiftBox, v => s.SeekSecondsShift = v);
         BindNumber(SeekCtrlBox, v => s.SeekSecondsCtrl = v);
@@ -149,6 +150,7 @@ public partial class SettingsWindow : Window
             CachedLineCheck.IsChecked = s.ShowCachedFrames;
             MarksCheck.IsChecked = s.ShowBookmarkMarks;
             PulseMarksCheck.IsChecked = s.PulseHiddenMarks;
+            AnimatePanelsCheck.IsChecked = s.AnimatePanels;
             SetNumber(SeekBox, s.SeekSeconds);
             SetNumber(SeekShiftBox, s.SeekSecondsShift);
             SetNumber(SeekCtrlBox, s.SeekSecondsCtrl);

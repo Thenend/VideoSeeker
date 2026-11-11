@@ -447,6 +447,11 @@
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" x:Name="AnimatePanelsCheck" Style="{StaticResource Switch}" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr AnimatePanelsTip}" Text="{l:Tr AnimatePanels}" />
+                        </DockPanel>
+                        <Rectangle Style="{StaticResource Divider}" />
+                        <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Style="{StaticResource DarkButton}" Content="{l:Tr Open}" Click="OnOpenDataFolderClick" Margin="10,0,0,0" />
                                 <Button Style="{StaticResource DarkButton}" Content="{l:Tr ChangeEllipsis}" Click="OnChangeDataFolderClick" Margin="6,0,0,0" />

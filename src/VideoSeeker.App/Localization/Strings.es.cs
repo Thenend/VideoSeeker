@@ -133,6 +133,8 @@ public sealed class SpanishStrings : Strings
     public override string SectionGeneral => "GENERAL";
     public override string InterfaceLanguage => "Idioma";
     public override string InterfaceLanguageTip => "El idioma de VideoSeeker. Automático: el de Windows. El cambio se aplica al reiniciar.";
+    public override string AnimatePanels => "Animar los paneles";
+    public override string AnimatePanelsTip => "El panel de bookmarks y la barra del zoom se abren y se cierran deslizándose.";
     public override string AutomaticLanguage(string language) => $"Automático · {language}";
     public override string LanguageChangedRestart => "El nuevo idioma se usará al reiniciar VideoSeeker.";
     public override string LanguageCaption => "Idioma";

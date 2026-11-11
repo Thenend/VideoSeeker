@@ -298,6 +298,9 @@ public partial class MainWindow
             if (!shown)
                 ToggleMarks();
 
+            // Animaciones del panel y de la fila del zoom (en las demás pruebas van de golpe).
+            await TestRevealAnimations(Log, Check);
+
             // Panel: Ctrl + B lo abre con el buscador enfocado; búsqueda sin tildes ni mayúsculas.
             TogglePanel();
             await Task.Delay(100);

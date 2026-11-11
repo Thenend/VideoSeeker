@@ -176,7 +176,7 @@ public partial class MainWindow
         _history.Record(S.StepImportCollection(name), "", entries);
         _importedCollections[name] = _store.Settings.BookmarkCollection;
         SetCollection(name, announce: false, showAll: true);
-        if (BookmarkPanel.Visibility != Visibility.Visible)
+        if (!PanelOpen)
             ShowPanel(true);
         var count = videos.Sum(v => v.Bookmarks.Count);
         ShowToast(S.CollectionAdded(name, S.VideoCount(videos.Count), S.BookmarkCount(count)));

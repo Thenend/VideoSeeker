@@ -462,7 +462,7 @@ public partial class MainWindow : Window
         var zoneComing = _pendingSelect != null;
         CloseZone();
         if (zoneComing)
-            ZoomRow.Visibility = Visibility.Visible;
+            ShowZoomRow(true);
         _awaitingDuration = true;
         // Con "keepPause" se sigue como estaba. Hay que mirarlo antes de OnFileOpening, que para el bucle desde la caché
         // dejando la pausa puesta: con un vídeo corto entero en caché y el bucle del vídeo, ir al bookmark de otro
@@ -487,6 +487,9 @@ public partial class MainWindow : Window
         _saveTimer.Start();
     }
 
+    /// <summary>Abre o cierra la fila de la zona ampliada (animada, Reveal); ZoomReveal.IsOpen dice cómo queda.</summary>
+    private void ShowZoomRow(bool show) => ZoomReveal.SetOpen(show);
+
     private void ShowKnownVideo(double duration)
     {
         SetDuration(duration);
@@ -494,7 +497,7 @@ public partial class MainWindow : Window
         if (ZoneBookmark is { } b)
             ApplyZone((b.Start, EndOf(b)), exact: true);
         else if (_zoomRange == null)
-            ZoomRow.Visibility = Visibility.Collapsed;
+            ShowZoomRow(false);
         UpdateTimeText();
     }
 
@@ -627,7 +630,7 @@ public partial class MainWindow : Window
         Seek.Zoom = range;
         if (range is { } z && !_freezeZoomView)
             Zoom.SetRange(z.Start, z.End);
-        ZoomRow.Visibility = range != null ? Visibility.Visible : Visibility.Collapsed;
+        ShowZoomRow(range != null);
         _nav.SetRegion(range);
         ApplyLoop();
         UpdateZoomUi();
@@ -1301,7 +1304,7 @@ public partial class MainWindow : Window
             case Key.Escape when _zoomRange != null || _selectedBookmark != null:
                 CloseZone();
                 break;
-            case Key.Escape when BookmarkPanel.Visibility == Visibility.Visible:
+            case Key.Escape when PanelOpen:
                 ShowPanel(false);
                 break;
             case Key.Z:

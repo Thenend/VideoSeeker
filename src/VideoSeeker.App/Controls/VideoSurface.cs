@@ -47,6 +47,8 @@ public sealed partial class VideoSurface : IDisposable
     private (int Time, (int X, int Y) Point)? _lastClick;
 
     public nint Handle { get; private set; }
+    /// <summary>Dónde está ahora la ventana nativa, en píxeles físicos dentro de la de la app (para las autopruebas).</summary>
+    public (int X, int Y, int W, int H) Placement => (_lastPlacement.X, _lastPlacement.Y, _lastPlacement.W, _lastPlacement.H);
 
     public event Action? Clicked;
     public event Action? DoubleClicked;
