@@ -380,7 +380,7 @@ public sealed class EnglishStrings : Strings
     // ---- Exportar clips ----
 
     public override string ExportClip => "Export clip";
-    public override string ExportClipOf(string? region) => $"Export clip of {ZoneOf(region)}";
+    public override string ExportClipOf(string? region) => region is null ? "Export clip of the zoomed range" : $"Export clip of “{region}”";
     public override string ExactOriginal => "Exact original";
     public override string ExactOriginalTip => "Same codec and bitrate, cut at the exact frame";
     public override string CopyOriginal(string start) => $"Original, no re-encoding · {start}";
