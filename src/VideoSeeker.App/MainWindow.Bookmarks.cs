@@ -888,13 +888,14 @@ public partial class MainWindow
     }
 
     // Pone a una opción de menú uno de los iconos de MainWindow.xaml, del tamaño y trazo de los de los botones, para
-    // reconocerla sin leer el texto (Mario, 11 de noviembre: las del menú de la imagen son largas). Del color del texto.
+    // reconocerla sin leer el texto (Mario, 11 de noviembre: las del menú de la imagen son largas). Del color del texto,
+    // al 80 % para que no se peguen a él (el trazo, más grueso, queda como el de los botones tras reducir).
     private MenuItem WithIcon(MenuItem item, string geometryKey)
     {
         MenuIcon.SetGlyph(item, new System.Windows.Shapes.Path
         {
             Data = (Geometry)FindResource(geometryKey),
-            Width = 19, Height = 17, StrokeThickness = 1.3,
+            Width = 19, Height = 17, StrokeThickness = 1.6, LayoutTransform = new ScaleTransform(0.8, 0.8),
             StrokeLineJoin = PenLineJoin.Round, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round,
             Stroke = (Brush)FindResource("Fg"),
             SnapsToDevicePixels = true,
