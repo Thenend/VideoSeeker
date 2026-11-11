@@ -613,10 +613,10 @@ public partial class MainWindow
             (Keyboard.FocusedElement as UIElement)?.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
             order.Add(Keyboard.FocusedElement switch
             {
-                System.Windows.Controls.Border { Tag: string k } => k,
+                System.Windows.Controls.Border { Tag: string tag } => tag,
                 System.Windows.Controls.Button b when b == NameAccept => "ok",
                 System.Windows.Controls.TextBox t when t == NameBox => "nombre",
-                var other => other?.GetType().Name ?? "nada",
+                var focusedElse => focusedElse?.GetType().Name ?? "nada",
             });
         }
         var expected = _labels.Labels.Select(l => "label:" + l.Id).Append("add").Concat(BookmarkColors.Palette.Select(c => "color:" + c.Hex))
