@@ -76,8 +76,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string CachedLine => "Linha verde do cache de quadros";
     public override string MarksTip => "Atalho: Ctrl + Shift + B.";
     public override string Marks => "Marcadores nas barras";
-    public override string PulseMarksTip => "Ao criar um marcador ou ir para um com eles ocultos, o botão deles (no canto inferior direito) pulsa algumas vezes.";
-    public override string PulseMarks => "Avisar quando estiverem ocultos";
+    public override string PulseMarksTip => "Com eles ocultos, ao criar um marcador ou ir para um, o botão deles (no canto inferior direito) pisca algumas vezes. Nenhuma mensagem aparece.";
+    public override string PulseMarks => "Piscar o botão quando estiverem ocultos";
     public override string SectionNavigation => "NAVEGAÇÃO";
     public override string SecondsUnit => "s";
     public override string SeekTip => "Segundos que cada seta pula: sozinha, com Shift ou com Ctrl.";

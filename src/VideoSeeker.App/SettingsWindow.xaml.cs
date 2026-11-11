@@ -102,13 +102,38 @@ public partial class SettingsWindow : Window
             DefaultFolderButton.ToolTip = S.DefaultFolderPackagedTip;
         }
         PreviewKeyDown += OnKeyDown;
+        // Como mucho el alto de la pantalla donde está la app, y centrada en la app y entera dentro de esa pantalla.
+        // La pantalla se toma de la app: esta ventana aún no tiene sitio al crearse (Windows la pone en la principal),
+        // y con varias pantallas de distinto alto, o una encima de otra, salía más alta que la de la app y por fuera.
         SourceInitialized += (_, _) =>
         {
             Dialog.UseDarkTitleBar(this);
-            // Como mucho el alto de la pantalla donde está la app (no la principal), y entera dentro de ella.
-            MaxHeight = Dialog.WorkAreaOf(Owner ?? this).Height - 40;
+            _area = Dialog.WorkAreaOf(Owner ?? this);
+            MaxHeight = Math.Max(MinHeight, _area.Height - 60);
+            // De momento, en esa pantalla; al saber su alto se centra (Loaded).
+            Left = _area.Left + Math.Max(0, (_area.Width - Width) / 2);
+            Top = _area.Top + 30;
         };
-        Loaded += (_, _) => Dialog.KeepInside(this, Dialog.WorkAreaOf(Owner ?? this));
+        Loaded += (_, _) => PlaceOverOwner();
+        // Si cambia de alto sola (se ajusta a lo que tiene dentro), que no se salga; si la cambia quien la usa, es suya.
+        SizeChanged += (_, e) =>
+        {
+            if (e.HeightChanged && IsLoaded && SizeToContent != SizeToContent.Manual)
+                Dialog.KeepInside(this, Dialog.WorkAreaOf(this));
+        };
+    }
+
+    private Rect _area;
+
+    // Centrada sobre la app (sobre su pantalla si está maximizada: entonces Left y Top son los de antes de maximizarla).
+    private void PlaceOverOwner()
+    {
+        var target = Owner is { WindowState: WindowState.Normal } owner
+            ? new Rect(owner.Left, owner.Top, owner.ActualWidth, owner.ActualHeight)
+            : _area;
+        Left = target.Left + (target.Width - ActualWidth) / 2;
+        Top = target.Top + (target.Height - ActualHeight) / 2;
+        Dialog.KeepInside(this, _area);
     }
 
     /// <summary>Vuelca los ajustes guardados en los controles (también si cambian por fuera, p. ej. con Ctrl + Shift + B).</summary>

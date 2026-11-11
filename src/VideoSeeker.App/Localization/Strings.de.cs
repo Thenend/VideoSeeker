@@ -76,8 +76,8 @@ public sealed class GermanStrings : Strings
     public override string CachedLine => "Grüne Linie des Frame-Caches";
     public override string MarksTip => "Tastenkürzel: Strg + Umschalt + B.";
     public override string Marks => "Lesezeichen-Markierungen";
-    public override string PulseMarksTip => "Wenn du bei ausgeblendeten Markierungen ein Lesezeichen erstellst oder zu einem springst, pulsiert ihre Schaltfläche (unten rechts) ein paar Mal.";
-    public override string PulseMarks => "Hinweis, wenn ausgeblendet";
+    public override string PulseMarksTip => "Sind sie ausgeblendet, blinkt ihre Schaltfläche (unten rechts) ein paar Mal, wenn du ein Lesezeichen erstellst oder zu einem springst. Sonst erscheint kein Hinweis.";
+    public override string PulseMarks => "Schaltfläche blinken lassen, wenn ausgeblendet";
     public override string SectionNavigation => "NAVIGATION";
     public override string SecondsUnit => "s";
     public override string SeekTip => "Sekunden pro Pfeiltastendruck: allein, mit Umschalt oder mit Strg.";

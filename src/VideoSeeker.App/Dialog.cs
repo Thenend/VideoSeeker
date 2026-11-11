@@ -103,6 +103,25 @@ public static class Dialog
             (info.Work.Right - info.Work.Left) / dpi.DpiScaleX, (info.Work.Bottom - info.Work.Top) / dpi.DpiScaleY);
     }
 
+    /// <summary>Zona de trabajo de cada pantalla, en píxeles (para las autopruebas).</summary>
+    public static List<Rect> MonitorWorkAreas()
+    {
+        var areas = new List<Rect>();
+        EnumDisplayMonitors(0, 0, (monitor, _, _, _) =>
+        {
+            var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+            if (GetMonitorInfoW(monitor, ref info))
+                areas.Add(new Rect(info.Work.Left, info.Work.Top, info.Work.Right - info.Work.Left, info.Work.Bottom - info.Work.Top));
+            return true;
+        }, 0);
+        return areas;
+    }
+
+    private delegate bool MonitorEnumProc(nint monitor, nint hdc, nint rect, nint data);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumDisplayMonitors(nint hdc, nint clip, MonitorEnumProc callback, nint data);
+
     /// <summary>Mueve la ventana lo justo para que quede entera dentro de la zona.</summary>
     public static void KeepInside(Window window, Rect area)
     {

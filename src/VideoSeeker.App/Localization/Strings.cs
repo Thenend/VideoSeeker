@@ -143,9 +143,9 @@ public abstract class Strings
     public abstract string MarksTip { get; }
     /// <summary>Marcas de los bookmarks</summary>
     public abstract string Marks { get; }
-    /// <summary>Al crear un bookmark o ir a uno con las marcas ocultas, su botón (abajo a la derecha) late unas veces.</summary>
+    /// <summary>Con las marcas ocultas, al crear un bookmark o ir a uno su botón (abajo a la derecha) parpadea unas veces. No sale ningún mensaje.</summary>
     public abstract string PulseMarksTip { get; }
-    /// <summary>Avisar si están ocultas</summary>
+    /// <summary>Hacer parpadear su botón si están ocultas</summary>
     public abstract string PulseMarks { get; }
     /// <summary>NAVEGACIÓN</summary>
     public abstract string SectionNavigation { get; }

@@ -4,7 +4,7 @@
         xmlns:l="clr-namespace:VideoSeeker.App.Localization"
         Title="{l:Tr SettingsTitle}" Width="620" SizeToContent="Height" MinWidth="520" MinHeight="300"
         Background="{StaticResource Bg}" Foreground="{StaticResource Fg}" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner" ResizeMode="CanResize" UseLayoutRounding="True">
+        WindowStartupLocation="Manual" ResizeMode="CanResize" UseLayoutRounding="True">
     <Window.Resources>
         <FontFamily x:Key="Icons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
         <SolidColorBrush x:Key="BoxBorder" Color="#5A616B" />

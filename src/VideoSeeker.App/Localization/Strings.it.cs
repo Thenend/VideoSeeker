@@ -76,8 +76,8 @@ public sealed class ItalianStrings : Strings
     public override string CachedLine => "Linea verde della cache dei fotogrammi";
     public override string MarksTip => "Scorciatoia: Ctrl + Maiusc + B.";
     public override string Marks => "Indicatori dei segnalibri";
-    public override string PulseMarksTip => "Quando crei un segnalibro o ci vai mentre sono nascosti, il loro pulsante (in basso a destra) pulsa qualche volta.";
-    public override string PulseMarks => "Avvisa se sono nascosti";
+    public override string PulseMarksTip => "Se sono nascosti, quando crei un segnalibro o ci vai il loro pulsante (in basso a destra) lampeggia qualche volta. Non compare nessun messaggio.";
+    public override string PulseMarks => "Far lampeggiare il pulsante se sono nascosti";
     public override string SectionNavigation => "NAVIGAZIONE";
     public override string SecondsUnit => "s";
     public override string SeekTip => "Secondi che salta ogni freccia: da sola, con Maiusc o con Ctrl.";

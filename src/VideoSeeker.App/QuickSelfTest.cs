@@ -13,7 +13,8 @@ namespace VideoSeeker.App;
 
 /// <summary>
 /// Prueba rápida (VIDEOSEEKER_SELFTEST=rapida), unos segundos: para cambios de textos, tooltips, menús o la ventana
-/// de ajustes, que no tocan cómo funciona nada. Comprueba que arranca y enseña el vídeo, abre la ventana de ajustes y
+/// de ajustes, que no tocan cómo funciona nada. Comprueba que arranca y enseña el vídeo, abre la ventana de ajustes
+/// (también con la app en cada pantalla, normal y maximizada, y que cabe entera en ella) y
 /// los menús principales (vídeo, bookmark, velocidad, colección) y el cuadro del nombre, y en todo ello: que no hay
 /// textos cortados, que ningún texto nombra otros programas, y que no hay errores de enlace de datos. Guarda una
 /// captura de cada cosa (selftest-rapida-*.png) y todos los textos y tooltips en selftest-rapida-textos.txt, para
@@ -153,6 +154,37 @@ public partial class MainWindow
             settings.Close();
             await Task.Delay(200);
             Check(_settingsWindow == null, "la ventana de ajustes se cierra");
+            // En cada pantalla (con varias, de distinto alto o una encima de otra), con la app normal y maximizada: los
+            // ajustes se abren sobre ella y caben enteros.
+            var (oldState, oldBounds) = (WindowState, new Rect(Left, Top, Width, Height));
+            var dpi = VisualTreeHelper.GetDpi(this);
+            foreach (var px in Dialog.MonitorWorkAreas())
+            {
+                var screen = new Rect(px.Left / dpi.DpiScaleX, px.Top / dpi.DpiScaleY, px.Width / dpi.DpiScaleX, px.Height / dpi.DpiScaleY);
+                foreach (var maximized in new[] { false, true })
+                {
+                    WindowState = WindowState.Normal;
+                    (Left, Top) = (screen.Left + 40, screen.Top + 40);
+                    (Width, Height) = (Math.Min(1100, screen.Width - 80), Math.Min(650, screen.Height - 80));
+                    if (maximized)
+                        WindowState = WindowState.Maximized;
+                    await Task.Delay(300);
+                    var here = Dialog.WorkAreaOf(this);
+                    OpenSettings();
+                    await Task.Delay(500);
+                    var shown = _settingsWindow!;
+                    var (top, bottom, left, right) = (shown.Top, shown.Top + shown.ActualHeight, shown.Left, shown.Left + shown.ActualWidth);
+                    Check(top >= here.Top - 1 && bottom <= here.Bottom + 1 && left >= here.Left - 1 && right <= here.Right + 1,
+                        $"ajustes en la pantalla {here.Left:0},{here.Top:0} ({here.Width:0} × {here.Height:0}){(maximized ? ", app maximizada" : "")}: "
+                        + $"{left:0},{top:0}–{right:0},{bottom:0}");
+                    shown.Close();
+                    await Task.Delay(150);
+                }
+            }
+            WindowState = WindowState.Normal;
+            (Left, Top, Width, Height) = (oldBounds.Left, oldBounds.Top, oldBounds.Width, oldBounds.Height);
+            WindowState = oldState;
+            await Task.Delay(300);
 
             // Menús: el del vídeo, el de un bookmark (uno de prueba, que se borra al acabar), velocidad y colección.
             ShowVideoMenu();
