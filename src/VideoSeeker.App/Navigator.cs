@@ -100,6 +100,13 @@ public sealed class Navigator(MpvPlayer player)
     /// al último frame). 0 si aún no se sabe.
     /// </summary>
     public double LastFrameStart { get; set; }
+    /// <summary>
+    /// Inicio del primer frame: no siempre 0 (en algunos archivos el primero empieza un frame después, p. ej. 0,042 s).
+    /// 0 si aún no se sabe.
+    /// </summary>
+    public double FirstFrameStart { get; set; }
+    // En el primer frame: hasta medio frame después de su inicio.
+    private bool AtFirstFrame(double time) => time <= FirstFrameStart + 0.5 / Fps;
 
     private double ClampTime(double time) => Math.Clamp(time, 0, LastFrameStart > 0 ? LastFrameStart : double.MaxValue);
     public bool Reversing => _reverseSpeed > 0;
@@ -427,7 +434,7 @@ public sealed class Navigator(MpvPlayer player)
             return null;
         var half = 0.5 / Fps;
         var at = CurrentTime;
-        if (reverse ? at > half : at < LastFrameStart - half)
+        if (reverse ? !AtFirstFrame(at) : at < LastFrameStart - half)
             return null;
         var inRegion = _region is { } r && at >= r.Start - half && at < r.End;
         if (reverse)
@@ -586,7 +593,7 @@ public sealed class Navigator(MpvPlayer player)
         var speed = _reverseSpeed;
         time = ClampTime(time);
         StopReverse();
-        if (time <= 0.5 / Fps)
+        if (AtFirstFrame(time))
         {
             SeekTo(time);
             return;

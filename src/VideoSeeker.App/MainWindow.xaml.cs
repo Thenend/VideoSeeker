@@ -153,7 +153,7 @@ public partial class MainWindow : Window
             var frames = moved + _scrubShift;
             if (_duration > 0)
             {
-                var lastFrame = Zoom.Grid.FrameAt(_lastFrameStart > 0 ? _lastFrameStart : _duration - 1e-4);
+                var lastFrame = LastFrame;
                 var min = -(long)_scrubStartFrame;
                 var max = Math.Max(min, lastFrame - _scrubStartFrame);
                 var clamped = Math.Clamp(frames, min, max);
@@ -580,12 +580,17 @@ public partial class MainWindow : Window
     // Inicio del último frame del vídeo (del índice si ya está; si no, el que cae justo antes del final).
     private double _lastFrameStart;
 
+    // El último frame del vídeo en la rejilla. Del índice cuando lo hay: en algunos archivos su inicio cae después de
+    // la duración del contenedor, y el frame justo antes de esa duración sería el penúltimo.
+    private int LastFrame => Zoom.Grid.FrameAt(_lastFrameStart > 0 ? _lastFrameStart : Math.Max(0, _duration - 1e-4));
+
     private void UpdateLastFrame()
     {
         _lastFrameStart = _duration <= 0 ? 0
             : _frameIndex is { Count: > 0 } index ? index.TimeOf(index.Count - 1)
             : Zoom.Grid.TimeOf(Zoom.Grid.FrameAt(_duration - 1e-4));
         Seek.LastFrameStart = _nav.LastFrameStart = _lastFrameStart;
+        _nav.FirstFrameStart = _duration > 0 && _frameIndex is { Count: > 0 } first ? first.TimeOf(0) : 0;
     }
 
     private void UpdateFrameGrid()
@@ -917,7 +922,7 @@ public partial class MainWindow : Window
             if (frame >= first && frame <= last)
                 return (first, last);
         }
-        return _loopVideo && _duration > 0 ? (0, grid.FrameAt(_duration - 1e-4)) : null;
+        return _loopVideo && _duration > 0 ? (0, LastFrame) : null;
     }
 
     // Un frame adelante o atrás; con bucle y dentro del tramo, del último se pasa al primero y al revés,
@@ -1062,8 +1067,7 @@ public partial class MainWindow : Window
     {
         if (_duration <= 0)
             return;
-        var grid = Zoom.Grid;
-        _nav.ScrubTo(grid.TimeOf(grid.FrameAt(Math.Max(0, _duration - 1e-3))));
+        _nav.ScrubTo(_lastFrameStart > 0 ? _lastFrameStart : Zoom.Grid.TimeOf(LastFrame));
     }
 
     private void OnMarkFirstClick(object sender, RoutedEventArgs e) => MarkFirstFrame();
