@@ -108,7 +108,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Background="Black" MouseWheel="OnVideoWheel" MouseDown="OnMiddleClick">
+        <Grid x:Name="VideoGrid" Background="Black" MouseWheel="OnVideoWheel" MouseDown="OnMiddleClick">
             <TextBlock x:Name="EmptyHint" HorizontalAlignment="Center" VerticalAlignment="Center"
                        Foreground="{StaticResource FgMuted}" FontSize="16" TextAlignment="Center"
                        Text="{l:Tr EmptyHint}" />

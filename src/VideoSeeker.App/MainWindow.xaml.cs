@@ -181,7 +181,12 @@ public partial class MainWindow : Window
         Seek.SeekRequested += OnTimelineSeek;
         Seek.WheelSeekRequested += (notches, modifiers) => _nav.SeekRelative(notches * SeekStep(modifiers));
         // Alt + rueda (en cualquier sitio, también sobre la imagen): ese Alt no abre el menú de la ventana al soltarlo.
-        PreviewMouseWheel += (_, _) => _altUsedWithWheel |= Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+        PreviewMouseWheel += (_, e) =>
+        {
+            _altUsedWithWheel |= Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            if (!(e.OriginalSource is Visual v && VideoGrid.IsAncestorOf(v)))
+                _lastWheelElsewhere = Environment.TickCount64;
+        };
         _surface.Wheel += _ => _altUsedWithWheel |= Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
         Zoom.SeekRequested += OnTimelineSeek;
         // Zoom: arrastrar con botón derecho en cualquiera de las dos barras, menú contextual o Ctrl + rueda en
@@ -802,12 +807,14 @@ public partial class MainWindow : Window
     private void ZoomAround(double time) => SetFreeZoom((time - 5, time + 5));
 
     // Ctrl + rueda: acerca o aleja manteniendo quieto el instante bajo el cursor. Alejado del todo, se cierra.
+    // Cada muesca multiplica el tramo por 2^(1/3) ≈ 1,26 (tres muescas, el doble o la mitad; Mario, 12 de noviembre:
+    // con ×2 por muesca, en un vídeo de 10 h se pasaba de golpe a 5 h). Las fracciones de touchpad, en proporción.
     private void OnZoomWheel(double anchor, int delta)
     {
         if (_duration <= 0)
             return;
         var (start, end) = _zoomRange ?? (0, _duration);
-        var factor = Math.Pow(2, -delta / 120.0);
+        var factor = Math.Pow(2, -delta / 360.0);
         var newStart = anchor - (anchor - start) * factor;
         var newEnd = anchor + (end - anchor) * factor;
         if (newEnd - newStart < MinWheelZoomWidth && newEnd - newStart < end - start)
@@ -1153,10 +1160,25 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    // La rueda sobre la imagen solo cambia la velocidad (o el volumen) sin teclas pulsadas y si no se venía girando en
+    // otro sitio (Mario, 12 de noviembre: haciendo zoom o saltando en las barras, el ratón se escapaba a la imagen y
+    // cambiaba la velocidad sin querer). Las muescas que siguen a menos de WheelElsewhereGrace de otra se ignoran
+    // también, en cadena: hay que parar un momento para que la rueda vuelva a ser de la imagen.
+    private const long WheelElsewhereGraceMs = 600;
+    private long _lastWheelElsewhere = long.MinValue / 2;
+
     private void OnVideoWheel(int delta)
     {
         if (_duration <= 0)
             return;
+        var now = Environment.TickCount64;
+        if (Keyboard.Modifiers != ModifierKeys.None || now - _lastWheelElsewhere < WheelElsewhereGraceMs)
+        {
+            if (now - _lastWheelElsewhere < WheelElsewhereGraceMs)
+                _lastWheelElsewhere = now;
+            _wheelRest = 0;
+            return;
+        }
         if (_store.Settings.WheelOnVideo == Settings.WheelVolume)
             WheelSteps(delta, steps =>
             {

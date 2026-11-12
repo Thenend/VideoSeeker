@@ -344,6 +344,13 @@ public partial class MainWindow
             OnVideoWheel(60);
             OnVideoWheel(60);
             Check(Math.Abs(_nav.Rate - 1.2) < 1e-9, $"dos muescas (una en dos trozos): {_nav.Rate}×");
+            // Girando la rueda en otro sitio (una barra), las muescas que se escapan a la imagen no cambian la velocidad.
+            _lastWheelElsewhere = Environment.TickCount64;
+            OnVideoWheel(120);
+            OnVideoWheel(120);
+            var strayRate = _nav.Rate;
+            _lastWheelElsewhere = long.MinValue / 2;
+            Check(Math.Abs(strayRate - 1.2) < 1e-9, $"rueda sobre la imagen justo después de girarla en una barra: no cambia la velocidad ({strayRate}×)");
             _nav.TogglePlay();
             await Task.Delay(800);
             _nav.Forward();
