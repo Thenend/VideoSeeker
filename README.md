@@ -48,7 +48,7 @@ Paquete MSIX para la Store (la Store lo firma). Cómo publicarlo y qué cambia e
 | --- | --- |
 | Reproducir / pausar | Espacio, K, clic en el vídeo |
 | Frame siguiente / anterior | ↑ / ↓, o arrastrar a derecha / izquierda sobre la imagen |
-| Saltar 5 s (Shift 1 s, Ctrl 30 s) | ← / →, rueda sobre la barra (con Shift / Ctrl, igual) |
+| Saltar 5 s (Shift 1 s, Alt 30 s) | ← / →, rueda sobre la barra principal (con Shift / Alt, igual) |
 | Pantalla completa | F, Enter, doble clic en el vídeo (Esc para salir) |
 | Silenciar | M |
 | Cambiar pista de audio / subtítulos | A / S |

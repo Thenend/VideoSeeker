@@ -8,6 +8,7 @@ public sealed class SpanishStrings : Strings
 
     public override string KeyCtrl => "Ctrl";
     public override string KeyShift => "Shift";
+    public override string KeyAlt => "Alt";
     public override string KeyDelete => "Supr";
     public override string KeyEsc => "Esc";
 
@@ -80,7 +81,7 @@ public sealed class SpanishStrings : Strings
     public override string PulseMarks => "Hacer parpadear su botón si están ocultas";
     public override string SectionNavigation => "NAVEGACIÓN";
     public override string SecondsUnit => "s";
-    public override string SeekTip => "Segundos que salta cada flecha: sola, con Shift o con Ctrl.";
+    public override string SeekTip => "Segundos que salta cada flecha, y la rueda sobre la barra principal: sola, con Shift o con Alt.";
     public override string Seek => "Saltos con ← →";
     public override string ScrubTip => "Píxeles que hay que arrastrar sobre la imagen, con el botón pulsado, para avanzar un frame.";
     public override string Scrub => "Sensibilidad del scrubbing";
@@ -205,8 +206,8 @@ public sealed class SpanishStrings : Strings
     public override string ControlsPinnedTip => "Controles fijos (Tab)";
     public override string PinControlsTip => "Fijar los controles (Tab)";
     public override string VideoGone(string name) => $"Ya no está: {name}";
-    public override string HistoryBackTip => "Volver al vídeo que se abrió antes (Alt + ←)";
-    public override string HistoryForwardTip => "Ir al vídeo que se abrió después (Alt + →)";
+    public override string HistoryBackTip => "Volver al vídeo que se abrió antes (botón lateral del ratón)";
+    public override string HistoryForwardTip => "Ir al vídeo que se abrió después (botón lateral del ratón)";
     public override string HistoryAllBack(int count) => $"Clic derecho: los {count} anteriores";
     public override string HistoryAllForward(int count) => $"Clic derecho: los {count} siguientes";
 

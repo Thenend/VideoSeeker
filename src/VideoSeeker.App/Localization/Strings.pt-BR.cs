@@ -8,6 +8,7 @@ public sealed class PortugueseBrazilStrings : Strings
 
     public override string KeyCtrl => "Ctrl";
     public override string KeyShift => "Shift";
+    public override string KeyAlt => "Alt";
     public override string KeyDelete => "Delete";
     public override string KeyEsc => "Esc";
 
@@ -80,7 +81,7 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string PulseMarks => "Piscar o botão quando estiverem ocultos";
     public override string SectionNavigation => "NAVEGAÇÃO";
     public override string SecondsUnit => "s";
-    public override string SeekTip => "Segundos que cada seta pula: sozinha, com Shift ou com Ctrl.";
+    public override string SeekTip => "Segundos que cada seta pula, e a roda do mouse sobre a barra principal: sozinha, com Shift ou com Alt.";
     public override string Seek => "Saltos com ← →";
     public override string ScrubTip => "Pixels que é preciso arrastar sobre a imagem, com o botão pressionado, para avançar um quadro.";
     public override string Scrub => "Sensibilidade do scrubbing";
@@ -205,8 +206,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ControlsPinnedTip => "Controles fixos (Tab)";
     public override string PinControlsTip => "Fixar os controles (Tab)";
     public override string VideoGone(string name) => $"Não encontrado: {name}";
-    public override string HistoryBackTip => "Voltar ao vídeo anterior (Alt + ←)";
-    public override string HistoryForwardTip => "Avançar para o próximo vídeo (Alt + →)";
+    public override string HistoryBackTip => "Voltar ao vídeo anterior (botão lateral do mouse)";
+    public override string HistoryForwardTip => "Avançar para o próximo vídeo (botão lateral do mouse)";
     public override string HistoryAllBack(int count) => $"Clique direito: os {count} anteriores";
     public override string HistoryAllForward(int count) => $"Clique direito: os {count} seguintes";
 

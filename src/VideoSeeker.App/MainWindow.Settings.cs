@@ -116,7 +116,7 @@ public partial class MainWindow
             Check(d.ShowBookmarkMarks, "por defecto se ven las marcas de los bookmarks");
             Check(d.PulseHiddenMarks, "por defecto, con las marcas ocultas, su botón late al crear un bookmark o ir a uno");
             Check(d.AnimatePanels, "por defecto el panel de bookmarks y la fila del zoom se abren animados");
-            Check(d.SeekSeconds == 5 && d.SeekSecondsShift == 1 && d.SeekSecondsCtrl == 30, "saltos 5 / 1 / 30 s");
+            Check(d.SeekSeconds == 5 && d.SeekSecondsShift == 1 && d.SeekSecondsAlt == 30, "saltos 5 / 1 / 30 s");
             Check(d.ScrubPixelsPerFrame == 6, "scrubbing 6 px por frame");
             Check(d.WheelOnVideo == Settings.WheelSpeed, "la rueda sobre el vídeo cambia la velocidad");
             Check(d.ResumePlayback, "reanudar sí");

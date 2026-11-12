@@ -307,8 +307,8 @@
                                 <TextBlock Style="{StaticResource Small}" Text="{l:Tr KeyShift}" Margin="0,0,6,0" />
                                 <TextBox x:Name="SeekShiftBox" Style="{StaticResource NumberBox}" />
                                 <TextBlock Style="{StaticResource Small}" Text="{l:Tr SecondsUnit}" Margin="5,0,14,0" />
-                                <TextBlock Style="{StaticResource Small}" Text="{l:Tr KeyCtrl}" Margin="0,0,6,0" />
-                                <TextBox x:Name="SeekCtrlBox" Style="{StaticResource NumberBox}" />
+                                <TextBlock Style="{StaticResource Small}" Text="{l:Tr KeyAlt}" Margin="0,0,6,0" />
+                                <TextBox x:Name="SeekAltBox" Style="{StaticResource NumberBox}" />
                                 <TextBlock Style="{StaticResource Small}" Text="{l:Tr SecondsUnit}" Margin="5,0,0,0" />
                             </StackPanel>
                             <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr SeekTip}" Text="{l:Tr Seek}" />

@@ -7,7 +7,7 @@ using System.Windows.Input;
 namespace VideoSeeker.App;
 
 // Historial de vídeos abiertos, como el de una pestaña del navegador: ‹ › junto a «Abrir vídeo», botones laterales
-// del ratón y Alt + ← / →. Cada entrada recuerda dónde se dejó el vídeo para volver justo ahí. Dura lo que la sesión.
+// del ratón y teclas de navegador (Alt + ← / → es el salto largo desde el 12 de noviembre). Cada entrada recuerda dónde se dejó el vídeo para volver justo ahí. Dura lo que la sesión.
 public partial class MainWindow
 {
     private sealed class HistoryEntry(string path)

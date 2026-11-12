@@ -8,6 +8,7 @@ public sealed class EnglishStrings : Strings
 
     public override string KeyCtrl => "Ctrl";
     public override string KeyShift => "Shift";
+    public override string KeyAlt => "Alt";
     public override string KeyDelete => "Del";
     public override string KeyEsc => "Esc";
 
@@ -80,7 +81,7 @@ public sealed class EnglishStrings : Strings
     public override string PulseMarks => "Flash their button when hidden";
     public override string SectionNavigation => "NAVIGATION";
     public override string SecondsUnit => "s";
-    public override string SeekTip => "Seconds jumped by each arrow key press: alone, with Shift or with Ctrl.";
+    public override string SeekTip => "Seconds jumped by each arrow key press, and by the wheel over the main bar: alone, with Shift or with Alt.";
     public override string Seek => "Jump length (← →)";
     public override string ScrubTip => "How many pixels to drag across the image, holding the button, to move one frame.";
     public override string Scrub => "Scrubbing sensitivity";
@@ -205,8 +206,8 @@ public sealed class EnglishStrings : Strings
     public override string ControlsPinnedTip => "Controls pinned (Tab)";
     public override string PinControlsTip => "Pin the controls (Tab)";
     public override string VideoGone(string name) => $"Not found: {name}";
-    public override string HistoryBackTip => "Back to the previous video (Alt + ←)";
-    public override string HistoryForwardTip => "Forward to the next video (Alt + →)";
+    public override string HistoryBackTip => "Back to the previous video (mouse side button)";
+    public override string HistoryForwardTip => "Forward to the next video (mouse side button)";
     public override string HistoryAllBack(int count) => $"Right-click: the previous {count}";
     public override string HistoryAllForward(int count) => $"Right-click: the next {count}";
 

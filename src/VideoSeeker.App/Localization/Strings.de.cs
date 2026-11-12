@@ -8,6 +8,7 @@ public sealed class GermanStrings : Strings
 
     public override string KeyCtrl => "Strg";
     public override string KeyShift => "Umschalt";
+    public override string KeyAlt => "Alt";
     public override string KeyDelete => "Entf";
     public override string KeyEsc => "Esc";
 
@@ -80,7 +81,7 @@ public sealed class GermanStrings : Strings
     public override string PulseMarks => "Schaltfläche blinken lassen, wenn ausgeblendet";
     public override string SectionNavigation => "NAVIGATION";
     public override string SecondsUnit => "s";
-    public override string SeekTip => "Sekunden pro Pfeiltastendruck: allein, mit Umschalt oder mit Strg.";
+    public override string SeekTip => "Sekunden pro Pfeiltastendruck, auch fürs Mausrad über der Hauptleiste: allein, mit Umschalt oder mit Alt.";
     public override string Seek => "Sprünge mit ← →";
     public override string ScrubTip => "Pixel, die man mit gedrückter Taste über das Bild ziehen muss, um einen Frame weiterzugehen.";
     public override string Scrub => "Scrubbing-Empfindlichkeit";
@@ -205,8 +206,8 @@ public sealed class GermanStrings : Strings
     public override string ControlsPinnedTip => "Steuerelemente fixiert (Tab)";
     public override string PinControlsTip => "Steuerelemente fixieren (Tab)";
     public override string VideoGone(string name) => $"Nicht mehr vorhanden: {name}";
-    public override string HistoryBackTip => "Zurück zum davor geöffneten Video (Alt + ←)";
-    public override string HistoryForwardTip => "Vor zum danach geöffneten Video (Alt + →)";
+    public override string HistoryBackTip => "Zurück zum davor geöffneten Video (Maus-Seitentaste)";
+    public override string HistoryForwardTip => "Vor zum danach geöffneten Video (Maus-Seitentaste)";
     public override string HistoryAllBack(int count) => $"Rechtsklick: die {count} vorherigen";
     public override string HistoryAllForward(int count) => $"Rechtsklick: die {count} nächsten";
 

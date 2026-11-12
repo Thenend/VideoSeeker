@@ -83,8 +83,12 @@ public partial class MainWindow : Window
         Dialog.UseDarkTitleBar(this);
         RestorePlacement();
         // Por software mientras arranca, como toda la app (App.OnStartup); así, al volver a la tarjeta, cambia de verdad.
-        if (HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)?.CompositionTarget is { } target)
-            target.RenderMode = RenderMode.SoftwareOnly;
+        if (HwndSource.FromHwnd(new WindowInteropHelper(this).Handle) is { } source)
+        {
+            if (source.CompositionTarget is { } target)
+                target.RenderMode = RenderMode.SoftwareOnly;
+            source.AddHook(SuppressAltMenu);
+        }
         App.Mark("hwnd");
         _thumbs = new Thumbnails(store.Folder, ffmpegReady, Dispatcher);
         _peek = new FramePeek(ffmpegReady, Dispatcher);
@@ -176,9 +180,13 @@ public partial class MainWindow : Window
 
         Seek.SeekRequested += OnTimelineSeek;
         Seek.WheelSeekRequested += (notches, modifiers) => _nav.SeekRelative(notches * SeekStep(modifiers));
+        // Alt + rueda (en cualquier sitio, también sobre la imagen): ese Alt no abre el menú de la ventana al soltarlo.
+        PreviewMouseWheel += (_, _) => _altUsedWithWheel |= Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+        _surface.Wheel += _ => _altUsedWithWheel |= Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
         Zoom.SeekRequested += OnTimelineSeek;
-        // Zoom: arrastrar con botón derecho en cualquiera de las dos barras, menú contextual o Ctrl + Shift + rueda
-        // (en la de zoom basta Ctrl + rueda; en la principal, Ctrl + rueda salta como Ctrl + ← / →).
+        // Zoom: arrastrar con botón derecho en cualquiera de las dos barras, menú contextual o Ctrl + rueda en
+        // cualquiera de las dos (Mario, 12 de noviembre: alejando hasta que se cierra la de zoom, se vuelve a acercar
+        // sin soltar Ctrl). El salto largo de la rueda en la principal va con Alt, como el de ← / →.
         Seek.RangeSelected += (start, end) => SetFreeZoom((start, end));
         Zoom.RangeSelected += (start, end) => SetFreeZoom((start, end));
         Seek.MenuRequested += t => ShowTimelineMenu(Seek, t);
@@ -1173,13 +1181,30 @@ public partial class MainWindow : Window
         apply(steps);
     }
 
-    // Salto de ← / → y de la rueda sobre la barra principal: el de Ctrl, el de Shift o el normal, según los ajustes.
+    // Salto de ← / → y de la rueda sobre la barra principal: el de Alt, el de Shift o el normal, según los ajustes.
     private double SeekStep(ModifierKeys modifiers)
     {
         var s = _store.Settings;
-        return modifiers.HasFlag(ModifierKeys.Control) ? s.SeekSecondsCtrl
+        return modifiers.HasFlag(ModifierKeys.Alt) ? s.SeekSecondsAlt
             : modifiers.HasFlag(ModifierKeys.Shift) ? s.SeekSecondsShift
             : s.SeekSeconds;
+    }
+
+    // Pulsar y soltar Alt sin otra tecla abre el modo menú de la ventana (la siguiente tecla, p. ej. Espacio, iría al
+    // menú del sistema). Con Alt + rueda no hay otra tecla, así que ese Alt se anula; Alt sola, Alt + Espacio, etc., igual que siempre.
+    private bool _altUsedWithWheel;
+
+    private IntPtr SuppressAltMenu(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_SYSKEYDOWN = 0x0104, WM_SYSCOMMAND = 0x0112, SC_KEYMENU = 0xF100, VK_MENU = 0x12;
+        if (msg == WM_SYSKEYDOWN && wParam == VK_MENU && ((long)lParam & (1L << 30)) == 0)
+            _altUsedWithWheel = false;
+        else if (msg == WM_SYSCOMMAND && ((int)wParam & 0xFFF0) == SC_KEYMENU && lParam == IntPtr.Zero && _altUsedWithWheel)
+        {
+            _altUsedWithWheel = false;
+            handled = true;
+        }
+        return IntPtr.Zero;
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -1249,16 +1274,14 @@ public partial class MainWindow : Window
             case Key.Down:
                 StepFrame(-1);
                 break;
-            // Alt + ← / →: vídeo anterior / siguiente del historial, como en el navegador.
-            case Key.Left or Key.Right when Keyboard.Modifiers == ModifierKeys.Alt:
-                GoHistory(key == Key.Left ? -1 : 1);
-                break;
+            // El historial de vídeos (anterior / siguiente) va con los botones laterales del ratón y las teclas de
+            // navegador; Alt + ← / → es el salto largo, como Alt + rueda (Mario, 12 de noviembre).
             case Key.BrowserBack or Key.BrowserForward:
                 GoHistory(key == Key.BrowserBack ? -1 : 1);
                 break;
             case Key.Left or Key.Right:
                 var seconds = SeekStep(Keyboard.Modifiers);
-                _nav.SeekRelative(e.Key == Key.Left ? -seconds : seconds);
+                _nav.SeekRelative(key == Key.Left ? -seconds : seconds);
                 break;
             // Bookmarks: B (o Shift + B) crea una región con la zona libre o, sin ella, de un frame en el frame actual;
             // Ctrl + B, el panel.

@@ -13,6 +13,8 @@ public abstract class Strings
     public abstract string KeyCtrl { get; }
     /// <summary>Shift</summary>
     public abstract string KeyShift { get; }
+    /// <summary>Alt</summary>
+    public abstract string KeyAlt { get; }
     /// <summary>Supr</summary>
     public abstract string KeyDelete { get; }
     /// <summary>Esc</summary>
@@ -151,7 +153,7 @@ public abstract class Strings
     public abstract string SectionNavigation { get; }
     /// <summary>s</summary>
     public abstract string SecondsUnit { get; }
-    /// <summary>Segundos que salta cada flecha: sola, con Shift o con Ctrl.</summary>
+    /// <summary>Segundos que salta cada flecha, y la rueda sobre la barra principal: sola, con Shift o con Alt.</summary>
     public abstract string SeekTip { get; }
     /// <summary>Saltos con ← →</summary>
     public abstract string Seek { get; }
@@ -398,9 +400,9 @@ public abstract class Strings
     public abstract string PinControlsTip { get; }
     /// <summary>Ya no está: {name}</summary>
     public abstract string VideoGone(string name);
-    /// <summary>Volver al vídeo que se abrió antes (Alt + ←)</summary>
+    /// <summary>Volver al vídeo que se abrió antes (botón lateral del ratón)</summary>
     public abstract string HistoryBackTip { get; }
-    /// <summary>Ir al vídeo que se abrió después (Alt + →)</summary>
+    /// <summary>Ir al vídeo que se abrió después (botón lateral del ratón)</summary>
     public abstract string HistoryForwardTip { get; }
     /// <summary>Clic derecho: los {count} anteriores</summary>
     public abstract string HistoryAllBack(int count);

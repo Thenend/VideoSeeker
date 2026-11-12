@@ -47,10 +47,12 @@ public sealed class Settings
     public bool ShowCachedFrames { get; set; }
     /// <summary>Con las marcas ocultas, al crear un bookmark o ir a uno, su botón late unas veces (para ver por qué no salen).</summary>
     public bool PulseHiddenMarks { get; set; } = true;
-    /// <summary>Segundos que saltan ← / → (y la rueda sobre la barra principal), con Shift y con Ctrl.</summary>
+    /// <summary>Segundos que saltan ← / → (y la rueda sobre la barra principal), con Shift y con Alt.</summary>
     public double SeekSeconds { get; set; } = 5;
     public double SeekSecondsShift { get; set; } = 1;
-    public double SeekSecondsCtrl { get; set; } = 30;
+    // Era el salto con Ctrl (hasta el 12 de noviembre); se guarda con el mismo nombre para no perder lo elegido.
+    [JsonPropertyName("seekSecondsCtrl")]
+    public double SeekSecondsAlt { get; set; } = 30;
     /// <summary>Qué cambia la rueda del ratón sobre el vídeo: WheelSpeed (por defecto) o WheelVolume.</summary>
     public string WheelOnVideo { get; set; } = WheelSpeed;
     public const string WheelSpeed = "speed", WheelVolume = "volume";
@@ -120,7 +122,7 @@ public sealed class Settings
         PulseHiddenMarks = d.PulseHiddenMarks;
         SeekSeconds = d.SeekSeconds;
         SeekSecondsShift = d.SeekSecondsShift;
-        SeekSecondsCtrl = d.SeekSecondsCtrl;
+        SeekSecondsAlt = d.SeekSecondsAlt;
         ScrubPixelsPerFrame = d.ScrubPixelsPerFrame;
         WheelOnVideo = d.WheelOnVideo;
         ResumePlayback = d.ResumePlayback;

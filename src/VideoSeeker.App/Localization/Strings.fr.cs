@@ -8,6 +8,7 @@ public sealed class FrenchStrings : Strings
 
     public override string KeyCtrl => "Ctrl";
     public override string KeyShift => "Maj";
+    public override string KeyAlt => "Alt";
     public override string KeyDelete => "Suppr";
     public override string KeyEsc => "Échap";
 
@@ -80,7 +81,7 @@ public sealed class FrenchStrings : Strings
     public override string PulseMarks => "Faire clignoter leur bouton s'ils sont masqués";
     public override string SectionNavigation => "NAVIGATION";
     public override string SecondsUnit => "s";
-    public override string SeekTip => "Secondes que saute chaque flèche : seule, avec Maj ou avec Ctrl.";
+    public override string SeekTip => "Secondes que saute chaque flèche, et la molette sur la barre principale : seule, avec Maj ou avec Alt.";
     public override string Seek => "Sauts avec ← →";
     public override string ScrubTip => "Pixels à faire glisser sur l'image, bouton enfoncé, pour avancer d'une image.";
     public override string Scrub => "Sensibilité du glissement sur l'image";
@@ -205,8 +206,8 @@ public sealed class FrenchStrings : Strings
     public override string ControlsPinnedTip => "Commandes épinglées (Tab)";
     public override string PinControlsTip => "Épingler les commandes (Tab)";
     public override string VideoGone(string name) => $"Introuvable : {name}";
-    public override string HistoryBackTip => "Revenir à la vidéo précédente (Alt + ←)";
-    public override string HistoryForwardTip => "Aller à la vidéo suivante (Alt + →)";
+    public override string HistoryBackTip => "Revenir à la vidéo précédente (bouton latéral de la souris)";
+    public override string HistoryForwardTip => "Aller à la vidéo suivante (bouton latéral de la souris)";
     public override string HistoryAllBack(int count) => $"Clic droit : les {count} précédentes";
     public override string HistoryAllForward(int count) => $"Clic droit : les {count} suivantes";
 

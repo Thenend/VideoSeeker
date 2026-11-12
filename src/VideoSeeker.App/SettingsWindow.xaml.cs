@@ -48,7 +48,7 @@ public partial class SettingsWindow : Window
         Bind(AnimatePanelsCheck, v => s.AnimatePanels = v);
         BindNumber(SeekBox, v => s.SeekSeconds = v);
         BindNumber(SeekShiftBox, v => s.SeekSecondsShift = v);
-        BindNumber(SeekCtrlBox, v => s.SeekSecondsCtrl = v);
+        BindNumber(SeekAltBox, v => s.SeekSecondsAlt = v);
         ScrubSlider.ValueChanged += (_, _) =>
         {
             ScrubText.Text = S.PixelsPerFrame((int)ScrubSlider.Value);
@@ -153,7 +153,7 @@ public partial class SettingsWindow : Window
             AnimatePanelsCheck.IsChecked = s.AnimatePanels;
             SetNumber(SeekBox, s.SeekSeconds);
             SetNumber(SeekShiftBox, s.SeekSecondsShift);
-            SetNumber(SeekCtrlBox, s.SeekSecondsCtrl);
+            SetNumber(SeekAltBox, s.SeekSecondsAlt);
             ScrubSlider.Value = Math.Clamp(s.ScrubPixelsPerFrame, 1, 20);
             ScrubText.Text = S.PixelsPerFrame((int)ScrubSlider.Value);
             (s.WheelOnVideo == Settings.WheelVolume ? WheelVolumeRadio : WheelSpeedRadio).IsChecked = true;

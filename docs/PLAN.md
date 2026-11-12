@@ -108,11 +108,11 @@ Archivos JSON legibles en `data\` junto al ejecutable; desde los ajustes (Ctrl +
 | --- | --- | --- |
 | Reproducir / pausar | Espacio, K | Clic en el vídeo |
 | Frame anterior / siguiente | ↓ / ↑, mantener para repetir | Rueda sobre vídeo o barra de zoom |
-| Saltar 5 s (Shift 1 s, Ctrl 30 s; cambiables en ajustes) | ← / → | Rueda sobre la barra principal (con Shift / Ctrl, igual) |
+| Saltar 5 s (Shift 1 s, Alt 30 s; cambiables en ajustes) | ← / → | Rueda sobre la barra principal (con Shift / Alt, igual) |
 | Atrás / adelante, más rápido | J / L | — |
 | Ampliar ±5 s | Z | Clic derecho → Ampliar sección |
 | Seleccionar tramo | — | Arrastrar con botón derecho |
-| Zoom en la línea de tiempo | — | Ctrl + Shift + rueda (en la barra de zoom, también Ctrl + rueda) |
+| Zoom en la línea de tiempo | — | Ctrl + rueda sobre cualquiera de las dos barras |
 | Bucle en la región | Shift + R | — |
 | Bucle del vídeo | R | — |
 | Primer / último frame del tramo = frame actual | I / O | Botones ⇤ ⇥, clic derecho; botón derecho mientras se arrastra |

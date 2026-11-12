@@ -8,6 +8,7 @@ public sealed class ItalianStrings : Strings
 
     public override string KeyCtrl => "Ctrl";
     public override string KeyShift => "Maiusc";
+    public override string KeyAlt => "Alt";
     public override string KeyDelete => "Canc";
     public override string KeyEsc => "Esc";
 
@@ -80,7 +81,7 @@ public sealed class ItalianStrings : Strings
     public override string PulseMarks => "Far lampeggiare il pulsante se sono nascosti";
     public override string SectionNavigation => "NAVIGAZIONE";
     public override string SecondsUnit => "s";
-    public override string SeekTip => "Secondi che salta ogni freccia: da sola, con Maiusc o con Ctrl.";
+    public override string SeekTip => "Secondi che salta ogni freccia, e la rotellina sulla barra principale: da sola, con Maiusc o con Alt.";
     public override string Seek => "Salti con ← →";
     public override string ScrubTip => "Pixel da trascinare sull'immagine, tenendo premuto il tasto, per avanzare di un fotogramma.";
     public override string Scrub => "Sensibilità dello scrubbing";
@@ -205,8 +206,8 @@ public sealed class ItalianStrings : Strings
     public override string ControlsPinnedTip => "Controlli fissi (Tab)";
     public override string PinControlsTip => "Fissa i controlli (Tab)";
     public override string VideoGone(string name) => $"Non c'è più: {name}";
-    public override string HistoryBackTip => "Torna al video precedente (Alt + ←)";
-    public override string HistoryForwardTip => "Vai al video successivo (Alt + →)";
+    public override string HistoryBackTip => "Torna al video precedente (tasto laterale del mouse)";
+    public override string HistoryForwardTip => "Vai al video successivo (tasto laterale del mouse)";
     public override string HistoryAllBack(int count) => $"Clic destro: i {count} precedenti";
     public override string HistoryAllForward(int count) => $"Clic destro: i {count} successivi";
 

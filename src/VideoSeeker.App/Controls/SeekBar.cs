@@ -171,7 +171,8 @@ public sealed class SeekBar : TimelineBar
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
         var modifiers = Keyboard.Modifiers;
-        if (modifiers.HasFlag(ModifierKeys.Control) && modifiers.HasFlag(ModifierKeys.Shift))
+        // Ctrl + rueda: zoom, como en la barra de zoom. Sola, con Shift o con Alt, salta (como ← / →).
+        if (modifiers.HasFlag(ModifierKeys.Control))
         {
             ZoomWheel?.Invoke(TimeAt(e.GetPosition(this).X), e.Delta);
         }
