@@ -280,6 +280,14 @@ public partial class MainWindow
             Check(_zoomBookmark == null && _selectedBookmark == null && _zoomRange is { } wide && wide.End - wide.Start > before.End - before.Start + 1e-3
                     && Near(a.Start, before.Start) && Near(EndOf(a), before.End) && ZoneName.Visibility != Visibility.Visible && Seek.ZoomColor == null,
                 $"Ctrl + rueda suelta la región sin cambiarla: zona libre {ShowZone()}, región {Show(a)}");
+            // Ctrl + rueda en la barra principal fuera del tramo: el tramo salta al cursor (centrado) y ahí acerca.
+            var away = _zoomRange!.Value;
+            var awayAnchor = away.End + (_duration - away.End) / 2;
+            OnZoomWheel(awayAnchor, 120);
+            Check(_zoomRange is { } jumped && jumped.Start <= awayAnchor && awayAnchor <= jumped.End
+                    && (Math.Abs((jumped.Start + jumped.End) / 2 - awayAnchor) < 1e-3 || jumped.Start <= 1e-3 || jumped.End >= _duration - 1e-3)
+                    && jumped.End - jumped.Start < away.End - away.Start,
+                $"Ctrl + rueda fuera del tramo: salta al cursor ({awayAnchor:0.00} s) y acerca: {ShowZone()}");
             Select(a.Id);
             ZoomAround(_nav.CurrentTime);
             a = set.Find(a.Id)!;

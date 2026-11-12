@@ -809,11 +809,19 @@ public partial class MainWindow : Window
     // Ctrl + rueda: acerca o aleja manteniendo quieto el instante bajo el cursor. Alejado del todo, se cierra.
     // Cada muesca multiplica el tramo por 2^(1/3) ≈ 1,26 (tres muescas, el doble o la mitad; Mario, 12 de noviembre:
     // con ×2 por muesca, en un vídeo de 10 h se pasaba de golpe a 5 h). Las fracciones de touchpad, en proporción.
+    // En la barra principal, con el cursor fuera del tramo ampliado, el tramo salta a él (centrado en el cursor) y
+    // ahí acerca o aleja: anclado en un instante que la barra de zoom no enseña, el tramo se iba arrimando poco a poco
+    // al cursor mientras encogía, y al alejar se apartaba (Mario, 12 de noviembre).
     private void OnZoomWheel(double anchor, int delta)
     {
         if (_duration <= 0)
             return;
         var (start, end) = _zoomRange ?? (0, _duration);
+        if (anchor < start || anchor > end)
+        {
+            var half = (end - start) / 2;
+            (start, end) = (anchor - half, anchor + half);
+        }
         var factor = Math.Pow(2, -delta / 360.0);
         var newStart = anchor - (anchor - start) * factor;
         var newEnd = anchor + (end - anchor) * factor;
