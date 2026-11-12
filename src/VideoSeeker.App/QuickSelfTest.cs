@@ -184,7 +184,18 @@ public partial class MainWindow
             WindowState = WindowState.Normal;
             (Left, Top, Width, Height) = (oldBounds.Left, oldBounds.Top, oldBounds.Width, oldBounds.Height);
             WindowState = oldState;
+            // Que la ventana acabe de colocarse (su sitio real en la pantalla y su tamaño dejan de cambiar; como mucho 3 s):
+            // el menú del vídeo se coloca respecto a ella al abrirse y, si se mueve justo después, no la sigue.
+            (Point, double, double) Bounds() => (RootGrid.PointToScreen(new Point(0, 0)), RootGrid.ActualWidth, RootGrid.ActualHeight);
             await Task.Delay(300);
+            var settled = Bounds();
+            for (var (i, steady) = (0, 0); i < 30 && steady < 3; i++)
+            {
+                await Task.Delay(100);
+                var now = Bounds();
+                steady = now == settled ? steady + 1 : 0;
+                settled = now;
+            }
 
             // Menús: el del vídeo, el de un bookmark (uno de prueba, que se borra al acabar), velocidad y colección.
             ShowVideoMenu();
@@ -199,7 +210,8 @@ public partial class MainWindow
                 var around = new Rect(topLeft, bottomRight);
                 around.Inflate(8, 8);
                 Check(around.Contains(new Point(cursor.X, cursor.Y)),
-                    $"el menú del vídeo sale en el puntero ({topLeft.X:0},{topLeft.Y:0}; puntero {cursor.X},{cursor.Y})");
+                    $"el menú del vídeo sale en el puntero ({topLeft.X:0},{topLeft.Y:0}; puntero {cursor.X},{cursor.Y}; "
+                    + $"ventana en {settled.Item1.X:0},{settled.Item1.Y:0}, {WindowState})");
             }
             await InspectMenu("del vídeo", "menu-video");
             probe = _bookmarks.Add("Prueba rápida", _duration * 0.3, _duration * 0.3 + Math.Min(2, _duration * 0.05));

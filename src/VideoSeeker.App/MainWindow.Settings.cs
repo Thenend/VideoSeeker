@@ -528,7 +528,7 @@ public partial class MainWindow
             await Task.Delay(500);
             StepFrame(-1);
             await Task.Delay(600);
-            var lastFrame = Zoom.Grid.FrameAt(_duration - 1e-4);
+            var lastFrame = LastFrame;
             Check(Zoom.Grid.FrameAt(_nav.CurrentTime) == lastFrame, $"bucle: frame atrás desde el primero va al último ({Zoom.Grid.FrameAt(_nav.CurrentTime)} de {lastFrame})");
             StepFrame(1);
             await Task.Delay(600);
@@ -676,8 +676,8 @@ public partial class MainWindow
             await Task.Delay(800);
             var window = _settingsWindow!;
             var area = Dialog.WorkAreaOf(this);
-            Check(window.MaxHeight == area.Height - 40 && window.Top >= area.Top - 1 && window.Top + window.ActualHeight <= area.Bottom + 1,
-                $"la ventana cabe en su pantalla ({window.Top:0}–{window.Top + window.ActualHeight:0} de {area.Top:0}–{area.Bottom:0})");
+            Check(window.MaxHeight == Math.Max(window.MinHeight, area.Height - 60) && window.Top >= area.Top - 1 && window.Top + window.ActualHeight <= area.Bottom + 1,
+                $"la ventana cabe en su pantalla ({window.Top:0}–{window.Top + window.ActualHeight:0} de {area.Top:0}–{area.Bottom:0}, alto máximo {window.MaxHeight:0})");
             Check(window.IsVisible && window.MoveRegionsCheck.IsChecked == false && window.CachedLineCheck.IsChecked == false
                     && window.EdgeFrameCheck.IsChecked == true,
                 "la ventana abre con las casillas como los ajustes");
@@ -741,6 +741,12 @@ public partial class MainWindow
             var dialog = Dialog.Create(window, "Se volverán a poner los valores por defecto de todos los ajustes.", "Restablecer ajustes", "Restablecer", "Cancelar");
             dialog.Show();
             await Task.Delay(400);
+            // El foco, antes de abrir el selector de color (que le quita la activación al aviso). El foco lógico del aviso:
+            // el de teclado depende de qué ventana del escritorio esté activa.
+            var buttons = ((System.Windows.Controls.Panel)((System.Windows.Controls.Border)((System.Windows.Controls.DockPanel)dialog.Content).Children[0]).Child)
+                .Children.OfType<System.Windows.Controls.Button>().ToList();
+            Check(buttons.Count == 2 && buttons[0].IsDefault && System.Windows.Input.FocusManager.GetFocusedElement(dialog) == buttons[0],
+                "aviso oscuro: Restablecer es el botón principal y tiene el foco");
             SaveWindowSnapshot(dialog, Path.Combine(_store.Folder, "selftest-aviso.png"));
             // Otro color: el selector (captura en selftest-color.png), el código y el aviso si se parece a los de las barras.
             var picker = ColorPicker.Create(window, "#2E8B57", _ => { });
@@ -752,9 +758,6 @@ public partial class MainWindow
             Check(ColorPicker.Clash(ColorPicker.Parse("#F2B530")!.Value) != null && ColorPicker.Clash(ColorPicker.Parse("#4C9BFF")!.Value) != null
                 && ColorPicker.Clash(ColorPicker.Parse("#E5484D")!.Value) == null && ColorPicker.Clash(ColorPicker.Parse("#8E6CEF")!.Value) == null,
                 "otro color: avisa si se parece al ámbar o al azul de las barras, no con los de la paleta");
-            var buttons = ((System.Windows.Controls.Panel)((System.Windows.Controls.Border)((System.Windows.Controls.DockPanel)dialog.Content).Children[0]).Child)
-                .Children.OfType<System.Windows.Controls.Button>().ToList();
-            Check(buttons.Count == 2 && buttons[0].IsDefault && buttons[0].IsKeyboardFocused, "aviso oscuro: Restablecer es el botón principal y tiene el foco");
             buttons[1].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
             Check(dialog.Tag is 1 && !dialog.IsVisible, "aviso oscuro: Cancelar lo cierra con esa respuesta");
             window.Close();
