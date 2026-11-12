@@ -566,8 +566,13 @@ public abstract class TimelineBar : FrameworkElement
         return true;
     }
 
-    protected override void OnMouseMove(MouseEventArgs e) =>
-        MouseMoved(e.GetPosition(this), e.LeftButton == MouseButtonState.Pressed, e.RightButton == MouseButtonState.Pressed);
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        // Con el botón central simulado, el ratón de verdad no cuenta (al capturarlo, WPF manda un movimiento con su
+        // posición real, que desplazaba la vista).
+        if (!_simulatingPan)
+            MouseMoved(e.GetPosition(this), e.LeftButton == MouseButtonState.Pressed, e.RightButton == MouseButtonState.Pressed);
+    }
 
     private void MouseMoved(Point point, bool left, bool right)
     {
@@ -745,11 +750,22 @@ public abstract class TimelineBar : FrameworkElement
     }
 
     /// <summary>Para las autopruebas: pulsar, mover y soltar el botón central, por los mismos caminos que el ratón.</summary>
-    internal void SimulateMiddleDown(Point point) => MiddleDown(point);
+    internal void SimulateMiddleDown(Point point)
+    {
+        _simulatingPan = true;
+        if (!MiddleDown(point))
+            _simulatingPan = false;
+    }
 
     internal void SimulateMiddleMove(Point point) => MouseMoved(point, left: false, right: false);
 
-    internal void SimulateMiddleUp(Point point) => MiddleUp(point);
+    internal void SimulateMiddleUp(Point point)
+    {
+        MiddleUp(point);
+        _simulatingPan = false;
+    }
+
+    private bool _simulatingPan;
 
     private void StartAutoExtend(int direction)
     {

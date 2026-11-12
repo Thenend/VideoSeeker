@@ -198,13 +198,16 @@ public partial class MainWindow
             }
 
             // Menús: el del vídeo, el de un bookmark (uno de prueba, que se borra al acabar), velocidad y colección.
+            // El puntero de cuando se abre (el que usa el menú): si el ratón se mueve mientras tanto, no cuenta.
+            var openedAt = GetCursorPosition(out var atOpen);
             ShowVideoMenu();
             // Sale en el puntero de verdad, no donde WPF lo vio por última vez (salía arriba a la izquierda: la imagen es
             // una ventana nativa que no le pasa el ratón a WPF).
             for (var i = 0; i < 20 && OpenContextMenus().FirstOrDefault() is not { IsLoaded: true }; i++)
                 await Task.Delay(100);
-            if (OpenContextMenus().FirstOrDefault() is { } videoMenu && GetCursorPosition(out var cursor))
+            if (OpenContextMenus().FirstOrDefault() is { } videoMenu && openedAt)
             {
+                var cursor = atOpen;
                 var topLeft = videoMenu.PointToScreen(new Point(0, 0));
                 var bottomRight = videoMenu.PointToScreen(new Point(videoMenu.ActualWidth, videoMenu.ActualHeight));
                 var around = new Rect(topLeft, bottomRight);
