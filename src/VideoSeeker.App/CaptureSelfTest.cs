@@ -136,37 +136,45 @@ public partial class MainWindow
                 Check(ok, $"captura {name}");
             }
 
-            // 01: parado en un frame, con una zona de unos 2,5 s alrededor y su bucle puesto.
+            async Task Hover(Controls.TimelineBar bar, double time, string what)
+            {
+                bar.SimulateHover(bar.TrackPoint(grid.Snap(time)));
+                for (var i = 0; i < 100 && !(PeekPopup.IsOpen && _peekExact && PeekImage.Source != null); i++)
+                    await Task.Delay(50);
+                Check(PeekPopup.IsOpen && _peekExact, $"vistazo abierto con su frame ({what})");
+                await Task.Delay(300);
+            }
+
+            // 01, la primera que se ve en la tienda: el panel con los bookmarks, uno seleccionado (es la zona, en bucle),
+            // y el vistazo de otro al pasar por la barra principal.
             _loopVideo = false;
             _loopRange = true;
             ApplyLoop();
             UpdateLoopButtons();
-            SetFreeZoom((grid.Snap(17.75), grid.Snap(20.25)));
-            await Show(19.0, 4000);
-            ReturnFocusToVideo();
-            await Capture("01-fotograma");
-
-            // 02: el panel con los bookmarks, uno seleccionado (es la zona).
             ShowPanel(true);
-            var selected = added[3];
-            Select(selected.Id);
+            Select(added[3].Id);
             await Show(65.4, 4000);
             ReturnFocusToVideo();
             await Task.Delay(1500); // miniaturas del panel
-            await Capture("02-bookmarks");
+            await Hover(Seek, 212.5, "barra principal");
+            await Capture("01-bookmarks-vistazo");
+            Seek.SimulateLeave();
 
-            // 03: el vistazo al pasar por la barra principal.
+            // 02: parado en un frame, sin panel, con una zona de unos 2,5 s alrededor y su bucle puesto.
             ShowPanel(false);
             Select(null);
-            CloseZone();
+            SetFreeZoom((grid.Snap(17.75), grid.Snap(20.25)));
+            await Show(19.0, 4000);
+            ReturnFocusToVideo();
+            await Capture("02-fotograma");
+
+            // 03: el vistazo en la barra ampliada, frame a frame.
+            SetFreeZoom((grid.Snap(164.0), grid.Snap(169.0)));
             await Show(165.0);
-            Seek.SimulateHover(Seek.TrackPoint(grid.Snap(233.5)));
-            for (var i = 0; i < 100 && !(PeekPopup.IsOpen && _peekExact && PeekImage.Source != null); i++)
-                await Task.Delay(50);
-            Check(PeekPopup.IsOpen && _peekExact, "vistazo abierto con su frame");
-            await Task.Delay(300);
+            await Hover(Zoom, 167.6, "barra ampliada");
             await Capture("03-vistazo");
-            Seek.SimulateLeave();
+            Zoom.SimulateLeave();
+            CloseZone();
 
             // 04: una zona libre guardada como bookmark: el cuadro del nombre, con su etiqueta.
             ShowPanel(true);

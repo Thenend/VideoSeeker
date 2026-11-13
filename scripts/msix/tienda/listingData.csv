@@ -1,7 +1,7 @@
 ﻿Field,ID,Type (Type),default,es-es,en-us,fr-fr,de-de,it-it,pt-br
-Description,2,Text,,"VideoSeeker es un reproductor para mirar un vídeo con calma, frame a frame: dejar un tramo en bucle, ir hacia atrás hasta el frame exacto en que pasa algo, apuntar «revisar» en un trozo y volver a él más tarde.
+Description,2,Text,,"VideoSeeker sirve para revisar al detalle grabaciones, gameplays, animaciones o cualquier vídeo que quieras examinar frame a frame.
 
-Sirve para partidas grabadas, animaciones, tomas de rodaje o cualquier vídeo que haya que revisar al detalle.
+Es ágil e intuitivo de manejar: deja un tramo en bucle, vuelve atrás hasta el frame exacto en que pasa algo, apunta «revisar» en un trozo y vuelve a él más tarde.
 
 Cómo se usa:
 • Flecha arriba y abajo: un frame adelante o atrás, al momento. Los frames de alrededor se guardan en la tarjeta gráfica, así que ir hacia atrás no hace esperar.
@@ -15,9 +15,9 @@ Lee MKV, MP4, AVI, MOV y WebM con H.264, HEVC, AV1 o VP9 y audio AAC, AC3 o DTS,
 
 Gratis y de código abierto (GPL v3), sin anuncios ni cuentas: https://github.com/Thenend/VideoSeeker
 
-En las capturas sale «Sprite Fright» (Blender Foundation, studio.blender.org), con licencia CC BY 4.0.","VideoSeeker is a player for looking at a video carefully, frame by frame: leaving a range on a loop, stepping back to the exact frame where something happens, noting “check” on a stretch and coming back to it later.
+En las capturas sale «Sprite Fright» (Blender Foundation, studio.blender.org), con licencia CC BY 4.0.","VideoSeeker is for reviewing recordings, gameplay, animation or any video you want to examine in detail, frame by frame.
 
-It's made for recorded gameplay, animation, shoot takes or any video you need to review in detail.
+It's quick and intuitive to use: leave a range on a loop, step back to the exact frame where something happens, note “check” on a stretch and come back to it later.
 
 How it works:
 • Up and Down arrows: one frame forward or back, instantly. Nearby frames are kept on the graphics card, so going backwards doesn't make you wait.
@@ -31,9 +31,9 @@ Plays MKV, MP4, AVI, MOV and WebM with H.264, HEVC, AV1 or VP9 and AAC, AC3 or D
 
 Free and open source (GPL v3), no ads, no accounts: https://github.com/Thenend/VideoSeeker
 
-Screenshots show “Sprite Fright” (Blender Foundation, studio.blender.org), licensed CC BY 4.0.","VideoSeeker est un lecteur pour regarder une vidéo tranquillement, image par image : laisser une plage en boucle, reculer jusqu'à l'image exacte où quelque chose se passe, noter « à revoir » sur un passage et y revenir plus tard.
+Screenshots show “Sprite Fright” (Blender Foundation, studio.blender.org), licensed CC BY 4.0.","VideoSeeker sert à examiner en détail des enregistrements, des parties de jeu, des animations ou toute vidéo à regarder image par image.
 
-Il sert pour des parties enregistrées, de l'animation, des prises de tournage ou toute vidéo à examiner en détail.
+Il est rapide et intuitif à prendre en main : laisser une plage en boucle, reculer jusqu'à l'image exacte où quelque chose se passe, noter « à revoir » sur un passage et y revenir plus tard.
 
 Comment ça marche :
 • Flèches haut et bas : une image en avant ou en arrière, tout de suite. Les images voisines sont gardées sur la carte graphique, donc reculer ne fait pas attendre.
@@ -47,9 +47,9 @@ Lit les MKV, MP4, AVI, MOV et WebM en H.264, HEVC, AV1 ou VP9 avec du son AAC, A
 
 Gratuit et open source (GPL v3), sans publicité ni compte : https://github.com/Thenend/VideoSeeker
 
-Les captures montrent « Sprite Fright » (Blender Foundation, studio.blender.org), sous licence CC BY 4.0.","VideoSeeker ist ein Player, um ein Video in Ruhe anzusehen, Frame für Frame: einen Abschnitt in Schleife laufen lassen, bis zum genauen Frame zurückgehen, an dem etwas passiert, „prüfen“ an eine Stelle schreiben und später dorthin zurückkehren.
+Les captures montrent « Sprite Fright » (Blender Foundation, studio.blender.org), sous licence CC BY 4.0.","Mit VideoSeeker prüfst du Aufnahmen, Gameplay, Animationen oder jedes Video, das du dir genau ansehen willst, Frame für Frame.
 
-Er eignet sich für aufgezeichnete Spiele, Animationen, Drehaufnahmen oder jedes Video, das man im Detail prüfen muss.
+Die Bedienung ist flink und intuitiv: einen Abschnitt in Schleife laufen lassen, bis zum genauen Frame zurückgehen, an dem etwas passiert, „prüfen“ an eine Stelle schreiben und später dorthin zurückkehren.
 
 So funktioniert es:
 • Pfeil nach oben und unten: ein Frame vor oder zurück, sofort. Die Frames in der Nähe liegen auf der Grafikkarte, deshalb muss man auch rückwärts nicht warten.
@@ -63,9 +63,9 @@ Spielt MKV, MP4, AVI, MOV und WebM mit H.264, HEVC, AV1 oder VP9 und AAC-, AC3- 
 
 Kostenlos und Open Source (GPL v3), ohne Werbung und ohne Konto: https://github.com/Thenend/VideoSeeker
 
-Die Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.org), lizenziert unter CC BY 4.0.","VideoSeeker è un lettore per guardare un video con calma, fotogramma per fotogramma: lasciare un tratto in loop, tornare indietro fino al fotogramma esatto in cui succede qualcosa, scrivere «da rivedere» su un passaggio e riprenderlo più tardi.
+Die Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.org), lizenziert unter CC BY 4.0.","VideoSeeker serve a rivedere nel dettaglio registrazioni, gameplay, animazioni o qualsiasi video da esaminare fotogramma per fotogramma.
 
-Serve per partite registrate, animazioni, riprese sul set o qualsiasi video da rivedere nel dettaglio.
+È agile e intuitivo da usare: lasciare un tratto in loop, tornare indietro fino al fotogramma esatto in cui succede qualcosa, scrivere «da rivedere» su un passaggio e riprenderlo più tardi.
 
 Come si usa:
 • Freccia su e giù: un fotogramma avanti o indietro, subito. I fotogrammi vicini restano sulla scheda grafica, quindi anche andando indietro non si aspetta.
@@ -79,9 +79,9 @@ Riproduce MKV, MP4, AVI, MOV e WebM in H.264, HEVC, AV1 o VP9 con audio AAC, AC3
 
 Gratuito e open source (GPL v3), senza pubblicità né account: https://github.com/Thenend/VideoSeeker
 
-Nelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org), con licenza CC BY 4.0.","O VideoSeeker é um player para ver um vídeo com calma, quadro a quadro: deixar um trecho em loop, voltar até o quadro exato em que algo acontece, anotar “revisar” em um trecho e voltar a ele depois.
+Nelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org), con licenza CC BY 4.0.","O VideoSeeker serve para revisar em detalhe gravações, gameplays, animações ou qualquer vídeo que você queira examinar quadro a quadro.
 
-Serve para partidas gravadas, animações, tomadas de gravação ou qualquer vídeo que precise ser revisado em detalhe.
+É ágil e intuitivo de usar: deixar um trecho em loop, voltar até o quadro exato em que algo acontece, anotar “revisar” em um trecho e voltar a ele depois.
 
 Como funciona:
 • Setas para cima e para baixo: um quadro para a frente ou para trás, na hora. Os quadros próximos ficam guardados na placa de vídeo, então voltar não faz esperar.
@@ -96,12 +96,48 @@ Reproduz MKV, MP4, AVI, MOV e WebM em H.264, HEVC, AV1 ou VP9 com áudio AAC, AC
 Gratuito e de código aberto (GPL v3), sem anúncios nem conta: https://github.com/Thenend/VideoSeeker
 
 As capturas mostram “Sprite Fright” (Blender Foundation, studio.blender.org), com licença CC BY 4.0."
-ReleaseNotes,3,Text,,,,,,,
+ReleaseNotes,3,Text,,"• Ctrl + rueda amplía o reduce en las dos barras; el salto largo (30 s) pasa a Alt + flechas o Alt + rueda.
+• Arrastrar con el botón central sobre la barra ampliada la desplaza.
+• La barra ampliada se desliza suavemente hasta el nuevo tramo, y el panel de bookmarks se abre con una transición (se puede quitar en Ajustes).
+• Menú del vídeo con iconos, y nueva opción para exportar como clip el tramo ampliado.
+• Cuadro del nombre: botón Aceptar y se puede recorrer con Tab.
+• El final y los bucles llegan de verdad al último frame.
+• Los menús y las miniaturas ya no saltan al otro monitor.","• Ctrl + wheel zooms on both bars; the long jump (30 s) moves to Alt + arrows or Alt + wheel.
+• Middle-button drag on the zoomed bar pans it.
+• The zoomed bar glides to the new range, and the bookmarks panel slides in (can be turned off in Settings).
+• Video menu with icons, and a new option to export the zoomed range as a clip.
+• Name box: OK button, and Tab moves through it.
+• The end and loops now reach the true last frame.
+• Menus and thumbnails no longer jump to the other monitor.","• Ctrl + molette zoome sur les deux barres ; le grand saut (30 s) passe à Alt + flèches ou Alt + molette.
+• Un glisser avec le bouton du milieu sur la barre agrandie la fait défiler.
+• La barre agrandie glisse jusqu'à la nouvelle plage, et le panneau des signets s'ouvre en glissant (désactivable dans les Paramètres).
+• Menu de la vidéo avec des icônes, et nouvelle option pour exporter la plage agrandie en clip.
+• Boîte du nom : bouton OK, et on la parcourt avec Tab.
+• La fin et les boucles atteignent vraiment la dernière image.
+• Les menus et les miniatures ne sautent plus sur l'autre écran.","• Strg + Mausrad zoomt auf beiden Leisten; der große Sprung (30 s) liegt jetzt auf Alt + Pfeiltasten oder Alt + Mausrad.
+• Ziehen mit der mittleren Maustaste verschiebt die vergrößerte Leiste.
+• Die vergrößerte Leiste gleitet zum neuen Abschnitt, und die Lesezeichen gleiten herein (in den Einstellungen abschaltbar).
+• Videomenü mit Symbolen und neue Option, den vergrößerten Abschnitt als Clip zu exportieren.
+• Namensfeld: OK-Schaltfläche, und mit Tab erreichbar.
+• Ende und Schleifen erreichen jetzt wirklich den letzten Frame.
+• Menüs und Vorschaubilder springen nicht mehr auf den anderen Bildschirm.","• Ctrl + rotellina ingrandisce o riduce su entrambe le barre; il salto lungo (30 s) passa ad Alt + frecce o Alt + rotellina.
+• Trascinando col tasto centrale sulla barra ingrandita la si sposta.
+• La barra ingrandita scorre fino al nuovo tratto, e il pannello dei segnalibri si apre scorrendo (si può disattivare nelle Impostazioni).
+• Menu del video con icone, e nuova opzione per esportare come clip il tratto ingrandito.
+• Riquadro del nome: pulsante OK, e si percorre con Tab.
+• La fine e i loop arrivano davvero all'ultimo fotogramma.
+• Menu e miniature non saltano più sull'altro monitor.","• Ctrl + roda dá zoom nas duas barras; o salto longo (30 s) passa para Alt + setas ou Alt + roda.
+• Arrastar com o botão do meio na barra ampliada a desloca.
+• A barra ampliada desliza até o novo trecho, e o painel de marcadores abre deslizando (dá para desativar em Configurações).
+• Menu do vídeo com ícones, e nova opção para exportar o trecho ampliado como clipe.
+• Caixa do nome: botão OK, e dá para percorrê-la com Tab.
+• O fim e os loops chegam de verdade ao último quadro.
+• Menus e miniaturas não pulam mais para o outro monitor."
 Title,4,Text,,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker
 ShortTitle,5,Text,,,,,,,
 SortTitle,6,Text,,,,,,,
 VoiceTitle,7,Text,,,,,,,
-ShortDescription,8,Text,,"Un reproductor para mirar vídeos frame a frame: adelante y atrás sin esperas, tramos marcados con nombre y una línea de tiempo que se amplía hasta ver cada frame.","A player for looking at video frame by frame: forward and back with no waiting, named regions, and a timeline you can zoom until every frame shows.","Un lecteur pour regarder une vidéo image par image : en avant et en arrière sans attendre, des plages nommées et une timeline qu'on agrandit jusqu'à voir chaque image.","Ein Player, um Videos Frame für Frame anzusehen: vor und zurück ohne Wartezeit, benannte Abschnitte und eine Zeitleiste, die sich bis auf jeden einzelnen Frame vergrößern lässt.","Un lettore per guardare i video fotogramma per fotogramma: avanti e indietro senza attese, tratti segnati con un nome e una timeline che si ingrandisce fino a vedere ogni fotogramma.","Um player para ver vídeos quadro a quadro: para a frente e para trás sem espera, trechos marcados com nome e uma linha do tempo que amplia até mostrar cada quadro."
+ShortDescription,8,Text,,"Para revisar al detalle grabaciones, gameplays, animaciones o cualquier vídeo, frame a frame. Ágil e intuitivo: adelante y atrás sin esperas, bookmarks y una línea de tiempo con zoom.","For reviewing recordings, gameplay, animation or any video in detail, frame by frame. Quick and intuitive: forward and back with no waiting, bookmarks and a zoomable timeline.","Pour examiner en détail des enregistrements, des parties de jeu, des animations ou toute vidéo, image par image. Rapide et intuitif : avant et arrière sans attendre, signets et timeline zoomable.","Zum genauen Prüfen von Aufnahmen, Gameplay, Animationen oder jedem Video, Frame für Frame. Flink und intuitiv: vor und zurück ohne Wartezeit, Lesezeichen und eine zoombare Zeitleiste.","Per rivedere nel dettaglio registrazioni, gameplay, animazioni o qualsiasi video, fotogramma per fotogramma. Agile e intuitivo: avanti e indietro senza attese, segnalibri e timeline con zoom.","Para revisar em detalhe gravações, gameplays, animações ou qualquer vídeo, quadro a quadro. Ágil e intuitivo: para a frente e para trás sem espera, marcadores e linha do tempo com zoom."
 DevStudio,9,Text,,,,,,,
 CopyrightTrademarkInformation,12,Text,,,,,,,
 AdditionalLicenseTerms,13,Text,,,,,,,
@@ -135,9 +171,9 @@ DesktopScreenshot27,126,Relative path (or URL to file in Partner Center),,,,,,,
 DesktopScreenshot28,127,Relative path (or URL to file in Partner Center),,,,,,,
 DesktopScreenshot29,128,Relative path (or URL to file in Partner Center),,,,,,,
 DesktopScreenshot30,129,Relative path (or URL to file in Partner Center),,,,,,,
-DesktopScreenshotCaption1,150,Text,,Pausa en un frame con el tramo ampliado y en bucle.,"Paused on a frame, with the range zoomed in and looping.","En pause sur une image, avec la plage agrandie et en boucle.","Pause auf einem Frame, mit vergrößertem Abschnitt in Schleife.","In pausa su un fotogramma, con il tratto ingrandito e in loop.","Pausado em um quadro, com o trecho ampliado e em loop."
-DesktopScreenshotCaption2,151,Text,,Panel de bookmarks: regiones con nombre y etiquetas.,Bookmarks panel: named regions with labels.,Panneau des signets : régions nommées avec étiquettes.,Lesezeichen: benannte Regionen mit Labels.,Pannello dei segnalibri: regioni con nome ed etichette.,Painel de marcadores: regiões com nome e etiquetas.
-DesktopScreenshotCaption3,152,Text,,Al pasar por la barra se ve el frame de ese punto.,Hovering over the bar shows the frame at that point.,"Au survol de la barre, on voit l'image à cet endroit.",Beim Überfahren der Leiste sieht man den Frame an dieser Stelle.,Passando sulla barra si vede il fotogramma in quel punto.,"Ao passar pela barra, aparece o quadro daquele ponto."
+DesktopScreenshotCaption1,150,Text,,"Panel de bookmarks y, al pasar el ratón por la barra, el frame de ese punto.","Bookmarks panel, and hovering over the bar shows the frame at that point.","Panneau des signets et, au survol de la barre, l'image à cet endroit.","Lesezeichen-Liste, und beim Überfahren der Leiste der Frame an dieser Stelle.","Pannello dei segnalibri e, passando sulla barra, il fotogramma in quel punto.","Painel de marcadores e, ao passar o mouse pela barra, o quadro daquele ponto."
+DesktopScreenshotCaption2,151,Text,,Pausa en un frame con el tramo ampliado y en bucle.,"Paused on a frame, with the range zoomed in and looping.","En pause sur une image, avec la plage agrandie et en boucle.","Pause auf einem Frame, mit vergrößertem Abschnitt in Schleife.","In pausa su un fotogramma, con il tratto ingrandito e in loop.","Pausado em um quadro, com o trecho ampliado e em loop."
+DesktopScreenshotCaption3,152,Text,,"En la barra ampliada, la miniatura enseña cada frame.","On the zoomed bar, the thumbnail shows every frame.","Sur la barre agrandie, la miniature montre chaque image.",Auf der vergrößerten Leiste zeigt das Vorschaubild jeden Frame.,"Sulla barra ingrandita, la miniatura mostra ogni fotogramma.","Na barra ampliada, a miniatura mostra cada quadro."
 DesktopScreenshotCaption4,153,Text,,"Guardar un tramo como bookmark, con nombre y etiqueta.","Saving a range as a bookmark, with a name and a label.","Enregistrer une plage comme signet, avec un nom et une étiquette.","Einen Abschnitt als Lesezeichen speichern, mit Namen und Label.","Salvare un tratto come segnalibro, con nome ed etichetta.","Salvar um trecho como marcador, com nome e etiqueta."
 DesktopScreenshotCaption5,154,Text,,Ajustes.,Settings.,Paramètres.,Einstellungen.,Impostazioni.,Configurações.
 DesktopScreenshotCaption6,155,Text,,,,,,,
