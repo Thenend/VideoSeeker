@@ -26,7 +26,8 @@
       "Al pasar por la barra se ve el frame de ese punto.",
       "Guardar un tramo como bookmark, con nombre y etiqueta.",
       "Ajustes."
-    ]
+    ],
+    "ReleaseNotes": "• Ctrl + rueda amplía o reduce en las dos barras; el salto largo (30 s) pasa a Alt + flechas o Alt + rueda.\n• Arrastrar con el botón central sobre la barra ampliada la desplaza.\n• La barra ampliada se desliza suavemente hasta el nuevo tramo, y el panel de bookmarks se abre con una transición (se puede quitar en Ajustes).\n• Menú del vídeo con iconos, y nueva opción para exportar como clip el tramo ampliado.\n• Cuadro del nombre: botón Aceptar y se puede recorrer con Tab.\n• El final y los bucles llegan de verdad al último frame.\n• Los menús y las miniaturas ya no saltan al otro monitor."
   },
   "en": {
     "ShortDescription": "A player for looking at video frame by frame: forward and back with no waiting, named regions, and a timeline you can zoom until every frame shows.",
@@ -55,7 +56,8 @@
       "Hovering over the bar shows the frame at that point.",
       "Saving a range as a bookmark, with a name and a label.",
       "Settings."
-    ]
+    ],
+    "ReleaseNotes": "• Ctrl + wheel zooms on both bars; the long jump (30 s) moves to Alt + arrows or Alt + wheel.\n• Middle-button drag on the zoomed bar pans it.\n• The zoomed bar glides to the new range, and the bookmarks panel slides in (can be turned off in Settings).\n• Video menu with icons, and a new option to export the zoomed range as a clip.\n• Name box: OK button, and Tab moves through it.\n• The end and loops now reach the true last frame.\n• Menus and thumbnails no longer jump to the other monitor."
   },
   "fr": {
     "ShortDescription": "Un lecteur pour regarder une vidéo image par image : en avant et en arrière sans attendre, des plages nommées et une timeline qu'on agrandit jusqu'à voir chaque image.",
@@ -84,7 +86,8 @@
       "Au survol de la barre, on voit l'image à cet endroit.",
       "Enregistrer une plage comme signet, avec un nom et une étiquette.",
       "Paramètres."
-    ]
+    ],
+    "ReleaseNotes": "• Ctrl + molette zoome sur les deux barres ; le grand saut (30 s) passe à Alt + flèches ou Alt + molette.\n• Un glisser avec le bouton du milieu sur la barre agrandie la fait défiler.\n• La barre agrandie glisse jusqu'à la nouvelle plage, et le panneau des signets s'ouvre en glissant (désactivable dans les Paramètres).\n• Menu de la vidéo avec des icônes, et nouvelle option pour exporter la plage agrandie en clip.\n• Boîte du nom : bouton OK, et on la parcourt avec Tab.\n• La fin et les boucles atteignent vraiment la dernière image.\n• Les menus et les miniatures ne sautent plus sur l'autre écran."
   },
   "de": {
     "ShortDescription": "Ein Player, um Videos Frame für Frame anzusehen: vor und zurück ohne Wartezeit, benannte Abschnitte und eine Zeitleiste, die sich bis auf jeden einzelnen Frame vergrößern lässt.",
@@ -113,7 +116,8 @@
       "Beim Überfahren der Leiste sieht man den Frame an dieser Stelle.",
       "Einen Abschnitt als Lesezeichen speichern, mit Namen und Label.",
       "Einstellungen."
-    ]
+    ],
+    "ReleaseNotes": "• Strg + Mausrad zoomt auf beiden Leisten; der große Sprung (30 s) liegt jetzt auf Alt + Pfeiltasten oder Alt + Mausrad.\n• Ziehen mit der mittleren Maustaste verschiebt die vergrößerte Leiste.\n• Die vergrößerte Leiste gleitet zum neuen Abschnitt, und die Lesezeichen gleiten herein (in den Einstellungen abschaltbar).\n• Videomenü mit Symbolen und neue Option, den vergrößerten Abschnitt als Clip zu exportieren.\n• Namensfeld: OK-Schaltfläche, und mit Tab erreichbar.\n• Ende und Schleifen erreichen jetzt wirklich den letzten Frame.\n• Menüs und Vorschaubilder springen nicht mehr auf den anderen Bildschirm."
   },
   "it": {
     "ShortDescription": "Un lettore per guardare i video fotogramma per fotogramma: avanti e indietro senza attese, tratti segnati con un nome e una timeline che si ingrandisce fino a vedere ogni fotogramma.",
@@ -142,7 +146,8 @@
       "Passando sulla barra si vede il fotogramma in quel punto.",
       "Salvare un tratto come segnalibro, con nome ed etichetta.",
       "Impostazioni."
-    ]
+    ],
+    "ReleaseNotes": "• Ctrl + rotellina ingrandisce o riduce su entrambe le barre; il salto lungo (30 s) passa ad Alt + frecce o Alt + rotellina.\n• Trascinando col tasto centrale sulla barra ingrandita la si sposta.\n• La barra ingrandita scorre fino al nuovo tratto, e il pannello dei segnalibri si apre scorrendo (si può disattivare nelle Impostazioni).\n• Menu del video con icone, e nuova opzione per esportare come clip il tratto ingrandito.\n• Riquadro del nome: pulsante OK, e si percorre con Tab.\n• La fine e i loop arrivano davvero all'ultimo fotogramma.\n• Menu e miniature non saltano più sull'altro monitor."
   },
   "pt-BR": {
     "ShortDescription": "Um player para ver vídeos quadro a quadro: para a frente e para trás sem espera, trechos marcados com nome e uma linha do tempo que amplia até mostrar cada quadro.",
@@ -171,6 +176,7 @@
       "Ao passar pela barra, aparece o quadro daquele ponto.",
       "Salvar um trecho como marcador, com nome e etiqueta.",
       "Configurações."
-    ]
+    ],
+    "ReleaseNotes": "• Ctrl + roda dá zoom nas duas barras; o salto longo (30 s) passa para Alt + setas ou Alt + roda.\n• Arrastar com o botão do meio na barra ampliada a desloca.\n• A barra ampliada desliza até o novo trecho, e o painel de marcadores abre deslizando (dá para desativar em Configurações).\n• Menu do vídeo com ícones, e nova opção para exportar o trecho ampliado como clipe.\n• Caixa do nome: botão OK, e dá para percorrê-la com Tab.\n• O fim e os loops chegam de verdade ao último quadro.\n• Menus e miniaturas não pulam mais para o outro monitor."
   }
 }

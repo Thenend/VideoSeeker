@@ -44,6 +44,8 @@ def main(src, shots, out):
         t = texts[folder]
         if field in ('ShortDescription', 'Description'):
             return t[field]
+        if field == 'ReleaseNotes':
+            return t.get('ReleaseNotes', '')
         for prefix, key in (('DesktopScreenshotCaption', 'Captions'), ('Feature', 'Features'), ('SearchTerm', 'SearchTerms')):
             if field.startswith(prefix) and field[len(prefix):].isdigit():
                 n = int(field[len(prefix):])
