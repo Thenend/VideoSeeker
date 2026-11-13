@@ -145,26 +145,26 @@ public partial class MainWindow
                 await Task.Delay(300);
             }
 
-            // 01, la primera que se ve en la tienda: el panel con los bookmarks, uno seleccionado (es la zona, en bucle),
-            // y el vistazo de otro al pasar por la barra principal.
+            // 01, la primera que se ve en la tienda: el frame de 19 s (la cara de la niña, el que Mario quiere), con el
+            // panel de bookmarks, el suyo seleccionado (es la zona, en bucle), y el vistazo de otro al pasar por la barra.
             _loopVideo = false;
             _loopRange = true;
             ApplyLoop();
             UpdateLoopButtons();
             ShowPanel(true);
-            Select(added[3].Id);
-            await Show(65.4, 4000);
+            Select(added[0].Id);
+            await Show(19.0, 4000);
             ReturnFocusToVideo();
             await Task.Delay(1500); // miniaturas del panel
             await Hover(Seek, 212.5, "barra principal");
             await Capture("01-bookmarks-vistazo");
             Seek.SimulateLeave();
 
-            // 02: parado en un frame, sin panel, con una zona de unos 2,5 s alrededor y su bucle puesto.
+            // 02: parado en otro frame, sin panel, con una zona de unos 2,5 s alrededor y su bucle puesto.
             ShowPanel(false);
             Select(null);
-            SetFreeZoom((grid.Snap(17.75), grid.Snap(20.25)));
-            await Show(19.0, 4000);
+            SetFreeZoom((grid.Snap(25.25), grid.Snap(27.75)));
+            await Show(26.5, 4000);
             ReturnFocusToVideo();
             await Capture("02-fotograma");
 

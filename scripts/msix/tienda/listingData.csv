@@ -5,7 +5,7 @@ Es ágil e intuitivo de manejar: deja un tramo en bucle, vuelve atrás hasta el 
 
 Cómo se usa:
 • Flecha arriba y abajo: un frame adelante o atrás, al momento. Los frames de alrededor se guardan en la tarjeta gráfica, así que ir hacia atrás no hace esperar.
-• Arrastrar sobre la imagen recorre el vídeo frame a frame.
+• Scrubbing frame by frame: arrastrar sobre la imagen recorre el vídeo frame a frame.
 • Clic derecho y arrastrar sobre la barra amplía ese tramo en una segunda barra, con una marca por frame. Shift + R lo repite en bucle.
 • B crea un bookmark: una región con nombre y una etiqueta o un color. Están en un panel, y los números del 1 al 9 llevan a cada uno.
 • J, K y L cambian la velocidad, también marcha atrás.
@@ -21,7 +21,7 @@ It's quick and intuitive to use: leave a range on a loop, step back to the exact
 
 How it works:
 • Up and Down arrows: one frame forward or back, instantly. Nearby frames are kept on the graphics card, so going backwards doesn't make you wait.
-• Dragging over the image scrubs through the video frame by frame.
+• Frame-by-frame scrubbing: dragging over the image scrubs through the video frame by frame.
 • Right-drag on the bar zooms into that range on a second bar, with a tick for every frame. Shift + R loops it.
 • B adds a bookmark: a region with a name and a label or a color. They're listed in a panel, and keys 1 to 9 jump to each one.
 • J, K and L change the speed, in reverse too.
@@ -37,7 +37,7 @@ Il est rapide et intuitif à prendre en main : laisser une plage en boucle, recu
 
 Comment ça marche :
 • Flèches haut et bas : une image en avant ou en arrière, tout de suite. Les images voisines sont gardées sur la carte graphique, donc reculer ne fait pas attendre.
-• Faire glisser sur l'image parcourt la vidéo image par image.
+• Scrubbing frame by frame : faire glisser sur l'image parcourt la vidéo image par image.
 • Un glisser avec le bouton droit sur la barre agrandit cette plage dans une seconde barre, avec un repère par image. Maj + R la met en boucle.
 • B ajoute un signet : une région avec un nom et une étiquette ou une couleur. Ils sont dans un panneau, et les touches 1 à 9 mènent à chacun.
 • J, K et L changent la vitesse, en arrière aussi.
@@ -53,7 +53,7 @@ Die Bedienung ist flink und intuitiv: einen Abschnitt in Schleife laufen lassen,
 
 So funktioniert es:
 • Pfeil nach oben und unten: ein Frame vor oder zurück, sofort. Die Frames in der Nähe liegen auf der Grafikkarte, deshalb muss man auch rückwärts nicht warten.
-• Ziehen über das Bild spult Frame für Frame durch das Video.
+• Scrubbing Frame by Frame: Ziehen über das Bild spult Frame für Frame durch das Video.
 • Ziehen mit der rechten Maustaste auf der Leiste vergrößert diesen Abschnitt in einer zweiten Leiste, mit einer Markierung pro Frame. Umschalt + R wiederholt ihn.
 • B setzt ein Lesezeichen: eine Region mit Namen und einem Label oder einer Farbe. Sie stehen in einer Liste, und die Tasten 1 bis 9 springen zu jedem.
 • J, K und L ändern die Geschwindigkeit, auch rückwärts.
@@ -69,7 +69,7 @@ Die Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.o
 
 Come si usa:
 • Freccia su e giù: un fotogramma avanti o indietro, subito. I fotogrammi vicini restano sulla scheda grafica, quindi anche andando indietro non si aspetta.
-• Trascinando sull'immagine si scorre il video fotogramma per fotogramma.
+• Scrubbing frame by frame: trascinando sull'immagine si scorre il video fotogramma per fotogramma.
 • Trascinando col tasto destro sulla barra, quel tratto si ingrandisce in una seconda barra, con una tacca per ogni fotogramma. Maiusc + R lo mette in loop.
 • B aggiunge un segnalibro: una regione con un nome e un'etichetta o un colore. Stanno in un pannello, e i tasti da 1 a 9 portano a ciascuno.
 • J, K e L cambiano la velocità, anche all'indietro.
@@ -85,7 +85,7 @@ Nelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org),
 
 Como funciona:
 • Setas para cima e para baixo: um quadro para a frente ou para trás, na hora. Os quadros próximos ficam guardados na placa de vídeo, então voltar não faz esperar.
-• Arrastar sobre a imagem percorre o vídeo quadro a quadro.
+• Scrubbing frame by frame: arrastar sobre a imagem percorre o vídeo quadro a quadro.
 • Arrastar com o botão direito na barra amplia esse trecho em uma segunda barra, com uma marca por quadro. Shift + R coloca em loop.
 • B cria um marcador: uma região com nome e uma etiqueta ou uma cor. Eles ficam em um painel, e as teclas de 1 a 9 levam a cada um.
 • J, K e L mudam a velocidade, também de trás para a frente.
