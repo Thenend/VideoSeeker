@@ -876,9 +876,9 @@ public abstract class Strings
     public abstract string ComparePlaceTop { get; }
     /// <summary>Abajo</summary>
     public abstract string ComparePlaceBottom { get; }
-    /// <summary>Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora. Con Alt pulsado, cada uno se arrastra por su cuenta</summary>
+    /// <summary>Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora</summary>
     public abstract string CompareLockTip { get; }
-    /// <summary>Soltar los dos vídeos (Ctrl + L): cada uno se mueve por su cuenta</summary>
+    /// <summary>Desincronizar (Ctrl + L). Con Alt pulsado, cada uno se arrastra por su cuenta</summary>
     public abstract string CompareUnlockTip { get; }
     /// <summary>B {time} ({frames}): el desfase de B; "time" y "frames" llevan signo y "frames" ya dice "frames"</summary>
     public abstract string CompareOffset(string time, string frames);

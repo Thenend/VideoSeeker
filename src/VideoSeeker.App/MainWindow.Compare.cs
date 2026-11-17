@@ -47,6 +47,7 @@ public partial class MainWindow
     private TextBlock _cmpNameA = null!, _cmpFrameTextA = null!, _cmpNameB = null!, _cmpFrameTextB = null!, _cmpOffset = null!, _cmpOutside = null!;
     private Button _cmpLock = null!;
     private TextBlock _cmpLockText = null!;
+    private readonly ToolTip _cmpLockTip = new();
     private Border _cmpLockHost = null!, _cmpLockGlow = null!, _cmpHeaderB = null!;
     // El latido del candado: no vuelve a empezar mientras late, y como mucho uno cada LockPulseGap.
     private bool _lockPulsing;
@@ -605,7 +606,9 @@ public partial class MainWindow
         _cmpLock.Foreground = locked ? CompareActiveBrush : sync.Held ? (Brush)FindResource("FgMuted") : (Brush)FindResource("Fg");
         _cmpLock.Background = locked ? CompareLockedBack : Brushes.Transparent;
         _cmpLockText.Text = sync.Locked ? S.CompareSyncedButton : S.CompareSyncButton;
-        _cmpLock.ToolTip = locked ? S.CompareUnlockTip : S.CompareLockTip;
+        var tip = locked ? S.CompareUnlockTip : S.CompareLockTip;
+        if (!Equals(_cmpLockTip.Content, tip))
+            _cmpLockTip.Content = tip;
         _cmpOffset.Visibility = sync.Locked ? Visibility.Visible : Visibility.Collapsed;
         _cmpOffset.Text = sync.Locked ? CompareOffsetLabel() : "";
         var outside = locked && sync.Range != CompareSync.BRange.Inside;
@@ -647,7 +650,16 @@ public partial class MainWindow
         content.Children.Add(_cmpLockIcon);
         content.Children.Add(_cmpLockText);
         _cmpLock = new Button { Style = (Style)FindResource("ToolButton"), Padding = new Thickness(6, 0, 8, 0), Height = CompareHeaderHeight - 2, Content = content };
-        _cmpLock.Click += (_, _) => ToggleCompareLock();
+        // Un solo ToolTip que cambia de texto: tras pulsar, WPF no vuelve a enseñar el de un botón hasta que el ratón sale de
+        // él, así que se enseña a mano (el de «Desincronizar», que dice lo de Alt).
+        _cmpLock.ToolTip = _cmpLockTip;
+        _cmpLock.Click += (_, _) =>
+        {
+            ToggleCompareLock();
+            if (_cmpLock.IsMouseOver)
+                Dispatcher.BeginInvoke(() => _cmpLockTip.IsOpen = _cmpLock.IsMouseOver);
+        };
+        _cmpLock.MouseLeave += (_, _) => _cmpLockTip.IsOpen = false;
         // El latido: un brillo de fondo, como el del botón de las marcas.
         _cmpLockGlow = new Border { CornerRadius = new CornerRadius(4), Background = (Brush)FindResource("Accent"), Opacity = 0, IsHitTestVisible = false };
         var button = new Grid();
@@ -1104,50 +1116,58 @@ public partial class MainWindow
     /// </summary>
     private void BuildDropZones()
     {
+        // «Abrir» ocupa casi todo; las cuatro «Comparar» son franjas finas en los bordes (FitDropZones).
         _cmpDropOverlay = new Grid { Visibility = Visibility.Collapsed, Background = Brushes.Black };
-        var edge = new GridLength(0.24, GridUnitType.Star);
-        _cmpDropOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = edge });
-        _cmpDropOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.52, GridUnitType.Star) });
-        _cmpDropOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = edge });
-        _cmpDropOverlay.RowDefinitions.Add(new RowDefinition { Height = edge });
-        _cmpDropOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(0.52, GridUnitType.Star) });
-        _cmpDropOverlay.RowDefinitions.Add(new RowDefinition { Height = edge });
-        Add("left", S.ComparePlaceLeft, 0, 0, 1, 3);
-        Add("right", S.ComparePlaceRight, 2, 0, 1, 3);
-        Add("top", S.ComparePlaceTop, 1, 0, 1, 1);
-        Add("bottom", S.ComparePlaceBottom, 1, 2, 1, 1);
-        Add(null, S.CompareDropOpenDetail, 1, 1, 1, 1);
+        for (var i = 0; i < 3; i++)
+        {
+            _cmpDropOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = i == 1 ? new GridLength(1, GridUnitType.Star) : new GridLength(80) });
+            _cmpDropOverlay.RowDefinitions.Add(new RowDefinition { Height = i == 1 ? new GridLength(1, GridUnitType.Star) : new GridLength(80) });
+        }
+        Add("left", 0, 0, 1, 3);
+        Add("right", 2, 0, 1, 3);
+        Add("top", 1, 0, 1, 1);
+        Add("bottom", 1, 2, 1, 1);
+        Add(null, 1, 1, 1, 1);
+        _cmpDropOverlay.SizeChanged += (_, _) => FitDropZones();
         Grid.SetRow(_cmpDropOverlay, 0);
         Grid.SetColumn(_cmpDropOverlay, 0);
         Panel.SetZIndex(_cmpDropOverlay, 5);
         RootGrid.Children.Add(_cmpDropOverlay);
 
-        void Add(string? placement, string detail, int column, int row, int columns, int rows)
+        void Add(string? placement, int column, int row, int columns, int rows)
         {
             var accent = (Brush)FindResource("Accent");
-            var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(8) };
+            var side = placement is "left" or "right";
+            // En los bordes, el icono y «Comparar» en una línea (vertical en los de los lados); en el centro, «Abrir» y debajo
+            // lo que hace.
+            var content = new StackPanel
+            {
+                Orientation = placement != null ? Orientation.Horizontal : Orientation.Vertical,
+                VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(6),
+                LayoutTransform = side ? new RotateTransform(placement == "left" ? -90 : 90) : Transform.Identity,
+            };
             if (placement != null)
                 content.Children.Add(new System.Windows.Shapes.Path
                 {
                     Data = (Geometry)FindResource("CompareMenuIcon"), Stroke = accent, StrokeThickness = 1.4, Width = 19, Height = 17,
-                    LayoutTransform = new ScaleTransform(1.5, 1.5), HorizontalAlignment = HorizontalAlignment.Center, StrokeLineJoin = PenLineJoin.Round,
-                    Margin = new Thickness(0, 0, 0, 6),
+                    VerticalAlignment = VerticalAlignment.Center, StrokeLineJoin = PenLineJoin.Round, Margin = new Thickness(0, 0, 8, 0),
                 });
             content.Children.Add(new TextBlock
             {
                 Text = placement != null ? S.CompareDropHint : S.CompareDropOpen, Foreground = placement != null ? accent : (Brush)FindResource("Fg"),
-                FontSize = 15, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center,
-                TextWrapping = TextWrapping.Wrap,
+                FontSize = placement != null ? 14 : 16, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center,
             });
-            content.Children.Add(new TextBlock
-            {
-                Text = detail, Foreground = (Brush)FindResource("FgMuted"), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center,
-                TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
-            });
+            if (placement == null)
+                content.Children.Add(new TextBlock
+                {
+                    Text = S.CompareDropOpenDetail, Foreground = (Brush)FindResource("FgMuted"), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center,
+                    TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
+                });
             var zone = new Border
             {
                 Background = (Brush)FindResource("Panel"), BorderBrush = (Brush)FindResource("Line"), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(6), Margin = new Thickness(4), Child = content,
+                CornerRadius = new CornerRadius(6), Margin = new Thickness(3), Child = content, ClipToBounds = true,
             };
             Grid.SetColumn(zone, column);
             Grid.SetRow(zone, row);
@@ -1156,6 +1176,15 @@ public partial class MainWindow
             _cmpDropOverlay.Children.Add(zone);
             _cmpDropZones.Add((zone, placement));
         }
+    }
+
+    // Las franjas de los bordes: un 12 % del lado, entre 60 y 120 px.
+    private void FitDropZones()
+    {
+        var w = Math.Clamp(_cmpDropOverlay.ActualWidth * 0.12, 60, 120);
+        var h = Math.Clamp(_cmpDropOverlay.ActualHeight * 0.12, 60, 120);
+        _cmpDropOverlay.ColumnDefinitions[0].Width = _cmpDropOverlay.ColumnDefinitions[2].Width = new GridLength(w);
+        _cmpDropOverlay.RowDefinitions[0].Height = _cmpDropOverlay.RowDefinitions[2].Height = new GridLength(h);
     }
 
     // La zona bajo el ratón: (true, lado) en un borde, (true, null) en el centro, (false, _) fuera de las zonas.

@@ -456,8 +456,8 @@ public sealed class FrenchStrings : Strings
     public override string ComparePlaceRight => "À droite";
     public override string ComparePlaceTop => "En haut";
     public override string ComparePlaceBottom => "En bas";
-    public override string CompareLockTip => "Synchroniser les deux vidéos (Ctrl + L) : elles avancent ensemble, avec l'écart actuel. Avec Alt enfoncée, chacune se fait glisser seule";
-    public override string CompareUnlockTip => "Désynchroniser les deux vidéos (Ctrl + L) : chacune avance de son côté";
+    public override string CompareLockTip => "Synchroniser les deux vidéos (Ctrl + L) : elles avancent ensemble, avec l'écart actuel";
+    public override string CompareUnlockTip => "Désynchroniser (Ctrl + L). Avec Alt enfoncée, chacune se fait glisser seule";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
     public override string CompareOffsetTip => "Temps de B moins temps de A. Alt + , / Alt + . ne déplacent que la vidéo active d'une image";
     public override string CompareStartsAt(string time) => $"B commence à {time}";

@@ -456,8 +456,8 @@ public sealed class SpanishStrings : Strings
     public override string ComparePlaceRight => "A la derecha";
     public override string ComparePlaceTop => "Arriba";
     public override string ComparePlaceBottom => "Abajo";
-    public override string CompareLockTip => "Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora. Con Alt pulsado, cada uno se arrastra por su cuenta";
-    public override string CompareUnlockTip => "Soltar los dos vídeos (Ctrl + L): cada uno se mueve por su cuenta";
+    public override string CompareLockTip => "Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora";
+    public override string CompareUnlockTip => "Desincronizar (Ctrl + L). Con Alt pulsado, cada uno se arrastra por su cuenta";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
     public override string CompareOffsetTip => "Tiempo de B menos tiempo de A. Alt + , / Alt + . mueven un frame solo el vídeo activo";
     public override string CompareStartsAt(string time) => $"B empieza en {time}";

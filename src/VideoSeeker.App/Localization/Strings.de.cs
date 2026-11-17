@@ -456,8 +456,8 @@ public sealed class GermanStrings : Strings
     public override string ComparePlaceRight => "Rechts";
     public override string ComparePlaceTop => "Oben";
     public override string ComparePlaceBottom => "Unten";
-    public override string CompareLockTip => "Beide Videos synchronisieren (Strg + L): Sie bewegen sich gemeinsam, mit dem jetzigen Abstand. Mit gedrückter Alt-Taste lässt sich jedes einzeln ziehen";
-    public override string CompareUnlockTip => "Synchronisierung lösen (Strg + L): Jedes Video bewegt sich für sich";
+    public override string CompareLockTip => "Beide Videos synchronisieren (Strg + L): Sie bewegen sich gemeinsam, mit dem jetzigen Abstand";
+    public override string CompareUnlockTip => "Synchronisierung lösen (Strg + L). Mit gedrückter Alt-Taste lässt sich jedes einzeln ziehen";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
     public override string CompareOffsetTip => "Zeit von B minus Zeit von A. Alt + , / Alt + . bewegen nur das aktive Video um einen Frame";
     public override string CompareStartsAt(string time) => $"B beginnt bei {time}";

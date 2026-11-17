@@ -456,8 +456,8 @@ public sealed class ItalianStrings : Strings
     public override string ComparePlaceRight => "A destra";
     public override string ComparePlaceTop => "Sopra";
     public override string ComparePlaceBottom => "Sotto";
-    public override string CompareLockTip => "Sincronizza i due video (Ctrl + L): si muovono insieme, con la distanza attuale. Tenendo premuto Alt, ognuno si trascina per conto suo";
-    public override string CompareUnlockTip => "Scollega i due video (Ctrl + L): ognuno si muove per conto suo";
+    public override string CompareLockTip => "Sincronizza i due video (Ctrl + L): si muovono insieme, con la distanza attuale";
+    public override string CompareUnlockTip => "Desincronizza (Ctrl + L). Tenendo premuto Alt, ognuno si trascina per conto suo";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
     public override string CompareOffsetTip => "Tempo di B meno tempo di A. Alt + , / Alt + . spostano solo il video attivo di un fotogramma";
     public override string CompareStartsAt(string time) => $"B inizia a {time}";
