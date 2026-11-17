@@ -1,7 +1,7 @@
 {
   "es": {
     "ShortDescription": "Para revisar al detalle grabaciones, gameplays, animaciones o cualquier vídeo, frame a frame. Ágil e intuitivo: adelante y atrás sin esperas, bookmarks y una línea de tiempo con zoom.",
-    "Description": "VideoSeeker sirve para revisar al detalle grabaciones, gameplays, animaciones o cualquier vídeo que quieras examinar frame a frame.\n\nEs ágil e intuitivo de manejar: deja un tramo en bucle, vuelve atrás hasta el frame exacto en que pasa algo, apunta «revisar» en un trozo y vuelve a él más tarde.\n\nCómo se usa:\n• Flecha arriba y abajo: un frame adelante o atrás, al momento. Los frames de alrededor se guardan en la tarjeta gráfica, así que ir hacia atrás no hace esperar.\n• Scrubbing frame by frame: arrastrar sobre la imagen recorre el vídeo frame a frame.\n• Clic derecho y arrastrar sobre la barra amplía ese tramo en una segunda barra, con una marca por frame. Shift + R lo repite en bucle.\n• B crea un bookmark: una región con nombre y una etiqueta o un color. Están en un panel, y los números del 1 al 9 llevan a cada uno.\n• J, K y L cambian la velocidad, también marcha atrás.\n• Un tramo se exporta como clip sin salir de la app.\n\nLee MKV, MP4, AVI, MOV y WebM con H.264, HEVC, AV1 o VP9 y audio AAC, AC3 o DTS, sin instalar códecs.\n\nGratis y de código abierto (GPL v3), sin anuncios ni cuentas: https://github.com/Thenend/VideoSeeker\n\nEn las capturas sale «Sprite Fright» (Blender Foundation, studio.blender.org), con licencia CC BY 4.0.",
+    "Description": "VideoSeeker sirve para revisar al detalle grabaciones, gameplays, animaciones o cualquier vídeo que quieras examinar frame a frame.\n\nEs ágil e intuitivo de manejar: deja un tramo en bucle, vuelve atrás hasta el frame exacto en que pasa algo, apunta «revisar» en un trozo y vuelve a él más tarde.\n\nCómo se usa:\n• Flecha arriba y abajo: un frame adelante o atrás, al momento. Los frames de alrededor se guardan en la tarjeta gráfica, así que ir hacia atrás no hace esperar.\n• Scrubbing frame by frame: arrastrar sobre la imagen recorre el vídeo frame a frame.\n• Clic derecho y arrastrar sobre la barra amplía ese tramo en una segunda barra, con una marca por frame. Shift + R lo repite en bucle.\n• B crea un bookmark: una región con nombre y una etiqueta o un color. Están en un panel, y los números del 1 al 9 llevan a cada uno.\n• J, K y L cambian la velocidad, también marcha atrás.\n• Un tramo se exporta como clip sin salir de la app.\n• Compara dos vídeos, o dos partes del mismo, uno al lado del otro y sincronizados frame a frame.\n\nLee MKV, MP4, AVI, MOV y WebM con H.264, HEVC, AV1 o VP9 y audio AAC, AC3 o DTS, sin instalar códecs.\n\nGratis y de código abierto (GPL v3), sin anuncios ni cuentas: https://github.com/Thenend/VideoSeeker\n\nEn las capturas sale «Sprite Fright» (Blender Foundation, studio.blender.org), con licencia CC BY 4.0.",
     "Features": [
       "Frame a frame adelante y atrás, sin esperas",
       "Arrastrar sobre la imagen para recorrer el vídeo",
@@ -9,7 +9,8 @@
       "Bookmarks de regiones con nombre, etiqueta o color",
       "Miniatura del frame al pasar el ratón por la barra",
       "Exportar un tramo como clip",
-      "MKV, MP4, HEVC, AV1, AC3, DTS… sin instalar códecs"
+      "MKV, MP4, HEVC, AV1, AC3, DTS… sin instalar códecs",
+      "Comparar dos vídeos sincronizados, lado a lado"
     ],
     "SearchTerms": [
       "reproductor de vídeo",
@@ -27,11 +28,11 @@
       "Guardar un tramo como bookmark, con nombre y etiqueta.",
       "Ajustes."
     ],
-    "ReleaseNotes": "• Ctrl + rueda amplía o reduce en las dos barras; el salto largo (30 s) pasa a Alt + flechas o Alt + rueda.\n• Arrastrar con el botón central sobre la barra ampliada la desplaza.\n• La barra ampliada se desliza suavemente hasta el nuevo tramo, y el panel de bookmarks se abre con una transición (se puede quitar en Ajustes).\n• Menú del vídeo con iconos, y nueva opción para exportar como clip el tramo ampliado.\n• Cuadro del nombre: botón Aceptar y se puede recorrer con Tab.\n• El final y los bucles llegan de verdad al último frame.\n• Los menús y las miniaturas ya no saltan al otro monitor."
+    "ReleaseNotes": "• Comparar dos vídeos: arrastra otro vídeo a un borde de la ventana (o Ctrl + Shift + O) y se abre al lado. Con «Sincronizar» (Ctrl + L) van juntos frame a frame, también reproduciendo; con Alt pulsado se mueve solo uno.\n• También se puede comparar con otra parte del mismo vídeo o con un bookmark, desde sus menús.\n• El segundo vídeo tiene sus propios controles y su sonido."
   },
   "en": {
     "ShortDescription": "For reviewing recordings, gameplay, animation or any video in detail, frame by frame. Quick and intuitive: forward and back with no waiting, bookmarks and a zoomable timeline.",
-    "Description": "VideoSeeker is for reviewing recordings, gameplay, animation or any video you want to examine in detail, frame by frame.\n\nIt's quick and intuitive to use: leave a range on a loop, step back to the exact frame where something happens, note “check” on a stretch and come back to it later.\n\nHow it works:\n• Up and Down arrows: one frame forward or back, instantly. Nearby frames are kept on the graphics card, so going backwards doesn't make you wait.\n• Frame-by-frame scrubbing: dragging over the image scrubs through the video frame by frame.\n• Right-drag on the bar zooms into that range on a second bar, with a tick for every frame. Shift + R loops it.\n• B adds a bookmark: a region with a name and a label or a color. They're listed in a panel, and keys 1 to 9 jump to each one.\n• J, K and L change the speed, in reverse too.\n• Export a range as a clip without leaving the app.\n\nPlays MKV, MP4, AVI, MOV and WebM with H.264, HEVC, AV1 or VP9 and AAC, AC3 or DTS audio, with no codecs to install.\n\nFree and open source (GPL v3), no ads, no accounts: https://github.com/Thenend/VideoSeeker\n\nScreenshots show “Sprite Fright” (Blender Foundation, studio.blender.org), licensed CC BY 4.0.",
+    "Description": "VideoSeeker is for reviewing recordings, gameplay, animation or any video you want to examine in detail, frame by frame.\n\nIt's quick and intuitive to use: leave a range on a loop, step back to the exact frame where something happens, note “check” on a stretch and come back to it later.\n\nHow it works:\n• Up and Down arrows: one frame forward or back, instantly. Nearby frames are kept on the graphics card, so going backwards doesn't make you wait.\n• Frame-by-frame scrubbing: dragging over the image scrubs through the video frame by frame.\n• Right-drag on the bar zooms into that range on a second bar, with a tick for every frame. Shift + R loops it.\n• B adds a bookmark: a region with a name and a label or a color. They're listed in a panel, and keys 1 to 9 jump to each one.\n• J, K and L change the speed, in reverse too.\n• Export a range as a clip without leaving the app.\n• Compare two videos, or two parts of the same one, side by side and synced frame by frame.\n\nPlays MKV, MP4, AVI, MOV and WebM with H.264, HEVC, AV1 or VP9 and AAC, AC3 or DTS audio, with no codecs to install.\n\nFree and open source (GPL v3), no ads, no accounts: https://github.com/Thenend/VideoSeeker\n\nScreenshots show “Sprite Fright” (Blender Foundation, studio.blender.org), licensed CC BY 4.0.",
     "Features": [
       "Frame stepping forward and back, with no waiting",
       "Drag over the image to scrub through the video",
@@ -39,7 +40,8 @@
       "Region bookmarks with a name, label or color",
       "Frame thumbnail when hovering over the bar",
       "Export a range as a clip",
-      "MKV, MP4, HEVC, AV1, AC3, DTS… no codecs to install"
+      "MKV, MP4, HEVC, AV1, AC3, DTS… no codecs to install",
+      "Compare two videos side by side, synced"
     ],
     "SearchTerms": [
       "video player",
@@ -57,11 +59,11 @@
       "Saving a range as a bookmark, with a name and a label.",
       "Settings."
     ],
-    "ReleaseNotes": "• Ctrl + wheel zooms on both bars; the long jump (30 s) moves to Alt + arrows or Alt + wheel.\n• Middle-button drag on the zoomed bar pans it.\n• The zoomed bar glides to the new range, and the bookmarks panel slides in (can be turned off in Settings).\n• Video menu with icons, and a new option to export the zoomed range as a clip.\n• Name box: OK button, and Tab moves through it.\n• The end and loops now reach the true last frame.\n• Menus and thumbnails no longer jump to the other monitor."
+    "ReleaseNotes": "• Compare two videos: drag another video onto an edge of the window (or Ctrl + Shift + O) and it opens alongside. With Sync (Ctrl + L) they move together frame by frame, also while playing; hold Alt to move just one.\n• You can also compare with another part of the same video or with a bookmark, from their menus.\n• The second video has its own controls and sound."
   },
   "fr": {
     "ShortDescription": "Pour examiner en détail des enregistrements, des parties de jeu, des animations ou toute vidéo, image par image. Rapide et intuitif : avant et arrière sans attendre, signets et timeline zoomable.",
-    "Description": "VideoSeeker sert à examiner en détail des enregistrements, des parties de jeu, des animations ou toute vidéo à regarder image par image.\n\nIl est rapide et intuitif à prendre en main : laisser une plage en boucle, reculer jusqu'à l'image exacte où quelque chose se passe, noter « à revoir » sur un passage et y revenir plus tard.\n\nComment ça marche :\n• Flèches haut et bas : une image en avant ou en arrière, tout de suite. Les images voisines sont gardées sur la carte graphique, donc reculer ne fait pas attendre.\n• Scrubbing frame by frame : faire glisser sur l'image parcourt la vidéo image par image.\n• Un glisser avec le bouton droit sur la barre agrandit cette plage dans une seconde barre, avec un repère par image. Maj + R la met en boucle.\n• B ajoute un signet : une région avec un nom et une étiquette ou une couleur. Ils sont dans un panneau, et les touches 1 à 9 mènent à chacun.\n• J, K et L changent la vitesse, en arrière aussi.\n• Une plage s'exporte en clip sans quitter l'application.\n\nLit les MKV, MP4, AVI, MOV et WebM en H.264, HEVC, AV1 ou VP9 avec du son AAC, AC3 ou DTS, sans codecs à installer.\n\nGratuit et open source (GPL v3), sans publicité ni compte : https://github.com/Thenend/VideoSeeker\n\nLes captures montrent « Sprite Fright » (Blender Foundation, studio.blender.org), sous licence CC BY 4.0.",
+    "Description": "VideoSeeker sert à examiner en détail des enregistrements, des parties de jeu, des animations ou toute vidéo à regarder image par image.\n\nIl est rapide et intuitif à prendre en main : laisser une plage en boucle, reculer jusqu'à l'image exacte où quelque chose se passe, noter « à revoir » sur un passage et y revenir plus tard.\n\nComment ça marche :\n• Flèches haut et bas : une image en avant ou en arrière, tout de suite. Les images voisines sont gardées sur la carte graphique, donc reculer ne fait pas attendre.\n• Scrubbing frame by frame : faire glisser sur l'image parcourt la vidéo image par image.\n• Un glisser avec le bouton droit sur la barre agrandit cette plage dans une seconde barre, avec un repère par image. Maj + R la met en boucle.\n• B ajoute un signet : une région avec un nom et une étiquette ou une couleur. Ils sont dans un panneau, et les touches 1 à 9 mènent à chacun.\n• J, K et L changent la vitesse, en arrière aussi.\n• Une plage s'exporte en clip sans quitter l'application.\n• Comparez deux vidéos, ou deux passages de la même, côte à côte et synchronisées image par image.\n\nLit les MKV, MP4, AVI, MOV et WebM en H.264, HEVC, AV1 ou VP9 avec du son AAC, AC3 ou DTS, sans codecs à installer.\n\nGratuit et open source (GPL v3), sans publicité ni compte : https://github.com/Thenend/VideoSeeker\n\nLes captures montrent « Sprite Fright » (Blender Foundation, studio.blender.org), sous licence CC BY 4.0.",
     "Features": [
       "Image par image en avant et en arrière, sans attendre",
       "Faire glisser sur l'image pour parcourir la vidéo",
@@ -69,7 +71,8 @@
       "Signets de régions avec nom, étiquette ou couleur",
       "Miniature de l'image au survol de la barre",
       "Exporter une plage en clip",
-      "MKV, MP4, HEVC, AV1, AC3, DTS… sans codecs à installer"
+      "MKV, MP4, HEVC, AV1, AC3, DTS… sans codecs à installer",
+      "Comparer deux vidéos synchronisées, côte à côte"
     ],
     "SearchTerms": [
       "lecteur vidéo",
@@ -87,11 +90,11 @@
       "Enregistrer une plage comme signet, avec un nom et une étiquette.",
       "Paramètres."
     ],
-    "ReleaseNotes": "• Ctrl + molette zoome sur les deux barres ; le grand saut (30 s) passe à Alt + flèches ou Alt + molette.\n• Un glisser avec le bouton du milieu sur la barre agrandie la fait défiler.\n• La barre agrandie glisse jusqu'à la nouvelle plage, et le panneau des signets s'ouvre en glissant (désactivable dans les Paramètres).\n• Menu de la vidéo avec des icônes, et nouvelle option pour exporter la plage agrandie en clip.\n• Boîte du nom : bouton OK, et on la parcourt avec Tab.\n• La fin et les boucles atteignent vraiment la dernière image.\n• Les menus et les miniatures ne sautent plus sur l'autre écran."
+    "ReleaseNotes": "• Comparer deux vidéos : faites glisser une autre vidéo sur un bord de la fenêtre (ou Ctrl + Maj + O) et elle s'ouvre à côté. Avec « Synchroniser » (Ctrl + L), elles avancent ensemble image par image, même en lecture ; avec Alt enfoncé, une seule bouge.\n• On peut aussi comparer avec un autre passage de la même vidéo ou avec un signet, depuis leurs menus.\n• La seconde vidéo a ses propres commandes et son propre son."
   },
   "de": {
     "ShortDescription": "Zum genauen Prüfen von Aufnahmen, Gameplay, Animationen oder jedem Video, Frame für Frame. Flink und intuitiv: vor und zurück ohne Wartezeit, Lesezeichen und eine zoombare Zeitleiste.",
-    "Description": "Mit VideoSeeker prüfst du Aufnahmen, Gameplay, Animationen oder jedes Video, das du dir genau ansehen willst, Frame für Frame.\n\nDie Bedienung ist flink und intuitiv: einen Abschnitt in Schleife laufen lassen, bis zum genauen Frame zurückgehen, an dem etwas passiert, „prüfen“ an eine Stelle schreiben und später dorthin zurückkehren.\n\nSo funktioniert es:\n• Pfeil nach oben und unten: ein Frame vor oder zurück, sofort. Die Frames in der Nähe liegen auf der Grafikkarte, deshalb muss man auch rückwärts nicht warten.\n• Scrubbing Frame by Frame: Ziehen über das Bild spult Frame für Frame durch das Video.\n• Ziehen mit der rechten Maustaste auf der Leiste vergrößert diesen Abschnitt in einer zweiten Leiste, mit einer Markierung pro Frame. Umschalt + R wiederholt ihn.\n• B setzt ein Lesezeichen: eine Region mit Namen und einem Label oder einer Farbe. Sie stehen in einer Liste, und die Tasten 1 bis 9 springen zu jedem.\n• J, K und L ändern die Geschwindigkeit, auch rückwärts.\n• Ein Abschnitt lässt sich als Clip exportieren, ohne die App zu verlassen.\n\nSpielt MKV, MP4, AVI, MOV und WebM mit H.264, HEVC, AV1 oder VP9 und AAC-, AC3- oder DTS-Ton ab, ohne zusätzliche Codecs.\n\nKostenlos und Open Source (GPL v3), ohne Werbung und ohne Konto: https://github.com/Thenend/VideoSeeker\n\nDie Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.org), lizenziert unter CC BY 4.0.",
+    "Description": "Mit VideoSeeker prüfst du Aufnahmen, Gameplay, Animationen oder jedes Video, das du dir genau ansehen willst, Frame für Frame.\n\nDie Bedienung ist flink und intuitiv: einen Abschnitt in Schleife laufen lassen, bis zum genauen Frame zurückgehen, an dem etwas passiert, „prüfen“ an eine Stelle schreiben und später dorthin zurückkehren.\n\nSo funktioniert es:\n• Pfeil nach oben und unten: ein Frame vor oder zurück, sofort. Die Frames in der Nähe liegen auf der Grafikkarte, deshalb muss man auch rückwärts nicht warten.\n• Scrubbing Frame by Frame: Ziehen über das Bild spult Frame für Frame durch das Video.\n• Ziehen mit der rechten Maustaste auf der Leiste vergrößert diesen Abschnitt in einer zweiten Leiste, mit einer Markierung pro Frame. Umschalt + R wiederholt ihn.\n• B setzt ein Lesezeichen: eine Region mit Namen und einem Label oder einer Farbe. Sie stehen in einer Liste, und die Tasten 1 bis 9 springen zu jedem.\n• J, K und L ändern die Geschwindigkeit, auch rückwärts.\n• Ein Abschnitt lässt sich als Clip exportieren, ohne die App zu verlassen.\n• Zwei Videos, oder zwei Stellen desselben, nebeneinander vergleichen, Frame für Frame synchron.\n\nSpielt MKV, MP4, AVI, MOV und WebM mit H.264, HEVC, AV1 oder VP9 und AAC-, AC3- oder DTS-Ton ab, ohne zusätzliche Codecs.\n\nKostenlos und Open Source (GPL v3), ohne Werbung und ohne Konto: https://github.com/Thenend/VideoSeeker\n\nDie Screenshots zeigen „Sprite Fright“ (Blender Foundation, studio.blender.org), lizenziert unter CC BY 4.0.",
     "Features": [
       "Frame für Frame vor und zurück, ohne Wartezeit",
       "Über das Bild ziehen, um durch das Video zu spulen",
@@ -99,7 +102,8 @@
       "Lesezeichen für Regionen mit Namen, Label oder Farbe",
       "Vorschaubild des Frames beim Überfahren der Leiste",
       "Einen Abschnitt als Clip exportieren",
-      "MKV, MP4, HEVC, AV1, AC3, DTS… ohne zusätzliche Codecs"
+      "MKV, MP4, HEVC, AV1, AC3, DTS… ohne zusätzliche Codecs",
+      "Zwei Videos synchron nebeneinander vergleichen"
     ],
     "SearchTerms": [
       "Videoplayer",
@@ -117,11 +121,11 @@
       "Einen Abschnitt als Lesezeichen speichern, mit Namen und Label.",
       "Einstellungen."
     ],
-    "ReleaseNotes": "• Strg + Mausrad zoomt auf beiden Leisten; der große Sprung (30 s) liegt jetzt auf Alt + Pfeiltasten oder Alt + Mausrad.\n• Ziehen mit der mittleren Maustaste verschiebt die vergrößerte Leiste.\n• Die vergrößerte Leiste gleitet zum neuen Abschnitt, und die Lesezeichen gleiten herein (in den Einstellungen abschaltbar).\n• Videomenü mit Symbolen und neue Option, den vergrößerten Abschnitt als Clip zu exportieren.\n• Namensfeld: OK-Schaltfläche, und mit Tab erreichbar.\n• Ende und Schleifen erreichen jetzt wirklich den letzten Frame.\n• Menüs und Vorschaubilder springen nicht mehr auf den anderen Bildschirm."
+    "ReleaseNotes": "• Zwei Videos vergleichen: Zieh ein weiteres Video an einen Rand des Fensters (oder Strg + Umschalt + O), und es öffnet sich daneben. Mit „Synchronisieren“ (Strg + L) laufen beide Frame für Frame zusammen, auch bei der Wiedergabe; mit gedrückter Alt-Taste bewegt sich nur eins.\n• Vergleichen geht auch mit einer anderen Stelle desselben Videos oder mit einem Lesezeichen, über ihre Menüs.\n• Das zweite Video hat eigene Steuerelemente und eigenen Ton."
   },
   "it": {
     "ShortDescription": "Per rivedere nel dettaglio registrazioni, gameplay, animazioni o qualsiasi video, fotogramma per fotogramma. Agile e intuitivo: avanti e indietro senza attese, segnalibri e timeline con zoom.",
-    "Description": "VideoSeeker serve a rivedere nel dettaglio registrazioni, gameplay, animazioni o qualsiasi video da esaminare fotogramma per fotogramma.\n\nÈ agile e intuitivo da usare: lasciare un tratto in loop, tornare indietro fino al fotogramma esatto in cui succede qualcosa, scrivere «da rivedere» su un passaggio e riprenderlo più tardi.\n\nCome si usa:\n• Freccia su e giù: un fotogramma avanti o indietro, subito. I fotogrammi vicini restano sulla scheda grafica, quindi anche andando indietro non si aspetta.\n• Scrubbing frame by frame: trascinando sull'immagine si scorre il video fotogramma per fotogramma.\n• Trascinando col tasto destro sulla barra, quel tratto si ingrandisce in una seconda barra, con una tacca per ogni fotogramma. Maiusc + R lo mette in loop.\n• B aggiunge un segnalibro: una regione con un nome e un'etichetta o un colore. Stanno in un pannello, e i tasti da 1 a 9 portano a ciascuno.\n• J, K e L cambiano la velocità, anche all'indietro.\n• Un tratto si esporta come clip senza uscire dall'app.\n\nRiproduce MKV, MP4, AVI, MOV e WebM in H.264, HEVC, AV1 o VP9 con audio AAC, AC3 o DTS, senza installare codec.\n\nGratuito e open source (GPL v3), senza pubblicità né account: https://github.com/Thenend/VideoSeeker\n\nNelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org), con licenza CC BY 4.0.",
+    "Description": "VideoSeeker serve a rivedere nel dettaglio registrazioni, gameplay, animazioni o qualsiasi video da esaminare fotogramma per fotogramma.\n\nÈ agile e intuitivo da usare: lasciare un tratto in loop, tornare indietro fino al fotogramma esatto in cui succede qualcosa, scrivere «da rivedere» su un passaggio e riprenderlo più tardi.\n\nCome si usa:\n• Freccia su e giù: un fotogramma avanti o indietro, subito. I fotogrammi vicini restano sulla scheda grafica, quindi anche andando indietro non si aspetta.\n• Scrubbing frame by frame: trascinando sull'immagine si scorre il video fotogramma per fotogramma.\n• Trascinando col tasto destro sulla barra, quel tratto si ingrandisce in una seconda barra, con una tacca per ogni fotogramma. Maiusc + R lo mette in loop.\n• B aggiunge un segnalibro: una regione con un nome e un'etichetta o un colore. Stanno in un pannello, e i tasti da 1 a 9 portano a ciascuno.\n• J, K e L cambiano la velocità, anche all'indietro.\n• Un tratto si esporta come clip senza uscire dall'app.\n• Confronta due video, o due punti dello stesso, fianco a fianco e sincronizzati fotogramma per fotogramma.\n\nRiproduce MKV, MP4, AVI, MOV e WebM in H.264, HEVC, AV1 o VP9 con audio AAC, AC3 o DTS, senza installare codec.\n\nGratuito e open source (GPL v3), senza pubblicità né account: https://github.com/Thenend/VideoSeeker\n\nNelle schermate c'è «Sprite Fright» (Blender Foundation, studio.blender.org), con licenza CC BY 4.0.",
     "Features": [
       "Fotogramma per fotogramma avanti e indietro, senza attese",
       "Trascinare sull'immagine per scorrere il video",
@@ -129,7 +133,8 @@
       "Segnalibri di regioni con nome, etichetta o colore",
       "Miniatura del fotogramma passando sulla barra",
       "Esportare un tratto come clip",
-      "MKV, MP4, HEVC, AV1, AC3, DTS… senza installare codec"
+      "MKV, MP4, HEVC, AV1, AC3, DTS… senza installare codec",
+      "Confrontare due video sincronizzati, fianco a fianco"
     ],
     "SearchTerms": [
       "lettore video",
@@ -147,11 +152,11 @@
       "Salvare un tratto come segnalibro, con nome ed etichetta.",
       "Impostazioni."
     ],
-    "ReleaseNotes": "• Ctrl + rotellina ingrandisce o riduce su entrambe le barre; il salto lungo (30 s) passa ad Alt + frecce o Alt + rotellina.\n• Trascinando col tasto centrale sulla barra ingrandita la si sposta.\n• La barra ingrandita scorre fino al nuovo tratto, e il pannello dei segnalibri si apre scorrendo (si può disattivare nelle Impostazioni).\n• Menu del video con icone, e nuova opzione per esportare come clip il tratto ingrandito.\n• Riquadro del nome: pulsante OK, e si percorre con Tab.\n• La fine e i loop arrivano davvero all'ultimo fotogramma.\n• Menu e miniature non saltano più sull'altro monitor."
+    "ReleaseNotes": "• Confrontare due video: trascina un altro video su un bordo della finestra (o Ctrl + Maiusc + O) e si apre accanto. Con «Sincronizza» (Ctrl + L) vanno insieme fotogramma per fotogramma, anche in riproduzione; tenendo premuto Alt se ne muove uno solo.\n• Si può confrontare anche con un altro punto dello stesso video o con un segnalibro, dai loro menu.\n• Il secondo video ha i suoi comandi e il suo audio."
   },
   "pt-BR": {
     "ShortDescription": "Para revisar em detalhe gravações, gameplays, animações ou qualquer vídeo, quadro a quadro. Ágil e intuitivo: para a frente e para trás sem espera, marcadores e linha do tempo com zoom.",
-    "Description": "O VideoSeeker serve para revisar em detalhe gravações, gameplays, animações ou qualquer vídeo que você queira examinar quadro a quadro.\n\nÉ ágil e intuitivo de usar: deixar um trecho em loop, voltar até o quadro exato em que algo acontece, anotar “revisar” em um trecho e voltar a ele depois.\n\nComo funciona:\n• Setas para cima e para baixo: um quadro para a frente ou para trás, na hora. Os quadros próximos ficam guardados na placa de vídeo, então voltar não faz esperar.\n• Scrubbing frame by frame: arrastar sobre a imagem percorre o vídeo quadro a quadro.\n• Arrastar com o botão direito na barra amplia esse trecho em uma segunda barra, com uma marca por quadro. Shift + R coloca em loop.\n• B cria um marcador: uma região com nome e uma etiqueta ou uma cor. Eles ficam em um painel, e as teclas de 1 a 9 levam a cada um.\n• J, K e L mudam a velocidade, também de trás para a frente.\n• Um trecho pode ser exportado como clipe sem sair do app.\n\nReproduz MKV, MP4, AVI, MOV e WebM em H.264, HEVC, AV1 ou VP9 com áudio AAC, AC3 ou DTS, sem instalar codecs.\n\nGratuito e de código aberto (GPL v3), sem anúncios nem conta: https://github.com/Thenend/VideoSeeker\n\nAs capturas mostram “Sprite Fright” (Blender Foundation, studio.blender.org), com licença CC BY 4.0.",
+    "Description": "O VideoSeeker serve para revisar em detalhe gravações, gameplays, animações ou qualquer vídeo que você queira examinar quadro a quadro.\n\nÉ ágil e intuitivo de usar: deixar um trecho em loop, voltar até o quadro exato em que algo acontece, anotar “revisar” em um trecho e voltar a ele depois.\n\nComo funciona:\n• Setas para cima e para baixo: um quadro para a frente ou para trás, na hora. Os quadros próximos ficam guardados na placa de vídeo, então voltar não faz esperar.\n• Scrubbing frame by frame: arrastar sobre a imagem percorre o vídeo quadro a quadro.\n• Arrastar com o botão direito na barra amplia esse trecho em uma segunda barra, com uma marca por quadro. Shift + R coloca em loop.\n• B cria um marcador: uma região com nome e uma etiqueta ou uma cor. Eles ficam em um painel, e as teclas de 1 a 9 levam a cada um.\n• J, K e L mudam a velocidade, também de trás para a frente.\n• Um trecho pode ser exportado como clipe sem sair do app.\n• Compare dois vídeos, ou duas partes do mesmo, lado a lado e sincronizados quadro a quadro.\n\nReproduz MKV, MP4, AVI, MOV e WebM em H.264, HEVC, AV1 ou VP9 com áudio AAC, AC3 ou DTS, sem instalar codecs.\n\nGratuito e de código aberto (GPL v3), sem anúncios nem conta: https://github.com/Thenend/VideoSeeker\n\nAs capturas mostram “Sprite Fright” (Blender Foundation, studio.blender.org), com licença CC BY 4.0.",
     "Features": [
       "Quadro a quadro para a frente e para trás, sem espera",
       "Arrastar sobre a imagem para percorrer o vídeo",
@@ -159,7 +164,8 @@
       "Marcadores de regiões com nome, etiqueta ou cor",
       "Miniatura do quadro ao passar o mouse na barra",
       "Exportar um trecho como clipe",
-      "MKV, MP4, HEVC, AV1, AC3, DTS… sem instalar codecs"
+      "MKV, MP4, HEVC, AV1, AC3, DTS… sem instalar codecs",
+      "Comparar dois vídeos sincronizados, lado a lado"
     ],
     "SearchTerms": [
       "player de vídeo",
@@ -177,6 +183,6 @@
       "Salvar um trecho como marcador, com nome e etiqueta.",
       "Configurações."
     ],
-    "ReleaseNotes": "• Ctrl + roda dá zoom nas duas barras; o salto longo (30 s) passa para Alt + setas ou Alt + roda.\n• Arrastar com o botão do meio na barra ampliada a desloca.\n• A barra ampliada desliza até o novo trecho, e o painel de marcadores abre deslizando (dá para desativar em Configurações).\n• Menu do vídeo com ícones, e nova opção para exportar o trecho ampliado como clipe.\n• Caixa do nome: botão OK, e dá para percorrê-la com Tab.\n• O fim e os loops chegam de verdade ao último quadro.\n• Menus e miniaturas não pulam mais para o outro monitor."
+    "ReleaseNotes": "• Comparar dois vídeos: arraste outro vídeo para uma borda da janela (ou Ctrl + Shift + O) e ele abre ao lado. Com “Sincronizar” (Ctrl + L) os dois andam juntos quadro a quadro, também reproduzindo; com Alt pressionado, só um se move.\n• Também dá para comparar com outra parte do mesmo vídeo ou com um marcador, pelos menus.\n• O segundo vídeo tem seus próprios controles e som."
   }
 }
