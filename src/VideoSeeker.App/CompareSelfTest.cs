@@ -43,6 +43,8 @@ public partial class MainWindow
                 process.PrivateMemorySize64 / (1024 * 1024));
         }
 
+        string? savedPlacement = null;
+        var savedHint = true;
         try
         {
             while (_duration <= 0 || _engine == null)
@@ -53,6 +55,11 @@ public partial class MainWindow
             _nav.Pause();
             CloseZone();
             var path = _currentPath!;
+            // Como la primera vez: B a la derecha y sin haber visto el aviso.
+            savedPlacement = _store.Settings.ComparePlacement;
+            savedHint = _store.Settings.CompareHintSeen;
+            _store.Settings.ComparePlacement = "right";
+            _store.Settings.CompareHintSeen = false;
             var gridA = Zoom.Grid;
             Log($"vídeo {Path.GetFileName(path)}: {_duration:0.000} s a {Fps:0.###} fps, índice {(_frameIndex != null ? "sí" : "no")}");
 
@@ -163,6 +170,34 @@ public partial class MainWindow
             OnCompareClicked();
             await Task.Delay(300);
             Check(_compareActiveB && b.Nav.Paused && !b.Nav.Moving, "clic en B (inactiva): solo la activa");
+            Check(CompareHintShown == 1 && ToastText.Text == S.CompareLockHint && CompareLockPulses >= 1,
+                $"la primera vez, el aviso del candado («{ToastText.Text}») y el botón late ({CompareLockPulses})");
+
+            // Los controles de B, sueltos: solo B.
+            {
+                var (fa, fb) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame);
+                CompareStepB(1);
+                await Task.Delay(500);
+                var wheel = new System.Windows.Input.MouseWheelEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, 120)
+                    { RoutedEvent = System.Windows.UIElement.MouseWheelEvent };
+                OnCompareFrameWheel(_cmpPlay, wheel);
+                await Task.Delay(500);
+                Check(b.ShownFrame == fb + 2 && gridA.FrameAt(_nav.CurrentTime) == fa,
+                    $"sueltos, el frame siguiente de B y la rueda sobre su play: solo B ({fb} → {b.ShownFrame}), A quieto");
+                CompareTogglePlayB();
+                await Task.Delay(700);
+                var moving = (b.Nav.Moving, _nav.Moving);
+                CompareTogglePlayB();
+                await Task.Delay(500);
+                Check(moving == (true, false) && !b.Nav.Moving, $"sueltos, el play de B solo reproduce B (B {moving.Item1}, A {moving.Item2})");
+                CompareStepB(-1);
+                await Task.Delay(300);
+                for (var i = 0; i < 50 && b.ShownFrame != fb; i++)
+                {
+                    CompareStepB(Math.Sign(fb - b.ShownFrame));
+                    await Task.Delay(150);
+                }
+            }
 
             // ---- 2. Bloquear ----
             var expectedOffset = b.Nav.CurrentTime - _nav.CurrentTime;
@@ -170,8 +205,19 @@ public partial class MainWindow
             PressKey(System.Windows.Input.Key.L, ctrl: true);
             await Task.Delay(300);
             var sync = _sync!;
-            Check(sync.Locked && Math.Abs(sync.Offset - expectedOffset) < 1e-3 && Math.Abs(expectedOffset - (bStart - aStart)) < 1e-3,
+            Check(sync.Locked && _cmpLockText.Text == S.CompareSyncedButton && Math.Abs(sync.Offset - expectedOffset) < 1e-3 && Math.Abs(expectedOffset - (bStart - aStart)) < 1e-3,
                 $"Ctrl + L bloquea con desfase {sync.Offset:0.0000} s (B − A {expectedOffset:0.0000}, al abrir {bStart - aStart:0.0000}); texto «{_cmpOffset.Text}»");
+
+            // Bloqueados, el frame siguiente de B mueve los dos.
+            {
+                var (fa, fb) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame);
+                CompareStepB(1);
+                var (ok, detail) = await Settle();
+                Check(ok && gridA.FrameAt(_nav.CurrentTime) == fa + 1 && b.ShownFrame == fb + 1, $"bloqueados, el frame siguiente de B mueve los dos: {detail}");
+                // El botón, en el centro de la línea que separa los dos.
+                var host = _cmpLockHost.TranslatePoint(new Point(_cmpLockHost.ActualWidth / 2, 0), VideoGrid).X;
+                Check(Math.Abs(host - VideoGrid.ActualWidth / 2) < 3, $"«Sincronizar» centrado en la línea: {host:0} de {VideoGrid.ActualWidth:0}");
+            }
 
             // ---- 2b. Alt pulsado: el candado se abre, cada arrastre mueve solo su vídeo; al soltar, desfase nuevo ----
             {
@@ -453,20 +499,25 @@ public partial class MainWindow
                 Log("   sin vídeo de otros fps (samples\\generated\\hevc_ac3-5.1.mp4 o VIDEOSEEKER_OTHER): se salta");
             }
 
-            // ---- 7. Apilados en una ventana estrecha y alta ----
-            var (oldState, oldWidth, oldHeight) = (WindowState, Width, Height);
-            WindowState = WindowState.Normal;
-            Width = 760;
-            Height = 1000;
-            await Task.Delay(800);
-            placementA = _surface.Placement;
-            placementB = _compare!.Surface.Placement;
-            Check(_compareStacked && placementA.Y + placementA.H <= placementB.Y,
-                $"ventana estrecha: uno encima del otro ({(_compareStacked ? "apilados" : "lado a lado")}; A y {placementA.Y}+{placementA.H}, B y {placementB.Y})");
-            CaptureWindowContent(Png("apilado"), Log);
-            (Width, Height) = (oldWidth, oldHeight);
-            WindowState = oldState;
-            await Task.Delay(800);
+            // ---- 7. Dónde va B: arriba, abajo, a la izquierda (lo elegido al soltarlo o en el menú) ----
+            foreach (var (place, check) in new (string, Func<(int X, int Y, int W, int H), (int X, int Y, int W, int H), bool>)[]
+            {
+                ("bottom", (a, bb) => a.Y + a.H <= bb.Y && a.X == bb.X),
+                ("top", (a, bb) => bb.Y + bb.H <= a.Y && a.X == bb.X),
+                ("left", (a, bb) => bb.X + bb.W <= a.X && a.Y == bb.Y),
+            })
+            {
+                SetComparePlacement(place);
+                await Task.Delay(600);
+                placementA = _surface.Placement;
+                placementB = _compare!.Surface.Placement;
+                Check(check(placementA, placementB) && Math.Abs(placementA.W - placementB.W) <= 1 && Math.Abs(placementA.H - placementB.H) <= 1,
+                    $"B {place}: A {placementA.X},{placementA.Y} {placementA.W}×{placementA.H}, B {placementB.X},{placementB.Y} {placementB.W}×{placementB.H}");
+                if (place is "bottom" or "left")
+                    CaptureWindowContent(Png(place == "bottom" ? "apilado" : "izquierda"), Log);
+            }
+            SetComparePlacement("right");
+            await Task.Delay(600);
 
             // ---- 8. La animación del panel redimensiona las dos imágenes ----
             var animate = Reveal.Animate;
@@ -489,6 +540,7 @@ public partial class MainWindow
             Check(_compare == null && _engine.CacheShare == 1 && VideoGrid.ColumnDefinitions.Count + VideoGrid.RowDefinitions.Count == 0
                 && VideoArea.Margin == new Thickness(0),
                 $"cerrar: vista de uno, caché entera para A ({_engine.CacheShare})");
+            Check(CompareHintShown == 1, $"el aviso del candado solo la primera vez ({CompareHintShown})");
             var warm = Resources();
             var perCycle = new List<(int Handles, int Threads, long Memory)>();
             var openPeaks = new List<long>();
@@ -538,6 +590,12 @@ public partial class MainWindow
         finally
         {
             CloseCompare(immediate: true);
+            if (savedPlacement != null)
+            {
+                _store.Settings.ComparePlacement = savedPlacement;
+                _store.Settings.CompareHintSeen = savedHint;
+                _store.SaveSettings();
+            }
             Log(failures == 0 ? "TODO BIEN" : $"{failures} FALLOS");
             File.WriteAllLines(Path.Combine(_store.Folder, "selftest.log"), lines);
             Close();

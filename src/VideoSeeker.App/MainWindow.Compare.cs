@@ -238,7 +238,7 @@ public partial class MainWindow
         var fg = (Brush)FindResource("Fg");
         var muted = (Brush)FindResource("FgMuted");
         var panel = (Brush)FindResource("Panel");
-        TextBlock Name() => new() { Foreground = fg, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(8, 0, 8, 0) };
+        TextBlock Name() => new() { Foreground = fg, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(8, 0, 8, 0) };
         TextBlock FrameLabel() => new() { Foreground = muted, FontFamily = new FontFamily("Consolas"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
 
         // A: nombre y frame.
