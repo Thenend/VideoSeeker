@@ -465,6 +465,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string CompareLockedToast(string offset) => $"Vídeos sincronizados · {offset}";
     public override string CompareUnlockedToast => "Vídeos soltos";
 
+    public override string CompareSoundTip => "Som deste vídeo (ao ativá-lo, o outro fica mudo)";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

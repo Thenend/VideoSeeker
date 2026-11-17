@@ -10,7 +10,7 @@ using VideoSeeker.Playback;
 namespace VideoSeeker.App;
 
 /// <summary>
-/// El segundo vídeo al comparar (B): una cadena entera como la del vídeo abierto, con su mpv (sin audio), su ventana
+/// El segundo vídeo al comparar (B): una cadena entera como la del vídeo abierto, con su mpv (silenciado al abrir), su ventana
 /// nativa sobre <see cref="Placeholder"/>, su motor de inspección (con el dispositivo de la tarjeta del primero) y su
 /// <see cref="Navigator"/>, que es quien lo mueve. Todo desde el hilo de la interfaz.
 /// </summary>
@@ -57,10 +57,14 @@ public sealed class ComparePane
     // Dónde se pidió abrir: si mpv, con mucho trabajo, cae en otro frame (el keyframe siguiente), se le lleva ahí.
     private double _start;
 
+    /// <summary>Sin sonido (al abrir lo está: suena A).</summary>
+    public bool Muted { get; private set; } = true;
+    public event Action? MutedChanged;
+
     /// <summary>Cambió algo de lo que se sabe del archivo (duración, fps, índice, proporción).</summary>
     public event Action? Changed;
 
-    public ComparePane(Window owner, Dispatcher ui, string dataFolder, Task ffmpegReady, bool hardwareDecoding)
+    public ComparePane(Window owner, Dispatcher ui, string dataFolder, Task ffmpegReady, bool hardwareDecoding, double volume)
     {
         _ui = ui;
         _dataFolder = dataFolder;
@@ -69,7 +73,7 @@ public sealed class ComparePane
         Nav = new Navigator(Player);
         Player.SubtitlesOnOpen = false;
         // mpv tarda un poco en arrancar: en paralelo, mientras se monta la vista doble.
-        _playerReady = Task.Run(() => Player.Initialize(0, true, hardwareDecoding, System.IO.Path.Combine(dataFolder, "cache", "mpv"), audio: false));
+        _playerReady = Task.Run(() => Player.Initialize(volume, mute: true, hardwareDecoding, System.IO.Path.Combine(dataFolder, "cache", "mpv"), secondary: true));
     }
 
     /// <summary>
@@ -139,6 +143,11 @@ public sealed class ComparePane
         Player.PositionChanged += t => Ui(() => Nav.OnMpvPosition(t));
         Player.Restarted += () => Ui(Nav.OnMpvRestart);
         Player.PauseChanged += paused => Ui(() => Nav.OnMpvPause(paused));
+        Player.MuteChanged += muted => Ui(() =>
+        {
+            Muted = muted;
+            MutedChanged?.Invoke();
+        });
         Player.DurationChanged += d => Ui(() =>
         {
             Duration = d;

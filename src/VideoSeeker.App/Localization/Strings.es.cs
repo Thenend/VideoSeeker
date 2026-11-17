@@ -465,6 +465,8 @@ public sealed class SpanishStrings : Strings
     public override string CompareLockedToast(string offset) => $"Vídeos sincronizados · {offset}";
     public override string CompareUnlockedToast => "Vídeos sueltos";
 
+    public override string CompareSoundTip => "Sonido de este vídeo (al dárselo, el otro se calla)";
+
     // ---- Avisos ----
 
     public override string Ok => "Aceptar";

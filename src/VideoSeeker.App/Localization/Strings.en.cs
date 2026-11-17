@@ -465,6 +465,8 @@ public sealed class EnglishStrings : Strings
     public override string CompareLockedToast(string offset) => $"Videos synced · {offset}";
     public override string CompareUnlockedToast => "Videos unsynced";
 
+    public override string CompareSoundTip => "Sound of this video (turning it on mutes the other one)";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

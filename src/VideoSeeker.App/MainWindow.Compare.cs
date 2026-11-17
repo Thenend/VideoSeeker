@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
@@ -17,7 +18,7 @@ namespace VideoSeeker.App;
 /// </summary>
 public partial class MainWindow
 {
-    private const double CompareHeaderHeight = 24, CompareBarHeight = 14, CompareGap = 4;
+    private const double CompareHeaderHeight = 24, CompareBarHeight = 14, CompareControlsHeight = 30, CompareGap = 4;
 
     private ComparePane? _compare;
     private CompareSync? _sync;
@@ -46,6 +47,12 @@ public partial class MainWindow
     private Button _cmpLock = null!;
     private System.Windows.Shapes.Path _cmpLockIcon = null!;
     private CompareBar _cmpBar = null!;
+    // Los controles de B (bajo su barra): frame anterior, play, frame siguiente, tiempo, frame y sonido.
+    private Button _cmpPlay = null!, _cmpMute = null!;
+    private TextBlock _cmpTimeB = null!;
+    private Grid _cmpControls = null!;
+    // Al dar sonido a B se silenció A (se le devuelve al quitárselo a B o al cerrar).
+    private bool _aMutedForB;
 
     private static readonly Brush CompareActiveBrush = Frozen(Color.FromRgb(0x4C, 0x9B, 0xFF));
     private static readonly Brush DropStripHoverBrush = Frozen(Color.FromRgb(0x24, 0x3A, 0x57));
@@ -124,7 +131,9 @@ public partial class MainWindow
         }
         if (_compare == null)
         {
-            var pane = _compare = new ComparePane(this, Dispatcher, _store.Folder, _ffmpegReady, _store.Settings.HardwareDecoding);
+            var pane = _compare = new ComparePane(this, Dispatcher, _store.Folder, _ffmpegReady, _store.Settings.HardwareDecoding, _store.Settings.Volume);
+            pane.MutedChanged += UpdateCompareControls;
+            pane.Nav.SpeedChanged += UpdateCompareControls;
             _sync = new CompareSync(_nav, _player, pane, () => Zoom.Grid, () => _lastFrameStart);
             _sync.StateChanged += UpdateCompareUi;
             _sync.Ticking += UpdateCompareHold;
@@ -132,6 +141,7 @@ public partial class MainWindow
             pane.Nav.PositionShown += OnComparePositionB;
             pane.Nav.SpeedChanged += UpdateCompareHeaderB;
             _nav.PositionShown += OnComparePositionA;
+            _player.MuteChanged += OnCompareAMuteChangedAsync;
             var surface = pane.Surface;
             surface.Clicked += OnCompareClicked;
             surface.DoubleClicked += () =>
@@ -180,8 +190,15 @@ public partial class MainWindow
         _sync?.Dispose();
         _sync = null;
         _nav.PositionShown -= OnComparePositionA;
+        _player.MuteChanged -= OnCompareAMuteChangedAsync;
         _compare = null;
         _compareActiveB = false;
+        // Si sonaba B, vuelve a sonar A.
+        if (_aMutedForB)
+        {
+            _aMutedForB = false;
+            _player.SetMute(false);
+        }
         if (_engine != null)
             _engine.CacheShare = 1;
         // Fuera de la vista, la ventana nativa de B se oculta al momento; mpv y el motor se cierran después.
@@ -238,18 +255,21 @@ public partial class MainWindow
         DockPanel.SetDock(_cmpLock, Dock.Left);
         DockPanel.SetDock(_cmpOffset, Dock.Left);
         DockPanel.SetDock(close, Dock.Right);
-        DockPanel.SetDock(_cmpFrameTextB, Dock.Right);
         dockB.Children.Add(_cmpLock);
         dockB.Children.Add(_cmpOffset);
         dockB.Children.Add(close);
-        dockB.Children.Add(_cmpFrameTextB);
         dockB.Children.Add(_cmpNameB);
         var headerB = new Border { Background = panel, Height = CompareHeaderHeight, VerticalAlignment = VerticalAlignment.Top, Child = dockB };
         headerB.MouseLeftButtonDown += (_, _) => SetCompareActive(true);
 
         _cmpBar = new CompareBar();
         _cmpBar.SeekRequested += OnCompareBarSeek;
-        var barHost = new Border { Background = panel, Height = CompareBarHeight, VerticalAlignment = VerticalAlignment.Bottom, Child = _cmpBar };
+        var barHost = new Border
+        {
+            Background = panel, Height = CompareBarHeight, VerticalAlignment = VerticalAlignment.Bottom, Child = _cmpBar,
+            Margin = new Thickness(0, 0, 0, CompareControlsHeight),
+        };
+        BuildCompareControls(panel, muted);
         _cmpOutside = new TextBlock
         {
             Foreground = muted, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
@@ -261,6 +281,7 @@ public partial class MainWindow
         _cmpCellB.Children.Add(headerB);
         _cmpCellB.Children.Add(_cmpOutside);
         _cmpCellB.Children.Add(barHost);
+        _cmpCellB.Children.Add(_cmpControls);
         _cmpCellB.Children.Add(_cmpFrameB);
     }
 
@@ -286,7 +307,7 @@ public partial class MainWindow
         if (fresh)
         {
             pane.Placeholder.Tag = "B";
-            pane.Placeholder.Margin = new Thickness(1, CompareHeaderHeight, 1, CompareBarHeight + 1);
+            pane.Placeholder.Margin = new Thickness(1, CompareHeaderHeight, 1, CompareBottomHeight + 1);
             if (!_cmpCellB.Children.Contains(pane.Placeholder))
                 _cmpCellB.Children.Insert(1, pane.Placeholder);
             VideoGrid.Children.Add(_cmpHeaderA);
@@ -329,7 +350,7 @@ public partial class MainWindow
     }
 
     // Lo que ocupan bajo la imagen de B su barra fina (y sus controles): A deja lo mismo, para que midan igual.
-    private static double CompareBottomHeight => CompareBarHeight;
+    private static double CompareBottomHeight => CompareBarHeight + CompareControlsHeight;
 
     /// <summary>Dónde va B ("right", "left", "top", "bottom"): se recuerda y se aplica ya si se está comparando.</summary>
     private void SetComparePlacement(string placement)
@@ -401,6 +422,159 @@ public partial class MainWindow
         // La velocidad, si no es 1× (sueltos se cambia aparte de la de A).
         var speed = pane.Nav.Speed != 0 ? pane.Nav.Speed : pane.Nav.Rate;
         _cmpFrameTextB.Text = speed != 1 ? $"{frame} · {SpeedLabel(speed)}" : frame;
+        var total = pane.LastFrameStart > 0 ? pane.LastFrameStart : pane.Duration;
+        _cmpTimeB.Text = $"{TimeFormat.Precise(t, pane.Fps)} / {TimeFormat.Precise(total, pane.Fps)}";
+    }
+
+    // ---- Controles de B ----
+
+    /// <summary>
+    /// Bajo la barra de B, lo esencial de los controles de A, con sus estilos: frame anterior, play, frame siguiente (la
+    /// rueda encima va frame a frame), tiempo actual / total, número de frame y el sonido. Sueltos (o con Alt pulsado)
+    /// mueven B; bloqueados, los dos, como los de A. Si no caben, se quitan primero los tiempos y luego el frame.
+    /// </summary>
+    private void BuildCompareControls(Brush panel, Brush muted)
+    {
+        var icons = (FontFamily)FindResource("Icons");
+        RepeatButton Step(string glyph, string tip, int direction)
+        {
+            var button = new RepeatButton { Style = (Style)FindResource("ToolRepeatButton"), FontFamily = icons, Content = glyph, ToolTip = tip };
+            button.Click += (_, _) => CompareStepB(direction);
+            button.MouseWheel += OnCompareFrameWheel;
+            return button;
+        }
+        _cmpPlay = new Button { Style = (Style)FindResource("ToolButton"), FontFamily = icons, FontSize = 16, Content = GlyphPlay, ToolTip = S.PlayTip };
+        _cmpPlay.Click += (_, _) => CompareTogglePlayB();
+        _cmpPlay.MouseWheel += OnCompareFrameWheel;
+        _cmpMute = new Button { Style = (Style)FindResource("ToolButton"), FontFamily = icons, Content = GlyphMute, ToolTip = S.CompareSoundTip };
+        _cmpMute.Click += (_, _) => ToggleCompareSound();
+        _cmpTimeB = new TextBlock { Foreground = (Brush)FindResource("Fg"), FontFamily = new FontFamily("Consolas"), FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 4, 0) };
+        _cmpFrameTextB = new TextBlock { Foreground = muted, FontFamily = new FontFamily("Consolas"), FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 4, 0) };
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        buttons.Children.Add(Step("\uE892", S.PreviousFrameTip, -1));
+        buttons.Children.Add(_cmpPlay);
+        buttons.Children.Add(Step("\uE893", S.NextFrameTip, 1));
+        var texts = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, ClipToBounds = true };
+        texts.Children.Add(_cmpTimeB);
+        texts.Children.Add(_cmpFrameTextB);
+        _cmpControls = new Grid { Background = panel, Height = CompareControlsHeight, VerticalAlignment = VerticalAlignment.Bottom };
+        _cmpControls.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        _cmpControls.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        _cmpControls.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(texts, 1);
+        Grid.SetColumn(_cmpMute, 2);
+        _cmpControls.Children.Add(buttons);
+        _cmpControls.Children.Add(texts);
+        _cmpControls.Children.Add(_cmpMute);
+        _cmpControls.MouseLeftButtonDown += (_, _) => SetCompareActive(true);
+        _cmpControls.SizeChanged += (_, _) => FitCompareControls();
+    }
+
+    // Si no cabe todo, fuera primero los tiempos y luego el frame (los botones y el sonido siempre).
+    private void FitCompareControls()
+    {
+        if (!_compareUiBuilt)
+            return;
+        var room = _cmpControls.ColumnDefinitions[1].ActualWidth;
+        _cmpTimeB.Visibility = Visibility.Visible;
+        _cmpFrameTextB.Visibility = Visibility.Visible;
+        _cmpTimeB.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        _cmpFrameTextB.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var (time, frame) = (_cmpTimeB.DesiredSize.Width, _cmpFrameTextB.DesiredSize.Width);
+        if (time + frame > room)
+            _cmpTimeB.Visibility = Visibility.Collapsed;
+        if (frame > room)
+            _cmpFrameTextB.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>El play y el altavoz de B, como estén.</summary>
+    private void UpdateCompareControls()
+    {
+        if (!_compareUiBuilt || _compare is not { } pane)
+            return;
+        _cmpPlay.Content = pane.Nav.Speed == 0 ? GlyphPlay : GlyphPause;
+        _cmpMute.Content = pane.Muted ? GlyphMute : GlyphVolume;
+        _cmpMute.Foreground = pane.Muted ? (Brush)FindResource("FgMuted") : (Brush)FindResource("Fg");
+        UpdateCompareHeaderB();
+    }
+
+    // Play de B: sueltos (o con Alt pulsado), B; bloqueados, los dos (como el de A).
+    private void CompareTogglePlayB()
+    {
+        if (_compare is not { Ready: true } pane)
+            return;
+        SetCompareActive(true);
+        UpdateCompareHold();
+        if (_sync is { Following: true })
+        {
+            _nav.TogglePlay();
+            return;
+        }
+        pane.Nav.TogglePlay();
+        _sync?.Forget();
+    }
+
+    private void CompareStepB(int direction)
+    {
+        if (_compare is not { Ready: true } pane)
+            return;
+        SetCompareActive(true);
+        UpdateCompareHold();
+        if (_sync is { Following: true })
+        {
+            StepFrame(direction);
+            return;
+        }
+        pane.Nav.Step(direction);
+        _sync?.Forget();
+    }
+
+    // Rueda sobre el play y los botones de frame de B: frame a frame (hacia arriba, el siguiente), como en los de A.
+    private void OnCompareFrameWheel(object sender, MouseWheelEventArgs e)
+    {
+        WheelSteps(e.Delta, steps =>
+        {
+            for (var i = 0; i < Math.Abs(steps); i++)
+                CompareStepB(Math.Sign(steps));
+        });
+        e.Handled = true;
+    }
+
+    /// <summary>Suena uno u otro: dar sonido a B silencia A, y quitárselo se lo devuelve.</summary>
+    private void ToggleCompareSound()
+    {
+        if (_compare is not { } pane)
+            return;
+        if (pane.Muted)
+        {
+            pane.Player.SetMute(false);
+            if (!_store.Settings.Mute)
+            {
+                _aMutedForB = true;
+                _player.SetMute(true);
+            }
+        }
+        else
+        {
+            pane.Player.SetMute(true);
+            if (_aMutedForB)
+            {
+                _aMutedForB = false;
+                _player.SetMute(false);
+            }
+        }
+    }
+
+    // Los avisos de mpv llegan en su hilo.
+    private void OnCompareAMuteChangedAsync(bool muted) => Dispatcher.BeginInvoke(() => OnCompareAMuteChanged(muted));
+
+    // A vuelve a sonar (su altavoz o M) mientras sonaba B: B se calla.
+    private void OnCompareAMuteChanged(bool muted)
+    {
+        if (muted || _compare is not { Muted: false } pane)
+            return;
+        _aMutedForB = false;
+        pane.Player.SetMute(true);
     }
 
     /// <summary>El candado, el desfase y si B queda fuera.</summary>

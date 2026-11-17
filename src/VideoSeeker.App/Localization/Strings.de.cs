@@ -465,6 +465,8 @@ public sealed class GermanStrings : Strings
     public override string CompareLockedToast(string offset) => $"Videos synchronisiert · {offset}";
     public override string CompareUnlockedToast => "Videos getrennt";
 
+    public override string CompareSoundTip => "Ton dieses Videos (beim Einschalten verstummt das andere)";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

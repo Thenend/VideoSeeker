@@ -893,6 +893,9 @@ public abstract class Strings
     /// <summary>Vídeos sueltos</summary>
     public abstract string CompareUnlockedToast { get; }
 
+    /// <summary>Sonido de este vídeo (al dárselo, el otro se calla)</summary>
+    public abstract string CompareSoundTip { get; }
+
     // ---- Avisos ----
 
     /// <summary>Aceptar</summary>

@@ -1562,7 +1562,11 @@ public partial class MainWindow : Window
     private void OnVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (!_updatingVolume)
+        {
             _player.SetVolume(e.NewValue);
+            // Comparando, el volumen es el mismo para los dos (suena uno u otro).
+            _compare?.Player.SetVolume(e.NewValue);
+        }
     }
 
     private void OnMuteClick(object sender, RoutedEventArgs e) => _player.SetMute(!_store.Settings.Mute);
