@@ -865,6 +865,7 @@ public partial class MainWindow
         else if (RegionAtPosition() is { } here)
             AddExportMenu(menu, _bookmarks.VideoPath, here.Start, EndOf(here), here.Name, S.ExportClipOf(here.Name), zone: false);
         AddRevealItem(menu, _bookmarks.VideoPath);
+        AddCompareMenuItems(menu);
         menu.Items.Add(new Separator());
         // Como el botón: abre o cierra sin más, con la marca si está abierto (desde el menú el teclado nunca está
         // en el panel, así que el Ctrl + B de TogglePanel nunca lo cerraría).
@@ -895,6 +896,7 @@ public partial class MainWindow
         AddExportMenu(menu, _bookmarks?.VideoPath, bookmark.Start, EndOf(bookmark), bookmark.Name);
         if (_bookmarks != null)
             AddRevealItem(menu, _bookmarks.VideoPath);
+        AddCompareBookmarkItem(menu, _bookmarks?.VideoPath, bookmark.Start);
 
         menu.Items.Add(new Separator());
         var rename = new MenuItem { Header = S.Rename, InputGestureText = "F2" };
@@ -1541,6 +1543,7 @@ public partial class MainWindow
             var region = rows[0].Bookmark;
             AddExportMenu(menu, video, region.Start, EndOf(region, rows[0].IsCurrentVideo ? null : FpsOf(rows[0].Fingerprint)), region.Name);
             AddRevealItem(menu, video);
+            AddCompareBookmarkItem(menu, video, region.Start);
         }
         menu.Items.Add(new Separator());
         if (rows.Count == 1)

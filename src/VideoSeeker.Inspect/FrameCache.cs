@@ -119,6 +119,26 @@ public sealed class FrameCache(long budgetBytes) : IDisposable
     /// La tarjeta no tiene memoria para otro frame: el presupuesto baja a lo que ya ocupa la caché (menos un margen
     /// para que quede sitio al decodificador y a mpv), y desde ahí se van sustituyendo frames en vez de añadirlos.
     /// </summary>
+    /// <summary>
+    /// Cambia el presupuesto ya, no solo para lo que llegue: si ahora ocupa más, quita los frames más alejados del foco
+    /// (nunca el que está en pantalla). Para repartir la memoria con otra caché (comparar dos vídeos).
+    /// </summary>
+    public void SetBudget(long bytes)
+    {
+        var removed = false;
+        lock (_gate)
+        {
+            BudgetBytes = bytes;
+            while (_bytes > BudgetBytes && _frames.Count > 0 && FarthestEvictable() is var victim and >= 0)
+            {
+                Remove(victim);
+                removed = true;
+            }
+        }
+        if (removed)
+            Changed?.Invoke();
+    }
+
     public void ShrinkToUsed()
     {
         lock (_gate)

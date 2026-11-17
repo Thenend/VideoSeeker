@@ -7,6 +7,10 @@ namespace VideoSeeker.Inspect;
 public sealed class InspectionEngine : IDisposable
 {
     private readonly GpuDevice _gpu;
+    // El dispositivo es de este motor (lo libera al cerrarse) o de otro con el que lo comparte.
+    private readonly bool _ownsGpu;
+    // Entre cuántos se reparte el presupuesto de la caché (2 al comparar dos vídeos: la mitad para cada uno).
+    private int _cacheShare = 1;
     private readonly FrameRenderer _renderer;
     private long _budgetBytes;
     // Una caché por archivo: así los hilos del archivo anterior nunca meten frames en la del nuevo.
@@ -24,17 +28,40 @@ public sealed class InspectionEngine : IDisposable
     public event Action? CacheChanged;
 
     /// <param name="budgetBytes">Memoria de la caché de frames; 0, la recomendada para la tarjeta.</param>
-    public InspectionEngine(nint videoHwnd, long budgetBytes)
+    public InspectionEngine(nint videoHwnd, long budgetBytes) : this(videoHwnd, budgetBytes, null)
     {
-        _gpu = new GpuDevice();
+    }
+
+    /// <summary>Con "sharedGpu", usa el dispositivo de otro motor (no lo libera al cerrarse); si no, crea el suyo.</summary>
+    public InspectionEngine(nint videoHwnd, long budgetBytes, GpuDevice? sharedGpu)
+    {
+        _ownsGpu = sharedGpu == null;
+        _gpu = sharedGpu ?? new GpuDevice();
         _renderer = new FrameRenderer(_gpu, videoHwnd);
         BudgetBytes = budgetBytes;
         _cache = NewCache();
     }
 
+    /// <summary>El dispositivo de la tarjeta, para que otro motor lo comparta.</summary>
+    public GpuDevice Gpu => _gpu;
+
+    /// <summary>
+    /// Entre cuántos motores se reparte la memoria de la caché (1, toda; 2, la mitad). Se aplica ya: si la caché ocupa
+    /// más, suelta los frames más alejados del foco. No cambia <see cref="BudgetBytes"/> (el ajuste).
+    /// </summary>
+    public int CacheShare
+    {
+        get => _cacheShare;
+        set
+        {
+            _cacheShare = Math.Max(1, value);
+            _cache.SetBudget(_budgetBytes / _cacheShare);
+        }
+    }
+
     private FrameCache NewCache()
     {
-        var cache = new FrameCache(_budgetBytes);
+        var cache = new FrameCache(_budgetBytes / _cacheShare);
         cache.Changed += () => CacheChanged?.Invoke();
         return cache;
     }
@@ -48,6 +75,9 @@ public sealed class InspectionEngine : IDisposable
         get => _budgetBytes;
         set => _budgetBytes = value > 0 ? value : _gpu.Adapter?.RecommendedCacheBytes ?? AdapterInfo.FallbackCacheBytes;
     }
+
+    /// <summary>Memoria que ocupan ahora los frames de la caché.</summary>
+    public long CacheUsedBytes => _cache.UsedBytes;
 
     public bool Showing => _renderer.Visible;
     public double? ShownTime => _renderer.Visible ? _shown?.Time : null;
@@ -261,6 +291,7 @@ public sealed class InspectionEngine : IDisposable
         _renderer.Dispose();
         try { _opening?.Result?.Dispose(); } catch (AggregateException) { }
         _cache.Dispose();
-        _gpu.Dispose();
+        if (_ownsGpu)
+            _gpu.Dispose();
     }
 }

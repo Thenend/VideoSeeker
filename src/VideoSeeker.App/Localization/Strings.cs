@@ -846,6 +846,41 @@ public abstract class Strings
     /// <summary>Este color se parece mucho al {clash} de las barras, y se confundirán.\n\n¿Usarlo igualmente?</summary>
     public abstract string ColorClash(string clash);
 
+    // ---- Comparar dos vídeos ----
+
+    /// <summary>Comparar con otro vídeo…</summary>
+    public abstract string CompareWithOtherVideo { get; }
+    /// <summary>Comparar con otra parte de este vídeo</summary>
+    public abstract string CompareWithThisVideo { get; }
+    /// <summary>Comparar con este</summary>
+    public abstract string CompareWithBookmark { get; }
+    /// <summary>Sincronizar los dos vídeos</summary>
+    public abstract string CompareLockMenu { get; }
+    /// <summary>Cerrar comparación</summary>
+    public abstract string CloseCompare { get; }
+    /// <summary>Comparar con otro vídeo (título del diálogo de abrir)</summary>
+    public abstract string CompareOpenTitle { get; }
+    /// <summary>Comparar (franja al arrastrar un vídeo)</summary>
+    public abstract string CompareDropHint { get; }
+    /// <summary>Suelta aquí para verlo al lado del que está abierto</summary>
+    public abstract string CompareDropDetail { get; }
+    /// <summary>Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora</summary>
+    public abstract string CompareLockTip { get; }
+    /// <summary>Soltar los dos vídeos (Ctrl + L): cada uno se mueve por su cuenta</summary>
+    public abstract string CompareUnlockTip { get; }
+    /// <summary>B {time} ({frames}): el desfase de B; "time" y "frames" llevan signo y "frames" ya dice "frames"</summary>
+    public abstract string CompareOffset(string time, string frames);
+    /// <summary>Tiempo de B menos tiempo de A. Alt + , / Alt + . mueven solo B un frame</summary>
+    public abstract string CompareOffsetTip { get; }
+    /// <summary>B empieza en {time}</summary>
+    public abstract string CompareStartsAt(string time);
+    /// <summary>B ya ha terminado</summary>
+    public abstract string CompareEnded { get; }
+    /// <summary>Vídeos sincronizados · {offset}</summary>
+    public abstract string CompareLockedToast(string offset);
+    /// <summary>Vídeos sueltos</summary>
+    public abstract string CompareUnlockedToast { get; }
+
     // ---- Avisos ----
 
     /// <summary>Aceptar</summary>

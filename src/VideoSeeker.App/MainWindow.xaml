@@ -29,6 +29,10 @@
         <!-- Exportar clip: una claqueta, con las rayas en la caja y la tapa abierta (si no, de pequeña parece la carpeta). -->
         <Geometry x:Key="ClipMenuIcon">M2,8 H17 V15 H2 Z M2,10.5 H17 M7,8 L5,10.5 M12,8 L10,10.5 M17,8 L15,10.5 M2,8 L1.2,5 L15.5,1.2</Geometry>
         <Geometry x:Key="FolderMenuIcon">M1.5,3 H7 L8.8,5 H17.5 V14 H1.5 Z M1.5,7.5 H17.5</Geometry>
+        <!-- Comparar: dos imágenes una al lado de la otra. El candado entre las dos (cerrado: sincronizados). -->
+        <Geometry x:Key="CompareMenuIcon">M1.5,3.5 H8.5 V13.5 H1.5 Z M10.5,3.5 H17.5 V13.5 H10.5 Z</Geometry>
+        <Geometry x:Key="LockClosedIcon">M4.5,8 H14.5 V15.5 H4.5 Z M6.75,8 V5.5 A2.75,2.75 0 0 1 12.25,5.5 V8 M9.5,10.75 V12.75</Geometry>
+        <Geometry x:Key="LockOpenIcon">M4.5,8 H14.5 V15.5 H4.5 Z M6.75,8 V4.25 A2.75,2.75 0 0 1 12.25,4.25 V5.25 M9.5,10.75 V12.75</Geometry>
         <Style x:Key="IconPath" TargetType="Path">
             <Setter Property="Width" Value="19" />
             <Setter Property="Height" Value="17" />

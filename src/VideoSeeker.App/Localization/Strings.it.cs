@@ -440,6 +440,25 @@ public sealed class ItalianStrings : Strings
     public override string ReservedCacheGreen => "verde della cache dei fotogrammi";
     public override string ColorClash(string clash) => $"Questo colore somiglia molto a un colore delle barre ({clash}), e si confonderanno.\n\nUsarlo comunque?";
 
+    // ---- Comparar dos vídeos ----
+
+    public override string CompareWithOtherVideo => "Confronta con un altro video…";
+    public override string CompareWithThisVideo => "Confronta con un altro punto di questo video";
+    public override string CompareWithBookmark => "Confronta con questo";
+    public override string CompareLockMenu => "Sincronizza i due video";
+    public override string CloseCompare => "Chiudi il confronto";
+    public override string CompareOpenTitle => "Confronta con un altro video";
+    public override string CompareDropHint => "Confronta";
+    public override string CompareDropDetail => "Rilascia qui per vederlo accanto a quello aperto";
+    public override string CompareLockTip => "Sincronizza i due video (Ctrl + L): si muovono insieme, con la distanza attuale";
+    public override string CompareUnlockTip => "Scollega i due video (Ctrl + L): ognuno si muove per conto suo";
+    public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
+    public override string CompareOffsetTip => "Tempo di B meno tempo di A. Alt + , / Alt + . spostano solo B di un fotogramma";
+    public override string CompareStartsAt(string time) => $"B inizia a {time}";
+    public override string CompareEnded => "B è già finito";
+    public override string CompareLockedToast(string offset) => $"Video sincronizzati · {offset}";
+    public override string CompareUnlockedToast => "Video scollegati";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

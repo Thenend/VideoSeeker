@@ -47,11 +47,17 @@ public sealed class Mpv : IDisposable
 
     public void Initialize() => Check(LibMpv.mpv_initialize(_ctx), "mpv_initialize");
 
-    public void SetProperty(string name, string value) =>
-        Check(LibMpv.mpv_set_property_string(_ctx, name, value), $"propiedad {name}={value}");
+    // Tras cerrarlo, lo que llegue tarde (un seek pendiente de la interfaz) no hace nada en vez de usar un contexto liberado.
+    public void SetProperty(string name, string value)
+    {
+        if (_ctx != 0)
+            Check(LibMpv.mpv_set_property_string(_ctx, name, value), $"propiedad {name}={value}");
+    }
 
     public string? GetString(string name)
     {
+        if (_ctx == 0)
+            return null;
         var ptr = LibMpv.mpv_get_property_string(_ctx, name);
         if (ptr == 0)
             return null;
@@ -59,11 +65,13 @@ public sealed class Mpv : IDisposable
         finally { LibMpv.mpv_free(ptr); }
     }
 
-    public double? GetDouble(string name) =>
+    public double? GetDouble(string name) => _ctx == 0 ? null :
         LibMpv.mpv_get_property_double(_ctx, name, MpvFormat.Double, out var value) >= 0 ? value : null;
 
     public void Command(params string[] args)
     {
+        if (_ctx == 0)
+            return;
         var ptrs = new nint[args.Length + 1];
         try
         {

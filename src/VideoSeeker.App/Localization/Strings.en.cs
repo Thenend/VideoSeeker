@@ -440,6 +440,25 @@ public sealed class EnglishStrings : Strings
     public override string ReservedCacheGreen => "green of the frame cache";
     public override string ColorClash(string clash) => $"This color looks a lot like the {clash} on the bars, so they'd be easy to mix up.\n\nUse it anyway?";
 
+    // ---- Comparar dos vídeos ----
+
+    public override string CompareWithOtherVideo => "Compare with another video…";
+    public override string CompareWithThisVideo => "Compare with another part of this video";
+    public override string CompareWithBookmark => "Compare with this one";
+    public override string CompareLockMenu => "Sync the two videos";
+    public override string CloseCompare => "Close comparison";
+    public override string CompareOpenTitle => "Compare with another video";
+    public override string CompareDropHint => "Compare";
+    public override string CompareDropDetail => "Drop here to see it next to the open one";
+    public override string CompareLockTip => "Sync the two videos (Ctrl + L): they move together, keeping their current distance";
+    public override string CompareUnlockTip => "Unsync the two videos (Ctrl + L): each one moves on its own";
+    public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
+    public override string CompareOffsetTip => "Time of B minus time of A. Alt + , / Alt + . move only B by one frame";
+    public override string CompareStartsAt(string time) => $"B starts at {time}";
+    public override string CompareEnded => "B has already ended";
+    public override string CompareLockedToast(string offset) => $"Videos synced · {offset}";
+    public override string CompareUnlockedToast => "Videos unsynced";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

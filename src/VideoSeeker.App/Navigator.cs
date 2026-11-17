@@ -116,6 +116,43 @@ public sealed class Navigator(MpvPlayer player)
 
     public double Speed => Reversing ? -_reverseSpeed : _paused ? 0 : _forwardSpeed;
 
+    /// <summary>
+    /// Si la imagen avanza ya (mpv reproduciendo, el bucle desde la caché o marcha atrás); no cuenta una reanudación
+    /// pendiente ni un arrastre (ver <see cref="Playing"/>).
+    /// </summary>
+    public bool Moving => !_paused || _loopPlaying || Reversing;
+    /// <summary>La imagen es la de mpv (no la del motor): reproduciendo hacia delante normal.</summary>
+    public bool ShowingMpv => _engine?.Showing != true && !_loopPlaying && !Reversing;
+    /// <summary>A qué velocidad va o irá al reproducir: negativa marcha atrás (J/L incluidas).</summary>
+    public double PlaybackSpeed => Reversing ? -_reverseSpeed : _forwardSpeed;
+    /// <summary>Arrastrando la barra (DragTo hasta el SeekTo de soltar).</summary>
+    public bool Dragging => _dragging;
+
+    // Retoque de la velocidad real (sin cambiar la elegida) para que el segundo vídeo al comparar alcance al primero.
+    private double _trim = 1;
+
+    /// <summary>
+    /// Multiplica la velocidad a la que se reproduce de verdad (hacia delante y marcha atrás), sin cambiar <see cref="Rate"/>
+    /// ni lo que se muestra: 1,02 va un 2 % más deprisa. Para que el segundo vídeo al comparar alcance al primero.
+    /// </summary>
+    public double SpeedTrim
+    {
+        get => _trim;
+        set
+        {
+            if (value == _trim)
+                return;
+            if (Reversing)
+            {
+                // El reloj sigue desde donde va, al nuevo ritmo.
+                _reverseOrigin -= _reverseClock.Elapsed.TotalSeconds * _reverseSpeed * _trim;
+                _reverseClock.Restart();
+            }
+            _trim = value;
+            player.SetSpeed(_forwardSpeed * _trim);
+        }
+    }
+
     /// <summary>Cambia la velocidad o el sentido (J/K/L).</summary>
     public event Action? SpeedChanged;
 
@@ -129,6 +166,13 @@ public sealed class Navigator(MpvPlayer player)
             if (_paused)
                 engine.Focus(_mpvPosition);
         }
+    }
+
+    /// <summary>Suelta el motor antes de cerrarlo (lo que quede pendiente ya no lo toca).</summary>
+    public void DetachEngine()
+    {
+        StopMotion();
+        _engine = null;
     }
 
     /// <summary>Tramo de la barra de zoom: en pausa se precarga entero si cabe en la caché.</summary>
@@ -490,6 +534,8 @@ public sealed class Navigator(MpvPlayer player)
             _paused = false;
             player.SetPause(false);
             HideWhenMpvPasses(shown, 0.5);
+            // Ya en marcha: quien lo siga (el segundo vídeo al comparar) arranca ya, sin esperar a que mpv lo confirme.
+            SpeedChanged?.Invoke();
         }
         // Si el motor está mostrando un frame y mpv sigue en el de antes, primero lo llevamos ahí.
         else if (_engine?.ShownTime is { } t)
@@ -502,6 +548,7 @@ public sealed class Navigator(MpvPlayer player)
         {
             _paused = false;
             player.SetPause(false);
+            SpeedChanged?.Invoke();
         }
     }
 
@@ -677,7 +724,7 @@ public sealed class Navigator(MpvPlayer player)
             _loopClock.Restart();
         }
         _forwardSpeed = speed;
-        player.SetSpeed(speed);
+        player.SetSpeed(speed * _trim);
         SpeedChanged?.Invoke();
     }
 
@@ -715,7 +762,7 @@ public sealed class Navigator(MpvPlayer player)
     private void OnReverseTick(object? sender, EventArgs e)
     {
         var frame = 1 / Fps;
-        var unclamped = _reverseOrigin - _reverseClock.Elapsed.TotalSeconds * _reverseSpeed;
+        var unclamped = _reverseOrigin - _reverseClock.Elapsed.TotalSeconds * _reverseSpeed * _trim;
         var target = Math.Max(0, unclamped);
         var from = CurrentTime;
 

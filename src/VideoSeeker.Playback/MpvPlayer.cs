@@ -75,11 +75,20 @@ public sealed class MpvPlayer : IDisposable
     /// Crea e inicializa mpv. Se puede llamar desde un hilo de fondo antes de que exista la ventana. En
     /// <paramref name="cacheFolder"/> guarda los shaders compilados.
     /// </summary>
-    public void Initialize(double volume, bool mute, bool hardwareDecoding = true, string? cacheFolder = null)
+    /// <param name="audio">Sin audio (el segundo vídeo al comparar): ni pista ni dispositivo de sonido.</param>
+    public void Initialize(double volume, bool mute, bool hardwareDecoding = true, string? cacheFolder = null, bool audio = true)
     {
         _mpv = new Mpv();
         foreach (var (name, value) in DefaultOptions)
             _mpv.SetOption(name, value);
+        if (!audio)
+        {
+            // El audio se decodifica pero no suena (salida nula): así mpv tiene un reloj de tiempo real y, si se atasca
+            // un momento, se salta frames para seguir a su hora en vez de quedarse atrás.
+            _mpv.SetOption("ao", "null");
+            // Y empieza en pausa: el segundo vídeo se mueve cuando se le dice.
+            _mpv.SetOption("pause", "yes");
+        }
         // Sin carpeta (config=no) mpv recompila sus shaders en cada arranque: unos 200 ms antes del primer frame.
         if (cacheFolder != null)
         {
@@ -91,7 +100,7 @@ public sealed class MpvPlayer : IDisposable
         _mpv.SetOption("volume", volume.ToString(CultureInfo.InvariantCulture));
         _mpv.SetOption("mute", mute ? "yes" : "no");
         // Para depurar: registro detallado de mpv en el archivo indicado.
-        if (Environment.GetEnvironmentVariable("VIDEOSEEKER_MPVLOG") is { Length: > 0 } log)
+        if (audio && Environment.GetEnvironmentVariable("VIDEOSEEKER_MPVLOG") is { Length: > 0 } log)
             _mpv.SetOption("log-file", log);
         _mpv.Initialize();
     }
@@ -152,6 +161,9 @@ public sealed class MpvPlayer : IDisposable
     public void SetHardwareDecoding(bool enabled) => _mpv.SetProperty("hwdec", HwdecValue(enabled));
 
     public double? Position => _mpv.GetDouble("time-pos");
+
+    /// <summary>Proporción de la imagen (ancho / alto, con la de los píxeles); null si aún no se sabe.</summary>
+    public double? VideoAspect => _mpv.GetDouble("video-params/aspect");
 
     public void TogglePause() => _mpv.Command("cycle", "pause");
     public void SetPause(bool paused) => _mpv.SetProperty("pause", paused ? "yes" : "no");

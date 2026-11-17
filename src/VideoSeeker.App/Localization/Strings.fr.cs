@@ -440,6 +440,25 @@ public sealed class FrenchStrings : Strings
     public override string ReservedCacheGreen => "vert du cache d'images";
     public override string ColorClash(string clash) => $"Cette couleur ressemble beaucoup à une couleur des barres ({clash}), et on les confondra.\n\nL'utiliser quand même ?";
 
+    // ---- Comparar dos vídeos ----
+
+    public override string CompareWithOtherVideo => "Comparer avec une autre vidéo…";
+    public override string CompareWithThisVideo => "Comparer avec un autre passage de cette vidéo";
+    public override string CompareWithBookmark => "Comparer avec celui-ci";
+    public override string CompareLockMenu => "Synchroniser les deux vidéos";
+    public override string CloseCompare => "Fermer la comparaison";
+    public override string CompareOpenTitle => "Comparer avec une autre vidéo";
+    public override string CompareDropHint => "Comparer";
+    public override string CompareDropDetail => "Déposez ici pour la voir à côté de celle qui est ouverte";
+    public override string CompareLockTip => "Synchroniser les deux vidéos (Ctrl + L) : elles avancent ensemble, avec l'écart actuel";
+    public override string CompareUnlockTip => "Désynchroniser les deux vidéos (Ctrl + L) : chacune avance de son côté";
+    public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
+    public override string CompareOffsetTip => "Temps de B moins temps de A. Alt + , / Alt + . ne déplacent que B d'une image";
+    public override string CompareStartsAt(string time) => $"B commence à {time}";
+    public override string CompareEnded => "B est déjà terminée";
+    public override string CompareLockedToast(string offset) => $"Vidéos synchronisées · {offset}";
+    public override string CompareUnlockedToast => "Vidéos désynchronisées";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

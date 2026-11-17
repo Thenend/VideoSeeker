@@ -112,60 +112,10 @@ public partial class MainWindow : Window
             UndoVideoClick();
             ToggleFullscreen();
         };
-        // Arrastrar en horizontal sobre la imagen mueve frame a frame, como ↑/↓ pero proporcional al ratón.
-        _surface.DragStarted += () =>
-        {
-            ReturnFocusToVideo();
-            // Al soltar se sigue como estaba: reproduciendo (hacia delante o atrás) o en pausa, como con la barra.
-            _scrubResumeSpeed = _nav.Speed;
-            _nav.Pause();
-            _scrubStart = _nav.CurrentTime;
-            _scrubStartFrame = Zoom.Grid.FrameAt(_scrubStart);
-            _scrubLastFrame = 0;
-            _scrubShift = 0;
-        };
-        _surface.DragEnded += () =>
-        {
-            var speed = _scrubResumeSpeed;
-            _scrubResumeSpeed = 0;
-            if (speed == 0 || !_nav.Paused)
-                return;
-            if (speed < 0)
-                _nav.Backward();
-            else
-                _nav.TogglePlay();
-        };
-        _surface.DragMoved += dx =>
-        {
-            long moved = dx / Math.Max(1, _store.Settings.ScrubPixelsPerFrame);
-            // Con bucle (empezando dentro del tramo, el suyo), al pasar el último frame se sigue por el primero y al revés.
-            if (LoopFrames(_scrubStartFrame) is { } loop)
-            {
-                if (moved == _scrubLastFrame)
-                    return;
-                _scrubLastFrame = moved;
-                var count = loop.Last - loop.First + 1;
-                var n = loop.First + (int)(((_scrubStartFrame - loop.First + moved) % count + count) % count);
-                _nav.ScrubTo(Zoom.Grid.TimeOf(n));
-                return;
-            }
-            // Sin bucle, se para en el primer y el último frame; lo que se arrastre de más no se acumula.
-            var frames = moved + _scrubShift;
-            if (_duration > 0)
-            {
-                var lastFrame = LastFrame;
-                var min = -(long)_scrubStartFrame;
-                var max = Math.Max(min, lastFrame - _scrubStartFrame);
-                var clamped = Math.Clamp(frames, min, max);
-                _scrubShift += clamped - frames;
-                frames = clamped;
-            }
-            if (frames == _scrubLastFrame)
-                return;
-            _scrubLastFrame = frames;
-            // Con la duración ya conocida, por la rejilla de frames: el tope casa justo con el primero y el último.
-            _nav.ScrubTo(_duration > 0 ? Zoom.Grid.TimeOf((int)(_scrubStartFrame + frames)) : _scrubStart + frames / Fps);
-        };
+        // Arrastrar en horizontal sobre la imagen mueve frame a frame (OnSurfaceDrag*).
+        _surface.DragStarted += OnSurfaceDragStarted;
+        _surface.DragEnded += OnSurfaceDragEnded;
+        _surface.DragMoved += OnSurfaceDragMoved;
         _surface.Resized += () => _engine?.Refresh();
         _surface.Wheel += OnVideoWheel;
         _surface.MiddleClicked += ResetRate;
@@ -177,6 +127,7 @@ public partial class MainWindow : Window
         Seek.MarkEnded += EndMark;
         Zoom.MarkStarted += BeginMark;
         Zoom.MarkEnded += EndMark;
+        InitCompare();
 
         Seek.SeekRequested += OnTimelineSeek;
         Seek.WheelSeekRequested += (notches, modifiers) => _nav.SeekRelative(notches * SeekStep(modifiers));
@@ -244,6 +195,63 @@ public partial class MainWindow : Window
         Closing += OnClosing;
         PreviewKeyDown += OnPreviewKeyDown;
         Drop += OnDrop;
+    }
+
+    // Arrastrar en horizontal sobre la imagen mueve frame a frame, como ↑/↓ pero proporcional al ratón.
+    private void OnSurfaceDragStarted()
+    {
+        ReturnFocusToVideo();
+        // Al soltar se sigue como estaba: reproduciendo (hacia delante o atrás) o en pausa, como con la barra.
+        _scrubResumeSpeed = _nav.Speed;
+        _nav.Pause();
+        _scrubStart = _nav.CurrentTime;
+        _scrubStartFrame = Zoom.Grid.FrameAt(_scrubStart);
+        _scrubLastFrame = 0;
+        _scrubShift = 0;
+    }
+
+    private void OnSurfaceDragEnded()
+    {
+        var speed = _scrubResumeSpeed;
+        _scrubResumeSpeed = 0;
+        if (speed == 0 || !_nav.Paused)
+            return;
+        if (speed < 0)
+            _nav.Backward();
+        else
+            _nav.TogglePlay();
+    }
+
+    private void OnSurfaceDragMoved(int dx)
+    {
+        long moved = dx / Math.Max(1, _store.Settings.ScrubPixelsPerFrame);
+        // Con bucle (empezando dentro del tramo, el suyo), al pasar el último frame se sigue por el primero y al revés.
+        if (LoopFrames(_scrubStartFrame) is { } loop)
+        {
+            if (moved == _scrubLastFrame)
+                return;
+            _scrubLastFrame = moved;
+            var count = loop.Last - loop.First + 1;
+            var n = loop.First + (int)(((_scrubStartFrame - loop.First + moved) % count + count) % count);
+            _nav.ScrubTo(Zoom.Grid.TimeOf(n));
+            return;
+        }
+        // Sin bucle, se para en el primer y el último frame; lo que se arrastre de más no se acumula.
+        var frames = moved + _scrubShift;
+        if (_duration > 0)
+        {
+            var lastFrame = LastFrame;
+            var min = -(long)_scrubStartFrame;
+            var max = Math.Max(min, lastFrame - _scrubStartFrame);
+            var clamped = Math.Clamp(frames, min, max);
+            _scrubShift += clamped - frames;
+            frames = clamped;
+        }
+        if (frames == _scrubLastFrame)
+            return;
+        _scrubLastFrame = frames;
+        // Con la duración ya conocida, por la rejilla de frames: el tope casa justo con el primero y el último.
+        _nav.ScrubTo(_duration > 0 ? Zoom.Grid.TimeOf((int)(_scrubStartFrame + frames)) : _scrubStart + frames / Fps);
     }
 
     /// <summary>
@@ -408,6 +416,8 @@ public partial class MainWindow : Window
                 _ = RunCaptureSelfTest();
             if (FullscreenSelfTestEnabled)
                 _ = RunFullscreenSelfTest();
+            if (CompareSelfTestEnabled)
+                _ = RunCompareSelfTest();
             // VIDEOSEEKER_SELFTEST=arranque: cierra al poco del primer frame (para medir el arranque y el cierre).
             if (Environment.GetEnvironmentVariable("VIDEOSEEKER_SELFTEST") == "arranque")
                 _ = Task.Delay(int.TryParse(Environment.GetEnvironmentVariable("VIDEOSEEKER_WAIT"), out var wait) ? wait : 1500).ContinueWith(_ => Dispatcher.BeginInvoke(() =>
@@ -459,6 +469,7 @@ public partial class MainWindow : Window
 
         SavePosition();
         RecordHistory(path, historyIndex);
+        OnMainVideoOpening();
 
         var key = Fingerprint.Compute(path);
         if (!_store.Library.Videos.TryGetValue(key, out var entry))
@@ -929,6 +940,9 @@ public partial class MainWindow : Window
     // para revisar que un ciclo encaja.
     private void StepFrame(int direction)
     {
+        // Con los dos vídeos bloqueados, al siguiente cambio de imagen de cualquiera de los dos.
+        if (CompareStep(direction))
+            return;
         var frame = Zoom.Grid.FrameAt(_nav.CurrentTime);
         if (LoopFrames(frame) is { } loop)
         {
@@ -1269,6 +1283,12 @@ public partial class MainWindow : Window
         if (BookmarkList.IsKeyboardFocusWithin
             && key is Key.Up or Key.Down or Key.PageUp or Key.PageDown or Key.Home or Key.End or Key.Enter or Key.F2 or Key.Delete or Key.Escape)
             return;
+        // Comparando: el candado, mover solo B y, con B activo y sueltos, las teclas de moverse van a B.
+        if (HandleCompareKey(key, e))
+        {
+            e.Handled = true;
+            return;
+        }
         switch (key)
         {
             case Key.Space:
@@ -1461,7 +1481,7 @@ public partial class MainWindow : Window
             var shared = files.Where(f => f.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).ToList();
             if (shared.Count > 0)
                 shared.ForEach(ImportSharedFile);
-            else
+            else if (!DropOnCompareStrip(e, files[0]))
                 OpenByHand(files[0]);
         }
     }
@@ -1469,6 +1489,9 @@ public partial class MainWindow : Window
     private void OnVideoClicked()
     {
         ReturnFocusToVideo();
+        // Comparando, un clic en la imagen que no es la activa solo la activa.
+        if (ActivateCompareA())
+            return;
         _beforeClick = (_nav.Paused, _nav.CurrentTime);
         _nav.TogglePlay();
     }
@@ -1476,6 +1499,8 @@ public partial class MainWindow : Window
     // El primer clic del doble clic reanudó o pausó: se deshace y, si estaba en pausa, vuelve al mismo frame.
     private void UndoVideoClick()
     {
+        if (ClickOnlyActivated())
+            return;
         _nav.TogglePlay();
         if (_beforeClick is { Paused: true } before && Math.Abs(_nav.CurrentTime - before.Time) > 0.5 / Fps)
             _nav.SeekTo(before.Time);
@@ -1639,6 +1664,8 @@ public partial class MainWindow : Window
         Step("datos guardados");
         App.ReleaseSingleInstance();
         _cacheTimer.Stop();
+        // Antes que el motor del primero: el segundo usa su dispositivo de la tarjeta.
+        CloseCompare(immediate: true);
         _player.Dispose();
         Step("mpv cerrado");
         _engine?.Dispose();

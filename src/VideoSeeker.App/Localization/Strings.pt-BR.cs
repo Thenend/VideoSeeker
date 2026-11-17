@@ -440,6 +440,25 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ReservedCacheGreen => "verde do cache de quadros";
     public override string ColorClash(string clash) => $"Esta cor se parece muito com o {clash} das barras, e elas vão se confundir.\n\nUsá-la mesmo assim?";
 
+    // ---- Comparar dos vídeos ----
+
+    public override string CompareWithOtherVideo => "Comparar com outro vídeo…";
+    public override string CompareWithThisVideo => "Comparar com outro trecho deste vídeo";
+    public override string CompareWithBookmark => "Comparar com este";
+    public override string CompareLockMenu => "Sincronizar os dois vídeos";
+    public override string CloseCompare => "Fechar a comparação";
+    public override string CompareOpenTitle => "Comparar com outro vídeo";
+    public override string CompareDropHint => "Comparar";
+    public override string CompareDropDetail => "Solte aqui para vê-lo ao lado do que está aberto";
+    public override string CompareLockTip => "Sincronizar os dois vídeos (Ctrl + L): eles se movem juntos, com a distância atual";
+    public override string CompareUnlockTip => "Soltar os dois vídeos (Ctrl + L): cada um se move por conta própria";
+    public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
+    public override string CompareOffsetTip => "Tempo de B menos tempo de A. Alt + , / Alt + . movem só o B um quadro";
+    public override string CompareStartsAt(string time) => $"B começa em {time}";
+    public override string CompareEnded => "B já terminou";
+    public override string CompareLockedToast(string offset) => $"Vídeos sincronizados · {offset}";
+    public override string CompareUnlockedToast => "Vídeos soltos";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";
