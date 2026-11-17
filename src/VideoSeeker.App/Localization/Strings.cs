@@ -896,6 +896,13 @@ public abstract class Strings
     /// <summary>Sonido de este vídeo (al dárselo, el otro se calla)</summary>
     public abstract string CompareSoundTip { get; }
 
+    /// <summary>Sincronizar</summary>
+    public abstract string CompareSyncButton { get; }
+    /// <summary>Sincronizados</summary>
+    public abstract string CompareSyncedButton { get; }
+    /// <summary>Pon los dos en el mismo frame y pulsa Sincronizar (Ctrl + L) para moverlos juntos</summary>
+    public abstract string CompareLockHint { get; }
+
     // ---- Avisos ----
 
     /// <summary>Aceptar</summary>

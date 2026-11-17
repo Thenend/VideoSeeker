@@ -467,6 +467,10 @@ public sealed class GermanStrings : Strings
 
     public override string CompareSoundTip => "Ton dieses Videos (beim Einschalten verstummt das andere)";
 
+    public override string CompareSyncButton => "Synchronisieren";
+    public override string CompareSyncedButton => "Synchronisiert";
+    public override string CompareLockHint => "Beide auf denselben Frame stellen und Synchronisieren (Strg + L) drücken, um sie gemeinsam zu bewegen";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

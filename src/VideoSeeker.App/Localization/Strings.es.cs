@@ -467,6 +467,10 @@ public sealed class SpanishStrings : Strings
 
     public override string CompareSoundTip => "Sonido de este vídeo (al dárselo, el otro se calla)";
 
+    public override string CompareSyncButton => "Sincronizar";
+    public override string CompareSyncedButton => "Sincronizados";
+    public override string CompareLockHint => "Pon los dos en el mismo frame y pulsa Sincronizar (Ctrl + L) para moverlos juntos";
+
     // ---- Avisos ----
 
     public override string Ok => "Aceptar";

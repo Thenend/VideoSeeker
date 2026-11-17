@@ -467,6 +467,10 @@ public sealed class EnglishStrings : Strings
 
     public override string CompareSoundTip => "Sound of this video (turning it on mutes the other one)";
 
+    public override string CompareSyncButton => "Sync";
+    public override string CompareSyncedButton => "Synced";
+    public override string CompareLockHint => "Put both on the same frame and press Sync (Ctrl + L) to move them together";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

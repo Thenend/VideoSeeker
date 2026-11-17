@@ -467,6 +467,10 @@ public sealed class PortugueseBrazilStrings : Strings
 
     public override string CompareSoundTip => "Som deste vídeo (ao ativá-lo, o outro fica mudo)";
 
+    public override string CompareSyncButton => "Sincronizar";
+    public override string CompareSyncedButton => "Sincronizados";
+    public override string CompareLockHint => "Deixe os dois no mesmo quadro e clique em Sincronizar (Ctrl + L) para movê-los juntos";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

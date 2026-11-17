@@ -13,7 +13,8 @@ namespace VideoSeeker.App;
 /// Comparar dos vídeos: el abierto (A, el que manda: sus barras, sus bookmarks, su audio) y otro (B) a su lado, con su
 /// propia cadena (<see cref="ComparePane"/>). B va a la derecha, a la izquierda, arriba o abajo (donde se soltó al
 /// arrastrarlo, o lo elegido en el menú; se recuerda). Encima de cada imagen, su nombre y su frame; B lleva además el candado, el desfase,
-/// la × para cerrar y una barra fina. Sueltos, el teclado mueve el activo (borde azul) y la rueda y el arrastre, la
+/// la × para cerrar, una barra fina y sus controles; en el centro, sobre la línea que los separa, el botón
+/// «Sincronizar» (el candado). Sueltos, el teclado mueve el activo (borde azul) y la rueda y el arrastre, la
 /// imagen bajo el ratón; bloqueados (<see cref="CompareSync"/>), todo lo que mueve A mueve B.
 /// </summary>
 public partial class MainWindow
@@ -45,6 +46,13 @@ public partial class MainWindow
     private Grid _cmpCellB = null!;
     private TextBlock _cmpNameA = null!, _cmpFrameTextA = null!, _cmpNameB = null!, _cmpFrameTextB = null!, _cmpOffset = null!, _cmpOutside = null!;
     private Button _cmpLock = null!;
+    private TextBlock _cmpLockText = null!;
+    private Border _cmpLockHost = null!, _cmpLockGlow = null!, _cmpHeaderB = null!;
+    // El latido del candado: no vuelve a empezar mientras late, y como mucho uno cada LockPulseGap.
+    private bool _lockPulsing;
+    private long _lockPulseEnded = long.MinValue / 2;
+    private const long LockPulseGapMs = 20000;
+    private long _compareOpenedAt;
     private System.Windows.Shapes.Path _cmpLockIcon = null!;
     private CompareBar _cmpBar = null!;
     // Los controles de B (bajo su barra): frame anterior, play, frame siguiente, tiempo, frame y sonido.
@@ -55,6 +63,7 @@ public partial class MainWindow
     private bool _aMutedForB;
 
     private static readonly Brush CompareActiveBrush = Frozen(Color.FromRgb(0x4C, 0x9B, 0xFF));
+    private static readonly Brush CompareLockedBack = Frozen(Color.FromArgb(0x33, 0x4C, 0x9B, 0xFF));
     private static readonly Brush DropStripHoverBrush = Frozen(Color.FromRgb(0x24, 0x3A, 0x57));
 
     /// <summary>Lo que no depende de que haya comparación: la franja al arrastrar y que tocar la imagen de A la active.</summary>
@@ -178,8 +187,18 @@ public partial class MainWindow
         SetCompareActive(true);
         var same = string.Equals(Path.GetFullPath(path), Path.GetFullPath(_currentPath), StringComparison.OrdinalIgnoreCase);
         UpdateCompareUi();
+        _compareOpenedAt = Environment.TickCount64;
         await _compare.OpenAsync(path, start, _engine, _store.Settings.FrameCacheMegabytes * 1024L * 1024, same ? _frameIndex : null);
         UpdateCompareUi();
+        // La primera vez que se compara: cómo se ponen a ir juntos (y el botón late).
+        if (!_store.Settings.CompareHintSeen)
+        {
+            _store.Settings.CompareHintSeen = true;
+            _store.SaveSettings();
+            ShowToast(S.CompareLockHint);
+            CompareHintShown++;
+            PulseCompareLock();
+        }
     }
 
     /// <summary>La × de B o «Cerrar comparación». "immediate" al cerrar la app (sin esperar a nada).</summary>
@@ -234,15 +253,9 @@ public partial class MainWindow
         _cmpFrameA = new Border { BorderThickness = new Thickness(1), IsHitTestVisible = false };
         Panel.SetZIndex(_cmpFrameA, 2);
 
-        // B: candado y desfase a la izquierda (entre las dos imágenes), nombre, frame y la ×.
-        _cmpLockIcon = new System.Windows.Shapes.Path { Style = (Style)FindResource("IconPath"), Data = (Geometry)FindResource("LockOpenIcon") };
-        _cmpLock = new Button { Style = (Style)FindResource("ToolButton"), Padding = new Thickness(5, 0, 5, 0), Height = CompareHeaderHeight - 2, Content = _cmpLockIcon };
-        _cmpLock.Click += (_, _) => ToggleCompareLock();
-        _cmpOffset = new TextBlock
-        {
-            Foreground = CompareActiveBrush, FontFamily = new FontFamily("Consolas"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(2, 0, 6, 0), ToolTip = S.CompareOffsetTip, Visibility = Visibility.Collapsed, Background = Brushes.Transparent,
-        };
+        BuildCompareLock(panel);
+
+        // B: nombre y la ×.
         var close = new Button
         {
             Style = (Style)FindResource("ToolButton"), FontFamily = (FontFamily)FindResource("Icons"), FontSize = 10, Content = "",
@@ -250,16 +263,11 @@ public partial class MainWindow
         };
         close.Click += (_, _) => CloseCompare();
         _cmpNameB = Name();
-        _cmpFrameTextB = FrameLabel();
         var dockB = new DockPanel();
-        DockPanel.SetDock(_cmpLock, Dock.Left);
-        DockPanel.SetDock(_cmpOffset, Dock.Left);
         DockPanel.SetDock(close, Dock.Right);
-        dockB.Children.Add(_cmpLock);
-        dockB.Children.Add(_cmpOffset);
         dockB.Children.Add(close);
         dockB.Children.Add(_cmpNameB);
-        var headerB = new Border { Background = panel, Height = CompareHeaderHeight, VerticalAlignment = VerticalAlignment.Top, Child = dockB };
+        var headerB = _cmpHeaderB = new Border { Background = panel, Height = CompareHeaderHeight, VerticalAlignment = VerticalAlignment.Top, Child = dockB };
         headerB.MouseLeftButtonDown += (_, _) => SetCompareActive(true);
 
         _cmpBar = new CompareBar();
@@ -295,6 +303,7 @@ public partial class MainWindow
             VideoGrid.Children.Remove(_cmpHeaderA);
             VideoGrid.Children.Remove(_cmpFrameA);
             VideoGrid.Children.Remove(_cmpCellB);
+            VideoGrid.Children.Remove(_cmpLockHost);
             if (_cmpCellB.Children.OfType<Border>().FirstOrDefault(b => b.Tag as string == "B") is { } old)
                 _cmpCellB.Children.Remove(old);
             VideoGrid.ColumnDefinitions.Clear();
@@ -313,7 +322,9 @@ public partial class MainWindow
             VideoGrid.Children.Add(_cmpHeaderA);
             VideoGrid.Children.Add(_cmpFrameA);
             VideoGrid.Children.Add(_cmpCellB);
+            VideoGrid.Children.Add(_cmpLockHost);
         }
+        PlaceCompareLock();
         // Dónde va B: a la derecha (por defecto), a la izquierda, arriba o abajo.
         var placement = _store.Settings.ComparePlacement;
         var stacked = placement is "top" or "bottom";
@@ -347,6 +358,7 @@ public partial class MainWindow
         _cmpFrameA.Margin = aSide;
         VideoArea.Margin = new Thickness(1 + aSide.Left, CompareHeaderHeight + aSide.Top, 1 + aSide.Right, CompareBottomHeight + 1 + aSide.Bottom);
         _cmpCellB.Margin = Toward(towardsFirst: !bFirst);
+        PlaceCompareLock();
     }
 
     // Lo que ocupan bajo la imagen de B su barra fina (y sus controles): A deja lo mismo, para que midan igual.
@@ -387,6 +399,8 @@ public partial class MainWindow
     private void OnComparePositionA(double time)
     {
         UpdateCompareHeaderA();
+        if (!_nav.Playing)
+            PulseCompareLockIfLoose();
         if (_sync is { Held: true })
             _cmpOffset.Text = CompareOffsetLabel();
     }
@@ -397,6 +411,8 @@ public partial class MainWindow
             return;
         _cmpBar.Position = time;
         UpdateCompareHeaderB();
+        if (!_compare.Nav.Playing)
+            PulseCompareLockIfLoose();
         if (_sync is { Held: true })
             _cmpOffset.Text = CompareOffsetLabel();
     }
@@ -586,7 +602,9 @@ public partial class MainWindow
         var locked = sync.Following;
         _cmpOffset.Foreground = sync.Held ? (Brush)FindResource("FgMuted") : CompareActiveBrush;
         _cmpLockIcon.Data = (Geometry)FindResource(locked ? "LockClosedIcon" : "LockOpenIcon");
-        _cmpLock.Foreground = locked ? CompareActiveBrush : (Brush)FindResource("Fg");
+        _cmpLock.Foreground = locked ? CompareActiveBrush : sync.Held ? (Brush)FindResource("FgMuted") : (Brush)FindResource("Fg");
+        _cmpLock.Background = locked ? CompareLockedBack : Brushes.Transparent;
+        _cmpLockText.Text = sync.Locked ? S.CompareSyncedButton : S.CompareSyncButton;
         _cmpLock.ToolTip = locked ? S.CompareUnlockTip : S.CompareLockTip;
         _cmpOffset.Visibility = sync.Locked ? Visibility.Visible : Visibility.Collapsed;
         _cmpOffset.Text = sync.Locked ? CompareOffsetLabel() : "";
@@ -612,6 +630,110 @@ public partial class MainWindow
     }
 
     // ---- Candado ----
+
+    /// <summary>Veces que salió el aviso de la primera comparación (autoprueba).</summary>
+    internal int CompareHintShown { get; private set; }
+
+    /// <summary>
+    /// El botón «Sincronizar» (candado + texto) y, bloqueados, el desfase al lado. Va en el centro, sobre la línea que
+    /// separa los dos vídeos (en la fila de las cabeceras), para que se vea que es lo que los une.
+    /// </summary>
+    private void BuildCompareLock(Brush panel)
+    {
+        _cmpLockIcon = new System.Windows.Shapes.Path { Style = (Style)FindResource("IconPath"), Data = (Geometry)FindResource("LockOpenIcon") };
+        _cmpLockText = new TextBlock { Text = S.CompareSyncButton, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0) };
+        _cmpLockText.SetBinding(TextBlock.ForegroundProperty, new System.Windows.Data.Binding("Foreground") { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.FindAncestor, typeof(Button), 1) });
+        var content = new StackPanel { Orientation = Orientation.Horizontal };
+        content.Children.Add(_cmpLockIcon);
+        content.Children.Add(_cmpLockText);
+        _cmpLock = new Button { Style = (Style)FindResource("ToolButton"), Padding = new Thickness(6, 0, 8, 0), Height = CompareHeaderHeight - 2, Content = content };
+        _cmpLock.Click += (_, _) => ToggleCompareLock();
+        // El latido: un brillo de fondo, como el del botón de las marcas.
+        _cmpLockGlow = new Border { CornerRadius = new CornerRadius(4), Background = (Brush)FindResource("Accent"), Opacity = 0, IsHitTestVisible = false };
+        var button = new Grid();
+        button.Children.Add(_cmpLockGlow);
+        button.Children.Add(_cmpLock);
+        _cmpOffset = new TextBlock
+        {
+            Foreground = CompareActiveBrush, FontFamily = new FontFamily("Consolas"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(2, 0, 8, 0), ToolTip = S.CompareOffsetTip, Visibility = Visibility.Collapsed, Background = Brushes.Transparent,
+        };
+        var row = new StackPanel { Orientation = Orientation.Horizontal };
+        row.Children.Add(button);
+        row.Children.Add(_cmpOffset);
+        _cmpLockHost = new Border
+        {
+            Child = row, Background = panel, BorderBrush = (Brush)FindResource("Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(5),
+            Height = CompareHeaderHeight, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top,
+        };
+        Panel.SetZIndex(_cmpLockHost, 4);
+        _cmpLockHost.SizeChanged += (_, _) => PlaceCompareLock();
+    }
+
+    /// <summary>
+    /// En el centro de la línea que separa los dos vídeos: lado a lado, arriba en la fila de las cabeceras (las dos le
+    /// dejan sitio junto a la línea); uno encima del otro, en la cabecera del de abajo, centrado (su nombre no llega).
+    /// </summary>
+    private void PlaceCompareLock()
+    {
+        if (!_compareUiBuilt || _compare == null || !VideoGrid.Children.Contains(_cmpLockHost))
+            return;
+        Grid.SetColumnSpan(_cmpLockHost, Math.Max(1, VideoGrid.ColumnDefinitions.Count));
+        Grid.SetRowSpan(_cmpLockHost, Math.Max(1, VideoGrid.RowDefinitions.Count));
+        var room = _cmpLockHost.ActualWidth / 2 + 6;
+        var (first, second) = _compareBFirst ? (_cmpHeaderB, _cmpHeaderA) : (_cmpHeaderA, _cmpHeaderB);
+        if (_compareStacked)
+        {
+            _cmpLockHost.Margin = new Thickness(0, VideoGrid.ActualHeight / 2 + CompareGap / 2, 0, 0);
+            first.Padding = second.Padding = new Thickness(0);
+            // El nombre del de abajo no pasa del centro.
+            var name = second == _cmpHeaderA ? _cmpNameA : _cmpNameB;
+            name.MaxWidth = Math.Max(40, VideoGrid.ActualWidth / 2 - room - 8);
+            (second == _cmpHeaderA ? _cmpNameB : _cmpNameA).MaxWidth = double.PositiveInfinity;
+        }
+        else
+        {
+            _cmpLockHost.Margin = new Thickness(0);
+            first.Padding = new Thickness(0, 0, room, 0);
+            second.Padding = new Thickness(room, 0, 0, 0);
+            _cmpNameA.MaxWidth = _cmpNameB.MaxWidth = double.PositiveInfinity;
+        }
+    }
+
+    /// <summary>Sueltos, al mover uno de los dos el botón late (como mucho uno cada 20 s): ahí se ponen a ir juntos.</summary>
+    private void PulseCompareLockIfLoose()
+    {
+        if (_sync is not { Locked: false } || _compare is not { Ready: true } || Environment.TickCount64 - _compareOpenedAt < 1500
+            || Environment.TickCount64 - _lockPulseEnded < LockPulseGapMs)
+            return;
+        PulseCompareLock();
+    }
+
+    /// <summary>El latido del botón «Sincronizar», como el del botón de las marcas: tres veces en 0,7 s; no vuelve a empezar si ya late.</summary>
+    private void PulseCompareLock()
+    {
+        if (_lockPulsing || !_compareUiBuilt)
+            return;
+        _lockPulsing = true;
+        CompareLockPulses++;
+        var beat = TimeSpan.FromMilliseconds(700);
+        var glow = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames { Duration = beat, RepeatBehavior = new System.Windows.Media.Animation.RepeatBehavior(3) };
+        glow.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(0, TimeSpan.Zero));
+        glow.KeyFrames.Add(new System.Windows.Media.Animation.EasingDoubleKeyFrame(0.45, TimeSpan.FromMilliseconds(140)));
+        glow.KeyFrames.Add(new System.Windows.Media.Animation.EasingDoubleKeyFrame(0, beat,
+            new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }));
+        glow.Completed += (_, _) =>
+        {
+            _lockPulsing = false;
+            _lockPulseEnded = Environment.TickCount64;
+            _cmpLockGlow.BeginAnimation(OpacityProperty, null);
+            _cmpLockGlow.Opacity = 0;
+        };
+        _cmpLockGlow.BeginAnimation(OpacityProperty, glow);
+    }
+
+    /// <summary>Latidos del botón «Sincronizar» (autoprueba).</summary>
+    internal int CompareLockPulses { get; private set; }
 
     private void ToggleCompareLock()
     {

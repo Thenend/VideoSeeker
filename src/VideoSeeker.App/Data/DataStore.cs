@@ -108,6 +108,8 @@ public sealed class Settings
     public bool AnimatePanels { get; set; } = true;
     /// <summary>Dónde va el segundo vídeo al comparar: "right" (por defecto), "left", "top" o "bottom".</summary>
     public string ComparePlacement { get; set; } = "right";
+    /// <summary>Ya se vio el aviso de cómo sincronizar los dos vídeos (sale la primera vez que se compara).</summary>
+    public bool CompareHintSeen { get; set; }
 
     /// <summary>
     /// Vuelve a los valores por defecto lo que se cambia en la ventana de ajustes (no el volumen, la colección ni el

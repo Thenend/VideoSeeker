@@ -467,6 +467,10 @@ public sealed class FrenchStrings : Strings
 
     public override string CompareSoundTip => "Son de cette vidéo (l'activer coupe celui de l'autre)";
 
+    public override string CompareSyncButton => "Synchroniser";
+    public override string CompareSyncedButton => "Synchronisées";
+    public override string CompareLockHint => "Placez les deux sur la même image et appuyez sur Synchroniser (Ctrl + L) pour les déplacer ensemble";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

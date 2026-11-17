@@ -467,6 +467,10 @@ public sealed class ItalianStrings : Strings
 
     public override string CompareSoundTip => "Audio di questo video (attivandolo, l'altro si zittisce)";
 
+    public override string CompareSyncButton => "Sincronizza";
+    public override string CompareSyncedButton => "Sincronizzati";
+    public override string CompareLockHint => "Porta i due sullo stesso fotogramma e premi Sincronizza (Ctrl + L) per muoverli insieme";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";
