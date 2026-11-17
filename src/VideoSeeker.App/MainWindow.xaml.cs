@@ -967,6 +967,8 @@ public partial class MainWindow : Window
     {
         UpdateRangePosition();
         UpdateZoneUi();
+        // Comparando y sincronizados, el tramo equivalente en la barra de B.
+        UpdateCompareBand();
     }
 
     /// <summary>

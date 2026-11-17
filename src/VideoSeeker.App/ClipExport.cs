@@ -34,6 +34,8 @@ public sealed class ClipJob
     /// <summary>Carpeta de destino; null, junto al vídeo.</summary>
     public string? Folder { get; init; }
     public double LightMegabytesPerSecond { get; init; } = 1;
+    /// <summary>Comparando: el segundo vídeo, que sale junto al primero en el mismo clip (null, un vídeo solo).</summary>
+    public CompareClip? Compare { get; init; }
     public bool HardwareDecoding { get; init; } = true;
 
     /// <summary>El archivo que se está escribiendo (o el que quedó).</summary>
@@ -42,6 +44,24 @@ public sealed class ClipJob
     public double Progress { get; internal set; }
     public bool Cancelled => Cancel.IsCancellationRequested;
     internal CancellationTokenSource Cancel { get; } = new();
+}
+
+/// <summary>
+/// El segundo vídeo de un clip de los dos (comparando): su tramo es el del primero más el desfase, y sale a su lado
+/// como se ven (lado a lado o uno encima del otro, en su sitio). Lo que cae fuera de él sale en negro.
+/// </summary>
+public sealed class CompareClip
+{
+    public required string Source { get; init; }
+    /// <summary>Dónde empieza su tramo (puede ser negativo o pasar de su final).</summary>
+    public required double Start { get; init; }
+    /// <summary>Fin del último frame (hasta dónde tiene imagen).</summary>
+    public required double End { get; init; }
+    public bool Stacked { get; init; }
+    /// <summary>B a la izquierda o arriba.</summary>
+    public bool First { get; init; }
+    /// <summary>El sonido de B (el que se oye al exportar); si no, el de A.</summary>
+    public bool AudioFromB { get; init; }
 }
 
 /// <summary>
@@ -145,12 +165,14 @@ public sealed class ClipExporter : IDisposable
         var token = job.Cancel.Token;
         var source = job.Preset == ClipPreset.Copy ? null
             : await Task.Run(() => ClipProbe.Measure(job.Source, job.Start, job.End, token), token);
+        var second = job.Compare is not { } compare ? null
+            : await Task.Run(() => ClipProbe.Measure(compare.Source, Math.Max(0, compare.Start), Math.Max(0, compare.Start) + (job.End - job.Start), token), token);
         var keyframe = job.Preset != ClipPreset.Copy ? null
             : job.Keyframe ?? await Task.Run(() => ClipProbe.KeyframeAtOrBefore(job.Source, job.Start, token), token);
         var folder = OutputFolder(job);
         var name = FileName(job);
         string? lastError = null;
-        foreach (var attempt in Plan(job, source, keyframe))
+        foreach (var attempt in job.Compare != null ? ComparePlan(job, source!, second!) : Plan(job, source, keyframe))
         {
             var output = UniquePath(folder, name, attempt.Extension);
             job.Output = output;
@@ -303,6 +325,94 @@ public sealed class ClipExporter : IDisposable
         return attempts;
     }
 
+    /// <summary>
+    /// Los dos vídeos en un clip H.264 + AAC en MP4: cada uno cortado en su frame exacto, a los fps del más rápido, del
+    /// mismo alto (lado a lado) o ancho (uno encima del otro) y en su sitio; lo que no tiene imagen de B, en negro. El
+    /// sonido, el del que se oye. Alta calidad: la suma de los dos bitrates; ligero: el tamaño elegido.
+    /// </summary>
+    private static List<Attempt> ComparePlan(ClipJob job, ClipSource a, ClipSource b)
+    {
+        var compare = job.Compare!;
+        var length = job.End - job.Start;
+        var light = job.Preset == ClipPreset.Light;
+        var fps = Math.Max(a.Fps > 0 ? a.Fps : 30, b.Fps > 0 ? b.Fps : 30);
+        if (light)
+            fps = Math.Min(fps, 60);
+        // Lo que B tiene de imagen dentro del tramo y cuánto negro va antes.
+        var bFrom = Math.Max(0, compare.Start);
+        var bTo = Math.Min(compare.Start + length, compare.End);
+        var bLength = bTo - bFrom;
+        var lead = Math.Max(0, bFrom - compare.Start);
+        double Aspect(ClipSource s) => s.Width > 0 && s.Height > 0 ? s.Width / (double)s.Height : 16 / 9.0;
+        var (ra, rb) = (Aspect(a), Aspect(b));
+        // Tamaño común: el del más pequeño, sin pasar de 3840 (ligero, también 1080 de alto cada uno) ni de 4096 en total.
+        string scale;
+        if (compare.Stacked)
+        {
+            double w = Math.Min(a.Width, b.Width);
+            if (light)
+                w = Math.Min(w, 1920);
+            w = Math.Min(w, (light ? 2160 : 4096) / (1 / ra + 1 / rb));
+            scale = $"scale={Even(w)}:-2";
+        }
+        else
+        {
+            double h = Math.Min(a.Height, b.Height);
+            if (light)
+                h = Math.Min(h, 1080);
+            h = Math.Min(h, (light ? 3840 : 4096) / (ra + rb));
+            scale = $"scale=-2:{Even(h)}";
+        }
+        var f = fps.ToString("0.###", CultureInfo.InvariantCulture);
+        var common = $"setpts=PTS-STARTPTS,fps={f},{scale},setsar=1,format=yuv420p";
+        var graph = $"[0:v]{common},trim=duration={Seconds(length)}[va];" +
+            $"[1:v]{common},tpad=start_duration={Seconds(lead)}:stop_mode=add:stop_duration={Seconds(length)}:color=black," +
+            $"trim=duration={Seconds(length)},setpts=PTS-STARTPTS[vb];" +
+            (compare.First ? "[vb][va]" : "[va][vb]") + (compare.Stacked ? "vstack" : "hstack") + "=inputs=2[v]";
+        var audioFromB = compare.AudioFromB && b.HasAudio && bLength > 0;
+        if (audioFromB)
+        {
+            var delay = (long)Math.Round(lead * 1000);
+            graph += $";[1:a]asetpts=PTS-STARTPTS,adelay={delay}:all=1,apad,atrim=duration={Seconds(length)}[aud]";
+        }
+        string[] audioMap = audioFromB ? ["-map", "[aud]"]
+            : !compare.AudioFromB && a.HasAudio ? ["-map", job.AudioStream is { } s ? $"0:{s}?" : "0:a:0?"]
+            : ["-an"];
+        long video;
+        int audio;
+        if (light)
+        {
+            var total = job.LightMegabytesPerSecond * 8_000_000;
+            audio = total >= 3_000_000 ? 160_000 : 96_000;
+            video = Math.Max(200_000, (long)(total - audio));
+        }
+        else
+        {
+            audio = 192_000;
+            video = Math.Clamp(Math.Max(a.VideoBitrate, 0) + Math.Max(b.VideoBitrate, 0), 4_000_000, 60_000_000);
+        }
+        var attempts = new List<Attempt>();
+        foreach (var encoder in Encoders("h264"))
+        {
+            // B: su trozo con imagen o, si no tiene ninguno, una imagen negra de su tamaño.
+            string[] second = bLength > 0
+                ? [.. HardwareInput(encoder, gpuFrames: false, job.HardwareDecoding), "-ss", Seconds(bFrom - 0.0005), "-t", Seconds(bLength), "-i", compare.Source]
+                : ["-f", "lavfi", "-i", $"color=c=black:s={Math.Max(2, b.Width)}x{Math.Max(2, b.Height)}:r={f}:d={Seconds(length)}"];
+            attempts.Add(new(".mp4", length,
+            [
+                .. Common, .. HardwareInput(encoder, gpuFrames: false, job.HardwareDecoding),
+                "-ss", Seconds(job.Start - 0.0005), "-t", Seconds(length), "-i", job.Source, .. second,
+                "-filter_complex", graph, "-map", "[v]", .. audioMap, "-sn", "-dn", "-map_chapters", "-1",
+                "-c:v", encoder, .. EncoderOptions(encoder, video, peak: light ? 1 : 2, light),
+                .. audioMap[0] == "-an" ? (string[])[] : ["-c:a", "aac", "-b:a", audio.ToString(CultureInfo.InvariantCulture), "-ac", "2"],
+                "-t", Seconds(length), .. Muxer(".mp4"),
+            ]));
+        }
+        return attempts;
+    }
+
+    private static int Even(double value) => Math.Max(2, (int)Math.Floor(value / 2) * 2);
+
     private static IEnumerable<string> Containers(string ext) => ext == ".mkv" ? [ext] : [ext, ".mkv"];
 
     // La pista de vídeo principal (V: sin portadas), todos los audios y subtítulos y, en MKV, las fuentes adjuntas.
@@ -386,6 +496,8 @@ public sealed class ClipExporter : IDisposable
     public static string FileName(ClipJob job)
     {
         var video = Path.GetFileNameWithoutExtension(job.Source);
+        if (job.Compare is { } compare)
+            video = $"{video} vs {Path.GetFileNameWithoutExtension(compare.Source)}";
         var name = job.Name is { Length: > 0 } bookmark ? $"{video} - {bookmark}" : $"{video} {Stamp(job.Start)}-{Stamp(job.End)}";
         if (job.Preset == ClipPreset.Light)
             name += S.LightClipSuffix;

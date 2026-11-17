@@ -471,6 +471,17 @@ public sealed class EnglishStrings : Strings
     public override string CompareSyncedButton => "Synced";
     public override string CompareLockHint => "Put both on the same frame and press Sync (Ctrl + L) to move them together";
 
+    // ---- Clip de los dos vídeos ----
+
+    public override string ExportBothClip => "Export a clip of both videos";
+    public override string ExportBothNeedsSync => "Sync the two videos (Sync or Ctrl + L) to export them together";
+    public override string ExportBothNoImage => "B has no image anywhere in the range: it will be black";
+    public override string ExportBothQuality => "Quality";
+    public override string ExportBothExact => "High quality";
+    public override string ExportBothExactTip => "Both in H.264, at the size of the smaller one, with the bitrate of both together";
+    public override string ExportBothStart => "Export";
+    public override string ExportBothBlack(string from, string to) => $"From {from} to {to} B has no image: it will be black";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

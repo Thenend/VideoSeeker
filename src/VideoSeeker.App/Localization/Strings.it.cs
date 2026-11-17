@@ -471,6 +471,17 @@ public sealed class ItalianStrings : Strings
     public override string CompareSyncedButton => "Sincronizzati";
     public override string CompareLockHint => "Porta i due sullo stesso fotogramma e premi Sincronizza (Ctrl + L) per muoverli insieme";
 
+    // ---- Clip de los dos vídeos ----
+
+    public override string ExportBothClip => "Esporta clip dei due video";
+    public override string ExportBothNeedsSync => "Sincronizza i due video (Sincronizza o Ctrl + L) per esportarli insieme";
+    public override string ExportBothNoImage => "B non ha immagine in tutto il tratto: sarà nero";
+    public override string ExportBothQuality => "Qualità";
+    public override string ExportBothExact => "Alta qualità";
+    public override string ExportBothExactTip => "Entrambi in H.264, alla dimensione del più piccolo, con il bitrate dei due insieme";
+    public override string ExportBothStart => "Esporta";
+    public override string ExportBothBlack(string from, string to) => $"Da {from} a {to} B non ha immagine: sarà nero";
+
     // ---- Avisos ----
 
     public override string Ok => "OK";

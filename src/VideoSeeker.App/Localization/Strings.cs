@@ -903,6 +903,25 @@ public abstract class Strings
     /// <summary>Pon los dos en el mismo frame y pulsa Sincronizar (Ctrl + L) para moverlos juntos</summary>
     public abstract string CompareLockHint { get; }
 
+    // ---- Clip de los dos vídeos ----
+
+    /// <summary>Exportar clip de los dos vídeos</summary>
+    public abstract string ExportBothClip { get; }
+    /// <summary>Sincroniza los dos vídeos (Sincronizar o Ctrl + L) para exportarlos juntos</summary>
+    public abstract string ExportBothNeedsSync { get; }
+    /// <summary>B no tiene imagen en todo el tramo: saldrá en negro</summary>
+    public abstract string ExportBothNoImage { get; }
+    /// <summary>Calidad</summary>
+    public abstract string ExportBothQuality { get; }
+    /// <summary>Alta calidad</summary>
+    public abstract string ExportBothExact { get; }
+    /// <summary>Los dos en H.264, al tamaño del más pequeño, con el bitrate de los dos juntos</summary>
+    public abstract string ExportBothExactTip { get; }
+    /// <summary>Exportar</summary>
+    public abstract string ExportBothStart { get; }
+    /// <summary>De {from} a {to} B no tiene imagen: saldrá en negro</summary>
+    public abstract string ExportBothBlack(string from, string to);
+
     // ---- Avisos ----
 
     /// <summary>Aceptar</summary>

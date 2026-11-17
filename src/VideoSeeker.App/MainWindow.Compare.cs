@@ -400,6 +400,7 @@ public partial class MainWindow
     private void OnComparePositionA(double time)
     {
         UpdateCompareHeaderA();
+        UpdateCompareBand();
         if (!_nav.Playing)
             PulseCompareLockIfLoose();
         if (_sync is { Held: true })
@@ -619,6 +620,7 @@ public partial class MainWindow
             : S.CompareEnded;
         UpdateCompareHeaderA();
         UpdateCompareHeaderB();
+        UpdateCompareBand();
     }
 
     /// <summary>"B +1.250 s (+75 frames)": el desfase con el formato de tiempo de los ajustes y en frames de A.</summary>
@@ -956,6 +958,12 @@ public partial class MainWindow
         }
         if (_compare is not { } pane || _sync is not { } sync)
             return false;
+        // Ctrl + Shift + M: el clip de los dos vídeos (Ctrl + M sigue siendo el de uno).
+        if (key == Key.M && modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+        {
+            ShowCompareExportForZone();
+            return true;
+        }
         if (key == Key.L && modifiers == ModifierKeys.Control)
         {
             ToggleCompareLock();

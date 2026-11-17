@@ -12,7 +12,23 @@ public sealed class CompareBar : FrameworkElement
 {
     private static readonly Brush TrackBrush = Frozen(Color.FromRgb(0x3A, 0x3F, 0x47));
     private static readonly Brush PlayedBrush = Frozen(Color.FromRgb(0x4C, 0x9B, 0xFF));
+    private static readonly Brush BandBrush = Frozen(Color.FromArgb(0x55, 0xF0, 0xB4, 0x29));
+    private static readonly Brush BandEdgeBrush = Frozen(Color.FromRgb(0xF0, 0xB4, 0x29));
     private const double Side = 6, Track = 3, Head = 4;
+    private (double Start, double End)? _band;
+
+    /// <summary>Bloqueados y con una zona en A: el tramo de B que le corresponde, como la banda ámbar de A.</summary>
+    public (double Start, double End)? Band
+    {
+        get => _band;
+        set
+        {
+            if (value == _band)
+                return;
+            _band = value;
+            InvalidateVisual();
+        }
+    }
     private double _duration, _position;
 
     /// <summary>Instante y si es el definitivo (al soltar).</summary>
@@ -54,6 +70,13 @@ public sealed class CompareBar : FrameworkElement
         dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ActualWidth, ActualHeight));
         var y = ActualHeight / 2;
         dc.DrawRoundedRectangle(TrackBrush, null, new Rect(Side, y - Track / 2, Width0, Track), 1.5, 1.5);
+        if (_band is { } band && _duration > 0)
+        {
+            var (x0, x1) = (XAt(band.Start), XAt(band.End));
+            dc.DrawRectangle(BandBrush, null, new Rect(x0, 1, Math.Max(1, x1 - x0), ActualHeight - 2));
+            dc.DrawRectangle(BandEdgeBrush, null, new Rect(x0 - 0.5, 1, 1, ActualHeight - 2));
+            dc.DrawRectangle(BandEdgeBrush, null, new Rect(x1 - 0.5, 1, 1, ActualHeight - 2));
+        }
         var x = XAt(_position);
         dc.DrawRoundedRectangle(PlayedBrush, null, new Rect(Side, y - Track / 2, Math.Max(0, x - Side), Track), 1.5, 1.5);
         dc.DrawEllipse(Brushes.White, null, new Point(x, y), Head, Head);

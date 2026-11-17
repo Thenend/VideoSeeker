@@ -5,7 +5,11 @@ namespace VideoSeeker.Inspect;
 /// <summary>Lo que hace falta saber de la pista de vídeo para exportar un tramo con la misma calidad.</summary>
 /// <param name="VideoCodec">Nombre de FFmpeg: h264, hevc, av1, vp9…</param>
 /// <param name="VideoBitrate">Bits por segundo del vídeo en ese tramo (0 si no se pudo medir).</param>
-public sealed record ClipSource(string VideoCodec, int Width, int Height, int BitDepth, double Fps, long VideoBitrate);
+public sealed record ClipSource(string VideoCodec, int Width, int Height, int BitDepth, double Fps, long VideoBitrate)
+{
+    /// <summary>Si el archivo tiene alguna pista de audio.</summary>
+    public bool HasAudio { get; init; }
+}
 
 public static unsafe class ClipProbe
 {
@@ -22,9 +26,13 @@ public static unsafe class ClipProbe
         {
             FFmpegLib.Check(ffmpeg.avformat_find_stream_info(format, null), "avformat_find_stream_info");
             var video = FFmpegLib.Check(ffmpeg.av_find_best_stream(format, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0), "av_find_best_stream");
+            var hasAudio = false;
             for (var s = 0; s < format->nb_streams; s++)
+            {
+                hasAudio |= format->streams[s]->codecpar->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO;
                 if (s != video)
                     format->streams[s]->discard = AVDiscard.AVDISCARD_ALL;
+            }
             var stream = format->streams[video];
             var par = stream->codecpar;
             var desc = ffmpeg.av_pix_fmt_desc_get((AVPixelFormat)par->format);
@@ -60,7 +68,7 @@ public static unsafe class ClipProbe
             }
 
             var bitrate = bytes > 0 && end > start ? (long)(bytes * 8 / (end - start)) : par->bit_rate > 0 ? par->bit_rate : format->bit_rate;
-            return new ClipSource(ffmpeg.avcodec_get_name(par->codec_id), par->width, par->height, depth, fps, Math.Max(0, bitrate));
+            return new ClipSource(ffmpeg.avcodec_get_name(par->codec_id), par->width, par->height, depth, fps, Math.Max(0, bitrate)) { HasAudio = hasAudio };
         }
         finally
         {

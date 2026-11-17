@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using VideoSeeker.App.Controls;
+using VideoSeeker.Inspect;
 
 namespace VideoSeeker.App;
 
@@ -217,6 +218,119 @@ public partial class MainWindow
                 // El botón, en el centro de la línea que separa los dos.
                 var host = _cmpLockHost.TranslatePoint(new Point(_cmpLockHost.ActualWidth / 2, 0), VideoGrid).X;
                 Check(Math.Abs(host - VideoGrid.ActualWidth / 2) < 3, $"«Sincronizar» centrado en la línea: {host:0} de {VideoGrid.ActualWidth:0}");
+            }
+
+            // ---- 2c. Clip de los dos vídeos ----
+            {
+                var clipSettings = _store.Settings;
+                var (clipFolder, clipCopy) = (clipSettings.ClipFolder, clipSettings.CopyClipToClipboard);
+                var temp = Path.Combine(Path.GetTempPath(), "VideoSeeker-compare-" + Guid.NewGuid().ToString("N")[..8]);
+                clipSettings.ClipFolder = temp;
+                clipSettings.CopyClipToClipboard = false;
+                try
+                {
+                    async Task<ClipJob?> Export(double from, double to)
+                    {
+                        var job = ExportCompareClip(from, to, null, ClipPreset.Light);
+                        for (var i = 0; i < 1200 && !(_lastClip is { } last && last.Job == job); i++)
+                            await Task.Delay(100);
+                        return _lastClip is { } done && done.Job == job && done.Error == null && File.Exists(job!.Output) ? job : null;
+                    }
+                    // Media de |diferencia| por canal entre un trozo del clip (desde la columna "x0") y un frame del original.
+                    static double Diff((byte[] Pixels, int Width, int Height) clip, int x0, (byte[] Pixels, int Width, int Height) frame)
+                    {
+                        long sum = 0, count = 0;
+                        for (var y = 0; y < Math.Min(clip.Height, frame.Height); y++)
+                            for (var x = 0; x < frame.Width; x++)
+                                for (var c = 0; c < 3; c++)
+                                {
+                                    sum += Math.Abs(clip.Pixels[(y * clip.Width + x0 + x) * 4 + c] - frame.Pixels[(y * frame.Width + x) * 4 + c]);
+                                    count++;
+                                }
+                        return sum / (double)Math.Max(1, count);
+                    }
+                    static double Brightness((byte[] Pixels, int Width, int Height) clip, int x0, int width)
+                    {
+                        long sum = 0;
+                        for (var y = 0; y < clip.Height; y++)
+                            for (var x = x0; x < x0 + width; x++)
+                                for (var c = 0; c < 3; c++)
+                                    sum += clip.Pixels[(y * clip.Width + x) * 4 + c];
+                        return sum / (double)(clip.Height * width * 3);
+                    }
+
+                    var first = gridA.FrameAt(_nav.CurrentTime);
+                    var count = (int)Math.Round(2 * Fps);
+                    var (s0, s1) = (gridA.TimeOf(first), gridA.TimeOf(first + count));
+                    SetFreeZoom((s0, s1));
+                    await Task.Delay(400);
+                    Check(_cmpBar.Band is { } band && Math.Abs(band.Start - (s0 + sync.Offset)) < 1e-3 && Math.Abs(band.End - (s1 + sync.Offset)) < 1e-3,
+                        $"la barra de B marca su tramo: {_cmpBar.Band?.Start:0.000}–{_cmpBar.Band?.End:0.000} (A {s0:0.000}–{s1:0.000}, desfase {sync.Offset:0.000})");
+                    var (window, _) = BuildCompareExportDialog(s0, s1);
+                    window.Show();
+                    await Task.Delay(2500);
+                    var plan = CompareExportDialog!.Value.Plan;
+                    var expectedB = b.Grid.FrameAt(s0 + sync.Offset + 1e-6);
+                    Check(plan.AFirst == first && plan.ALast == first + count - 1 && plan.BFirst == expectedB && plan.BLast == expectedB + count - 1
+                            && plan.BlackBefore == null && plan.BlackAfter == null,
+                        $"el cuadro: A {plan.AFirst}→{plan.ALast} (esperado {first}→{first + count - 1}), B {plan.BFirst}→{plan.BLast} (esperado {expectedB}→{expectedB + count - 1})");
+                    SaveElementSnapshot((FrameworkElement)window.Content, Png("exportar"));
+                    window.Close();
+                    CompareExportDialog = null;
+
+                    var exportWatch = Stopwatch.StartNew();
+                    var clip = await Export(s0, s1);
+                    Check(clip != null, $"clip de los dos exportado en {exportWatch.Elapsed.TotalSeconds:0.0} s: {Path.GetFileName(clip?.Output)}");
+                    if (clip != null)
+                    {
+                        var probe = ClipProbe.Measure(clip.Output!, 0, 3, CancellationToken.None);
+                        var frames = FrameIndex.Build(clip.Output!, CancellationToken.None).Count;
+                        Check(probe.Width == 3840 && probe.Height == 1080 && Math.Abs(probe.Fps - Fps) < 0.01 && Math.Abs(frames - count) <= 1,
+                            $"el clip: {probe.Width}×{probe.Height}, {probe.Fps:0.###} fps, {frames} frames (esperado 3840×1080, {Fps:0.###} fps, {count})");
+                        using var output = new Thumbnailer(clip.Output!);
+                        using var source = new Thumbnailer(path);
+                        var at = 1.0;
+                        if (output.Grab(at, 640, CancellationToken.None) is { } image
+                            && source.Grab(s0 + at, 320, CancellationToken.None) is { } frameA
+                            && source.Grab(s0 + sync.Offset + at, 320, CancellationToken.None) is { } frameB
+                            && source.Grab(s0 + at + 0.5, 320, CancellationToken.None) is { } otherFrame)
+                        {
+                            var (da, db, control) = (Diff(image, 0, frameA), Diff(image, 320, frameB), Diff(image, 0, otherFrame));
+                            Check(da < 12 && db < 12 && control > da,
+                                $"a {at} s, cada mitad es su frame: A {da:0.0}, B {db:0.0} (otro frame de A: {control:0.0}; media por canal de 0 a 255)");
+                        }
+                        else
+                        {
+                            Check(false, "no se pudieron decodificar los frames del clip y de los originales");
+                        }
+                    }
+
+                    // Un tramo que se sale de B: lo que no tiene imagen de B, en negro.
+                    var end = _lastFrameStart > 0 ? _lastFrameStart : _duration;
+                    var (t0, t1) = (gridA.Snap(end - 2.5), gridA.Snap(end - 0.5));
+                    var plan2 = PlanCompareClip(t0, t1);
+                    Check(plan2.BlackAfter is not null && plan2.BlackBefore == null,
+                        $"tramo que se sale de B: negro de {plan2.BlackAfter?.From:0.000} a {plan2.BlackAfter?.To:0.000}");
+                    var clip2 = await Export(t0, t1);
+                    Check(clip2 != null, "clip que se sale de B exportado");
+                    if (clip2 != null && plan2.BlackAfter is { } black)
+                    {
+                        using var output = new Thumbnailer(clip2.Output!);
+                        var inside = output.Grab((black.From - t0) / 2, 640, CancellationToken.None);
+                        var outside = output.Grab((black.From - t0 + (t1 - t0)) / 2, 640, CancellationToken.None);
+                        if (inside is { } i1 && outside is { } o1)
+                            Check(Brightness(o1, 320, 320) < 6 && Brightness(o1, 0, 320) > 20 && Brightness(i1, 320, 320) > 20,
+                                $"sin imagen de B, negro: B {Brightness(o1, 320, 320):0.0} fuera y {Brightness(i1, 320, 320):0.0} dentro; A {Brightness(o1, 0, 320):0.0}");
+                        else
+                            Check(false, "no se pudo decodificar el clip que se sale de B");
+                    }
+                    CloseZone();
+                }
+                finally
+                {
+                    (clipSettings.ClipFolder, clipSettings.CopyClipToClipboard) = (clipFolder, clipCopy);
+                    try { Directory.Delete(temp, recursive: true); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+                }
             }
 
             // ---- 2b. Alt pulsado: el candado se abre, cada arrastre mueve solo su vídeo; al soltar, desfase nuevo ----
@@ -577,7 +691,7 @@ public partial class MainWindow
             // sube y baja de un ciclo a otro. Una fuga haría que tras cerrar quedara más que con los dos abiertos.
             var worstAfter = perCycle.Skip(1).Max(c => c.Memory);
             var peakOpen = openPeaks.Max();
-            Check(after.Handles - warm.Handles < 60 && after.Threads - warm.Threads < 6 && after.Gdi - warm.Gdi < 10 && after.User - warm.User < 10
+            Check(after.Handles - warm.Handles < 60 && after.Threads - warm.Threads < 6 && (int)after.Gdi - (int)warm.Gdi < 10 && (int)after.User - (int)warm.User < 10
                     && worstAfter <= peakOpen + 300,
                 $"sin fugas al abrir y cerrar {Cycles} veces: handles {after.Handles - warm.Handles:+0;-0}, hilos {after.Threads - warm.Threads:+0;-0}, " +
                 $"GDI {(int)after.Gdi - (int)warm.Gdi:+0;-0}, USER {(int)after.User - (int)warm.User:+0;-0}; memoria sin la caché de A: " +

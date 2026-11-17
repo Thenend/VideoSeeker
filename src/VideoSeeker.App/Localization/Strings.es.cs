@@ -471,6 +471,17 @@ public sealed class SpanishStrings : Strings
     public override string CompareSyncedButton => "Sincronizados";
     public override string CompareLockHint => "Pon los dos en el mismo frame y pulsa Sincronizar (Ctrl + L) para moverlos juntos";
 
+    // ---- Clip de los dos vídeos ----
+
+    public override string ExportBothClip => "Exportar clip de los dos vídeos";
+    public override string ExportBothNeedsSync => "Sincroniza los dos vídeos (Sincronizar o Ctrl + L) para exportarlos juntos";
+    public override string ExportBothNoImage => "B no tiene imagen en todo el tramo: saldrá en negro";
+    public override string ExportBothQuality => "Calidad";
+    public override string ExportBothExact => "Alta calidad";
+    public override string ExportBothExactTip => "Los dos en H.264, al tamaño del más pequeño, con el bitrate de los dos juntos";
+    public override string ExportBothStart => "Exportar";
+    public override string ExportBothBlack(string from, string to) => $"De {from} a {to} B no tiene imagen: saldrá en negro";
+
     // ---- Avisos ----
 
     public override string Ok => "Aceptar";

@@ -74,6 +74,8 @@ public partial class MainWindow
         }
         AddExportItems(export, video, start, end, name);
         menu.Items.Add(export);
+        // Comparando, al lado: el clip de los dos vídeos.
+        AddCompareExportMenu(menu, video, start, end, name, zone);
     }
 
     private void AddExportItems(ItemsControl menu, string video, double start, double end, string? name)
@@ -131,6 +133,11 @@ public partial class MainWindow
         var menu = MenuAtCursor();
         menu.Items.Add(new MenuItem { Header = S.ExportWhat(RangeLabel(target.Start, target.End, target.Name)), IsEnabled = false });
         AddExportItems(menu, target.Video, target.Start, target.End, target.Name);
+        if (_compare != null)
+        {
+            menu.Items.Add(new Separator());
+            AddCompareExportMenu(menu, target.Video, target.Start, target.End, target.Name, zone: true);
+        }
         menu.IsOpen = true;
     }
 
