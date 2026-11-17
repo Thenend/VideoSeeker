@@ -449,7 +449,13 @@ public sealed class EnglishStrings : Strings
     public override string CloseCompare => "Close comparison";
     public override string CompareOpenTitle => "Compare with another video";
     public override string CompareDropHint => "Compare";
-    public override string CompareDropDetail => "Drop here to see it next to the open one";
+    public override string CompareDropOpen => "Open";
+    public override string CompareDropOpenDetail => "Instead of the open video";
+    public override string ComparePlacementMenu => "Position of the second video";
+    public override string ComparePlaceLeft => "On the left";
+    public override string ComparePlaceRight => "On the right";
+    public override string ComparePlaceTop => "Above";
+    public override string ComparePlaceBottom => "Below";
     public override string CompareLockTip => "Sync the two videos (Ctrl + L): they move together, keeping their current distance. Hold Alt to drag each one on its own";
     public override string CompareUnlockTip => "Unsync the two videos (Ctrl + L): each one moves on its own";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";

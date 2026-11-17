@@ -862,8 +862,20 @@ public abstract class Strings
     public abstract string CompareOpenTitle { get; }
     /// <summary>Comparar (franja al arrastrar un vídeo)</summary>
     public abstract string CompareDropHint { get; }
-    /// <summary>Suelta aquí para verlo al lado del que está abierto</summary>
-    public abstract string CompareDropDetail { get; }
+    /// <summary>Abrir</summary>
+    public abstract string CompareDropOpen { get; }
+    /// <summary>En lugar del vídeo abierto</summary>
+    public abstract string CompareDropOpenDetail { get; }
+    /// <summary>Posición del segundo vídeo</summary>
+    public abstract string ComparePlacementMenu { get; }
+    /// <summary>A la izquierda</summary>
+    public abstract string ComparePlaceLeft { get; }
+    /// <summary>A la derecha</summary>
+    public abstract string ComparePlaceRight { get; }
+    /// <summary>Arriba</summary>
+    public abstract string ComparePlaceTop { get; }
+    /// <summary>Abajo</summary>
+    public abstract string ComparePlaceBottom { get; }
     /// <summary>Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora. Con Alt pulsado, cada uno se arrastra por su cuenta</summary>
     public abstract string CompareLockTip { get; }
     /// <summary>Soltar los dos vídeos (Ctrl + L): cada uno se mueve por su cuenta</summary>

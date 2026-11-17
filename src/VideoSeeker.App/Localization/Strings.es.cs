@@ -449,7 +449,13 @@ public sealed class SpanishStrings : Strings
     public override string CloseCompare => "Cerrar comparación";
     public override string CompareOpenTitle => "Comparar con otro vídeo";
     public override string CompareDropHint => "Comparar";
-    public override string CompareDropDetail => "Suelta aquí para verlo al lado del que está abierto";
+    public override string CompareDropOpen => "Abrir";
+    public override string CompareDropOpenDetail => "En lugar del vídeo abierto";
+    public override string ComparePlacementMenu => "Posición del segundo vídeo";
+    public override string ComparePlaceLeft => "A la izquierda";
+    public override string ComparePlaceRight => "A la derecha";
+    public override string ComparePlaceTop => "Arriba";
+    public override string ComparePlaceBottom => "Abajo";
     public override string CompareLockTip => "Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora. Con Alt pulsado, cada uno se arrastra por su cuenta";
     public override string CompareUnlockTip => "Soltar los dos vídeos (Ctrl + L): cada uno se mueve por su cuenta";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";

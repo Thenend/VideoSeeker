@@ -449,7 +449,13 @@ public sealed class GermanStrings : Strings
     public override string CloseCompare => "Vergleich schließen";
     public override string CompareOpenTitle => "Mit anderem Video vergleichen";
     public override string CompareDropHint => "Vergleichen";
-    public override string CompareDropDetail => "Hier ablegen, um es neben dem geöffneten zu sehen";
+    public override string CompareDropOpen => "Öffnen";
+    public override string CompareDropOpenDetail => "Statt des geöffneten Videos";
+    public override string ComparePlacementMenu => "Position des zweiten Videos";
+    public override string ComparePlaceLeft => "Links";
+    public override string ComparePlaceRight => "Rechts";
+    public override string ComparePlaceTop => "Oben";
+    public override string ComparePlaceBottom => "Unten";
     public override string CompareLockTip => "Beide Videos synchronisieren (Strg + L): Sie bewegen sich gemeinsam, mit dem jetzigen Abstand. Mit gedrückter Alt-Taste lässt sich jedes einzeln ziehen";
     public override string CompareUnlockTip => "Synchronisierung lösen (Strg + L): Jedes Video bewegt sich für sich";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";

@@ -10,20 +10,20 @@ namespace VideoSeeker.App;
 
 /// <summary>
 /// Comparar dos vídeos: el abierto (A, el que manda: sus barras, sus bookmarks, su audio) y otro (B) a su lado, con su
-/// propia cadena (<see cref="ComparePane"/>). Lado a lado o, si así se ven más grandes (vídeos anchos en una ventana
-/// estrecha), uno encima del otro. Encima de cada imagen, su nombre y su frame; B lleva además el candado, el desfase,
+/// propia cadena (<see cref="ComparePane"/>). B va a la derecha, a la izquierda, arriba o abajo (donde se soltó al
+/// arrastrarlo, o lo elegido en el menú; se recuerda). Encima de cada imagen, su nombre y su frame; B lleva además el candado, el desfase,
 /// la × para cerrar y una barra fina. Sueltos, el teclado mueve el activo (borde azul) y la rueda y el arrastre, la
 /// imagen bajo el ratón; bloqueados (<see cref="CompareSync"/>), todo lo que mueve A mueve B.
 /// </summary>
 public partial class MainWindow
 {
-    private const double CompareHeaderHeight = 24, CompareBarHeight = 14, CompareGap = 4, CompareStripWidth = 132;
+    private const double CompareHeaderHeight = 24, CompareBarHeight = 14, CompareGap = 4;
 
     private ComparePane? _compare;
     private CompareSync? _sync;
     // El panel activo (el que mueve el teclado sueltos): B o A.
     private bool _compareActiveB;
-    private bool _compareStacked;
+    private bool _compareStacked, _compareBFirst;
     // El primer clic sobre la imagen inactiva solo la activó: el doble clic no tiene nada que deshacer.
     private bool _clickOnlyActivated;
     private (bool Paused, double Time)? _beforeClickB;
@@ -31,12 +31,16 @@ public partial class MainWindow
     private double _bScrubResume;
     private int _bScrubStartFrame;
     private long _bScrubLast, _bScrubShift;
-    // La franja «Comparar» mientras se arrastra un vídeo sobre la ventana.
+    // Las zonas «Comparar» mientras se arrastra un vídeo sobre la ventana, y dónde se soltó (null: en el centro, abrir).
     private long _lastCompareDragOver;
-    private bool _dropOnStrip;
+    private string? _dropPlacement;
 
     private bool _compareUiBuilt;
-    private Border _cmpHeaderA = null!, _cmpFrameA = null!, _cmpFrameB = null!, _cmpDropStrip = null!, _cmpDropStripBack = null!;
+    private Border _cmpHeaderA = null!, _cmpFrameA = null!, _cmpFrameB = null!;
+    private Grid _cmpDropOverlay = null!;
+    private readonly List<(Border Zone, string? Placement)> _cmpDropZones = [];
+    // Lo que se ocultó mientras se arrastra (la imagen es una ventana nativa: las zonas no se pueden pintar encima).
+    private Visibility _dropHiddenA, _dropHiddenB;
     private Grid _cmpCellB = null!;
     private TextBlock _cmpNameA = null!, _cmpFrameTextA = null!, _cmpNameB = null!, _cmpFrameTextB = null!, _cmpOffset = null!, _cmpOutside = null!;
     private Button _cmpLock = null!;
@@ -75,7 +79,7 @@ public partial class MainWindow
             if (_compare != null)
                 ApplyCompareLayout();
         };
-        BuildDropStrip();
+        BuildDropZones();
     }
 
     // ---- Abrir y cerrar ----
@@ -102,10 +106,12 @@ public partial class MainWindow
 
     /// <summary>
     /// Abre "path" como B en "start" (en pausa). Sin vídeo abierto, lo abre como siempre. No entra en el historial de
-    /// vídeos. Si ya se comparaba, B pasa a ser este (y se sueltan).
+    /// vídeos. Si ya se comparaba, B pasa a ser este (y se sueltan). Con "placement", B va a ese lado (y se recuerda).
     /// </summary>
-    private async void OpenCompare(string path, double start)
+    private async void OpenCompare(string path, double start, string? placement = null)
     {
+        if (placement != null && _currentPath != null)
+            SetComparePlacement(placement);
         if (_currentPath == null)
         {
             OpenByHand(path);
@@ -287,10 +293,13 @@ public partial class MainWindow
             VideoGrid.Children.Add(_cmpFrameA);
             VideoGrid.Children.Add(_cmpCellB);
         }
-        var stacked = ChooseStacked(force: fresh);
-        if (!fresh && stacked == _compareStacked)
+        // Dónde va B: a la derecha (por defecto), a la izquierda, arriba o abajo.
+        var placement = _store.Settings.ComparePlacement;
+        var stacked = placement is "top" or "bottom";
+        var bFirst = placement is "left" or "top";
+        if (!fresh && stacked == _compareStacked && bFirst == _compareBFirst)
             return;
-        _compareStacked = stacked;
+        (_compareStacked, _compareBFirst) = (stacked, bFirst);
         VideoGrid.ColumnDefinitions.Clear();
         VideoGrid.RowDefinitions.Clear();
         for (var i = 0; i < 2; i++)
@@ -298,41 +307,39 @@ public partial class MainWindow
                 VideoGrid.RowDefinitions.Add(new RowDefinition());
             else
                 VideoGrid.ColumnDefinitions.Add(new ColumnDefinition());
+        var (cellA, cellB) = bFirst ? (1, 0) : (0, 1);
         foreach (var element in new UIElement[] { VideoArea, EmptyHint, _cmpHeaderA, _cmpFrameA })
         {
-            Grid.SetColumn(element, 0);
-            Grid.SetRow(element, 0);
+            Grid.SetColumn(element, stacked ? 0 : cellA);
+            Grid.SetRow(element, stacked ? cellA : 0);
         }
-        Grid.SetColumn(_cmpCellB, stacked ? 0 : 1);
-        Grid.SetRow(_cmpCellB, stacked ? 1 : 0);
-        // Las dos imágenes del mismo tamaño: A deja abajo el sitio de la barra de B, y el hueco entre las dos se reparte.
+        Grid.SetColumn(_cmpCellB, stacked ? 0 : cellB);
+        Grid.SetRow(_cmpCellB, stacked ? cellB : 0);
+        // Las dos imágenes del mismo tamaño: A deja abajo el sitio de los controles de B, y el hueco entre las dos se
+        // reparte (cada una, la mitad del lado que da a la otra).
         var half = CompareGap / 2;
-        var aSide = stacked ? new Thickness(0, 0, 0, half) : new Thickness(0, 0, half, 0);
-        _cmpHeaderA.Margin = stacked ? new Thickness(0) : aSide;
+        Thickness Toward(bool towardsFirst) => stacked
+            ? towardsFirst ? new Thickness(0, half, 0, 0) : new Thickness(0, 0, 0, half)
+            : towardsFirst ? new Thickness(half, 0, 0, 0) : new Thickness(0, 0, half, 0);
+        var aSide = Toward(towardsFirst: bFirst);
+        _cmpHeaderA.Margin = new Thickness(aSide.Left, aSide.Top, aSide.Right, 0);
         _cmpFrameA.Margin = aSide;
-        VideoArea.Margin = new Thickness(1, CompareHeaderHeight, 1 + aSide.Right, CompareBarHeight + 1 + aSide.Bottom);
-        _cmpCellB.Margin = stacked ? new Thickness(0, half, 0, 0) : new Thickness(half, 0, 0, 0);
+        VideoArea.Margin = new Thickness(1 + aSide.Left, CompareHeaderHeight + aSide.Top, 1 + aSide.Right, CompareBottomHeight + 1 + aSide.Bottom);
+        _cmpCellB.Margin = Toward(towardsFirst: !bFirst);
     }
 
-    /// <summary>
-    /// Uno encima del otro si así se ve más imagen de los dos (vídeos anchos en una ventana estrecha); si no, lado a
-    /// lado. Con un margen para no cambiar a cada píxel mientras se anima un panel.
-    /// </summary>
-    private bool ChooseStacked(bool force)
+    // Lo que ocupan bajo la imagen de B su barra fina (y sus controles): A deja lo mismo, para que midan igual.
+    private static double CompareBottomHeight => CompareBarHeight;
+
+    /// <summary>Dónde va B ("right", "left", "top", "bottom"): se recuerda y se aplica ya si se está comparando.</summary>
+    private void SetComparePlacement(string placement)
     {
-        var (w, h) = (VideoGrid.ActualWidth, VideoGrid.ActualHeight);
-        if (w <= 0 || h <= 0)
-            return _compareStacked;
-        var aspectA = _player.VideoAspect is double a && a > 0 ? a : 16 / 9.0;
-        var aspectB = _compare is { Aspect: > 0 } pane ? pane.Aspect : aspectA;
-        static double Fit(double width, double height, double aspect) =>
-            width <= 0 || height <= 0 ? 0 : width / height > aspect ? height * height * aspect : width * width / aspect;
-        var chrome = CompareHeaderHeight + CompareBarHeight + 1;
-        var side = Fit(w / 2 - CompareGap, h - chrome, aspectA) + Fit(w / 2 - CompareGap, h - chrome, aspectB);
-        var stack = Fit(w - 2, h / 2 - CompareGap - chrome, aspectA) + Fit(w - 2, h / 2 - CompareGap - chrome, aspectB);
-        if (force)
-            return stack > side;
-        return _compareStacked ? stack * 1.1 >= side : stack > side * 1.1;
+        if (_store.Settings.ComparePlacement == placement)
+            return;
+        _store.Settings.ComparePlacement = placement;
+        _store.SaveSettings();
+        if (_compare != null)
+            ApplyCompareLayout();
     }
 
     private void SetCompareActive(bool b)
@@ -770,6 +777,14 @@ public partial class MainWindow
             _sync.Locked ? "LockClosedIcon" : "LockOpenIcon");
         locked.Click += (_, _) => ToggleCompareLock();
         menu.Items.Add(locked);
+        var place = WithIcon(new MenuItem { Header = S.ComparePlacementMenu }, "CompareMenuIcon");
+        foreach (var (key, header) in new[] { ("left", S.ComparePlaceLeft), ("right", S.ComparePlaceRight), ("top", S.ComparePlaceTop), ("bottom", S.ComparePlaceBottom) })
+        {
+            var option = new MenuItem { Header = header, IsCheckable = true, IsChecked = _store.Settings.ComparePlacement == key };
+            option.Click += (_, _) => SetComparePlacement(key);
+            place.Items.Add(option);
+        }
+        menu.Items.Add(place);
         var close = WithIcon(new MenuItem { Header = S.CloseCompare }, "CompareCloseIcon");
         close.Click += (_, _) => CloseCompare();
         menu.Items.Add(close);
@@ -784,60 +799,111 @@ public partial class MainWindow
         menu.Items.Add(item);
     }
 
-    // ---- Arrastrar un vídeo sobre la ventana: la franja «Comparar» ----
+    // ---- Arrastrar un vídeo sobre la ventana: las zonas «Comparar» ----
 
-    private void BuildDropStrip()
+    /// <summary>
+    /// Mientras se arrastra un vídeo con otro abierto, en lugar de la imagen salen cinco zonas: una en cada borde
+    /// («Comparar», con B a ese lado) y la del centro («Abrir», como siempre). La imagen es una ventana nativa y no se
+    /// puede pintar encima: se oculta mientras dura el arrastre.
+    /// </summary>
+    private void BuildDropZones()
     {
-        var accent = (Brush)FindResource("Accent");
-        var icon = new System.Windows.Shapes.Path
-        {
-            Data = (Geometry)FindResource("CompareMenuIcon"), Stroke = accent, StrokeThickness = 1.4, Width = 19, Height = 17,
-            LayoutTransform = new ScaleTransform(1.6, 1.6), HorizontalAlignment = HorizontalAlignment.Center,
-            StrokeLineJoin = PenLineJoin.Round,
-        };
-        var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 10, 0) };
-        text.Children.Add(icon);
-        text.Children.Add(new TextBlock
-        {
-            Text = S.CompareDropHint, Foreground = accent, FontSize = 15, FontWeight = FontWeights.SemiBold,
-            HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 8, 0, 6), TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center,
-        });
-        text.Children.Add(new TextBlock
-        {
-            Text = S.CompareDropDetail, Foreground = (Brush)FindResource("FgMuted"), FontSize = 11.5,
-            TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center,
-        });
-        _cmpDropStripBack = new Border { Background = (Brush)FindResource("Panel") };
-        var grid = new Grid();
-        grid.Children.Add(_cmpDropStripBack);
-        grid.Children.Add(text);
-        _cmpDropStrip = new Border
-        {
-            Width = CompareStripWidth, HorizontalAlignment = HorizontalAlignment.Right, BorderBrush = accent,
-            BorderThickness = new Thickness(2, 0, 0, 0), Visibility = Visibility.Collapsed, Child = grid,
-        };
-        Grid.SetRow(_cmpDropStrip, 0);
-        Grid.SetColumn(_cmpDropStrip, 0);
-        RootGrid.Children.Add(_cmpDropStrip);
-    }
+        _cmpDropOverlay = new Grid { Visibility = Visibility.Collapsed, Background = Brushes.Black };
+        var edge = new GridLength(0.24, GridUnitType.Star);
+        _cmpDropOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = edge });
+        _cmpDropOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.52, GridUnitType.Star) });
+        _cmpDropOverlay.ColumnDefinitions.Add(new ColumnDefinition { Width = edge });
+        _cmpDropOverlay.RowDefinitions.Add(new RowDefinition { Height = edge });
+        _cmpDropOverlay.RowDefinitions.Add(new RowDefinition { Height = new GridLength(0.52, GridUnitType.Star) });
+        _cmpDropOverlay.RowDefinitions.Add(new RowDefinition { Height = edge });
+        Add("left", S.ComparePlaceLeft, 0, 0, 1, 3);
+        Add("right", S.ComparePlaceRight, 2, 0, 1, 3);
+        Add("top", S.ComparePlaceTop, 1, 0, 1, 1);
+        Add("bottom", S.ComparePlaceBottom, 1, 2, 1, 1);
+        Add(null, S.CompareDropOpenDetail, 1, 1, 1, 1);
+        Grid.SetRow(_cmpDropOverlay, 0);
+        Grid.SetColumn(_cmpDropOverlay, 0);
+        Panel.SetZIndex(_cmpDropOverlay, 5);
+        RootGrid.Children.Add(_cmpDropOverlay);
 
-    private bool IsOverDropStrip(DragEventArgs e)
-    {
-        if (!_cmpDropStrip.IsVisible)
-            return false;
-        var p = e.GetPosition(_cmpDropStrip);
-        return p.X >= 0 && p.X <= _cmpDropStrip.ActualWidth && p.Y >= 0 && p.Y <= _cmpDropStrip.ActualHeight;
-    }
-
-    private void ShowDropStrip(bool show, bool hover = false)
-    {
-        if (show != _cmpDropStrip.IsVisible)
+        void Add(string? placement, string detail, int column, int row, int columns, int rows)
         {
-            // La imagen es una ventana nativa: no se puede tapar. Se estrecha mientras dura el arrastre.
-            VideoGrid.Margin = show ? new Thickness(0, 0, CompareStripWidth, 0) : new Thickness(0);
-            _cmpDropStrip.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            var accent = (Brush)FindResource("Accent");
+            var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(8) };
+            if (placement != null)
+                content.Children.Add(new System.Windows.Shapes.Path
+                {
+                    Data = (Geometry)FindResource("CompareMenuIcon"), Stroke = accent, StrokeThickness = 1.4, Width = 19, Height = 17,
+                    LayoutTransform = new ScaleTransform(1.5, 1.5), HorizontalAlignment = HorizontalAlignment.Center, StrokeLineJoin = PenLineJoin.Round,
+                    Margin = new Thickness(0, 0, 0, 6),
+                });
+            content.Children.Add(new TextBlock
+            {
+                Text = placement != null ? S.CompareDropHint : S.CompareDropOpen, Foreground = placement != null ? accent : (Brush)FindResource("Fg"),
+                FontSize = 15, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            content.Children.Add(new TextBlock
+            {
+                Text = detail, Foreground = (Brush)FindResource("FgMuted"), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center,
+                TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0),
+            });
+            var zone = new Border
+            {
+                Background = (Brush)FindResource("Panel"), BorderBrush = (Brush)FindResource("Line"), BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6), Margin = new Thickness(4), Child = content,
+            };
+            Grid.SetColumn(zone, column);
+            Grid.SetRow(zone, row);
+            Grid.SetColumnSpan(zone, columns);
+            Grid.SetRowSpan(zone, rows);
+            _cmpDropOverlay.Children.Add(zone);
+            _cmpDropZones.Add((zone, placement));
         }
-        _cmpDropStripBack.Background = hover ? DropStripHoverBrush : (Brush)FindResource("Panel");
+    }
+
+    // La zona bajo el ratón: (true, lado) en un borde, (true, null) en el centro, (false, _) fuera de las zonas.
+    private (bool Over, string? Placement) DropZoneAt(DragEventArgs e)
+    {
+        if (!_cmpDropOverlay.IsVisible)
+            return (false, null);
+        foreach (var (zone, placement) in _cmpDropZones)
+        {
+            var p = e.GetPosition(zone);
+            if (p.X >= 0 && p.X <= zone.ActualWidth && p.Y >= 0 && p.Y <= zone.ActualHeight)
+                return (true, placement);
+        }
+        return (false, null);
+    }
+
+    private void ShowDropZones(bool show, DragEventArgs? e = null)
+    {
+        if (show != _cmpDropOverlay.IsVisible)
+        {
+            if (show)
+            {
+                (_dropHiddenA, _dropHiddenB) = (VideoArea.Visibility, _compare?.Placeholder.Visibility ?? Visibility.Visible);
+                VideoArea.Visibility = Visibility.Hidden;
+                if (_compare != null)
+                    _compare.Placeholder.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                VideoArea.Visibility = _dropHiddenA;
+                if (_compare != null)
+                    _compare.Placeholder.Visibility = _dropHiddenB;
+            }
+            _cmpDropOverlay.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        }
+        if (!show)
+            return;
+        var (over, placement) = e != null ? DropZoneAt(e) : (false, null);
+        foreach (var (zone, p) in _cmpDropZones)
+        {
+            var hot = over && p == placement;
+            zone.Background = hot ? DropStripHoverBrush : (Brush)FindResource("Panel");
+            zone.BorderBrush = hot ? (Brush)FindResource("Accent") : (Brush)FindResource("Line");
+        }
     }
 
     private void OnCompareDragOver(object sender, DragEventArgs e)
@@ -847,36 +913,37 @@ public partial class MainWindow
             && !files.All(f => f.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
         if (!video)
         {
-            if (_cmpDropStrip.IsVisible)
-                ShowDropStrip(false);
+            if (_cmpDropOverlay.IsVisible)
+                ShowDropZones(false);
             return;
         }
-        ShowDropStrip(true, IsOverDropStrip(e));
+        ShowDropZones(true, e);
     }
 
-    // Al pasar de un elemento a otro también llega DragLeave: solo se quita si no sigue llegando DragOver.
+    // Al pasar de un elemento a otro también llega DragLeave: solo se quitan si no sigue llegando DragOver.
     private async void OnCompareDragLeave(object sender, DragEventArgs e)
     {
         var at = Environment.TickCount64;
         await Task.Delay(150);
-        if (_lastCompareDragOver <= at && _cmpDropStrip.IsVisible)
-            ShowDropStrip(false);
+        if (_lastCompareDragOver <= at && _cmpDropOverlay.IsVisible)
+            ShowDropZones(false);
     }
 
     private void OnComparePreviewDrop(object sender, DragEventArgs e)
     {
-        _dropOnStrip = IsOverDropStrip(e);
-        if (_cmpDropStrip.IsVisible)
-            ShowDropStrip(false);
+        var (over, placement) = DropZoneAt(e);
+        _dropPlacement = over ? placement : null;
+        if (_cmpDropOverlay.IsVisible)
+            ShowDropZones(false);
     }
 
-    /// <summary>Soltado sobre la franja: se abre como B. False si se soltó en otro sitio (se abre como siempre).</summary>
+    /// <summary>Soltado en una zona de un borde: se abre como B a ese lado. False si no (se abre como siempre).</summary>
     private bool DropOnCompareStrip(DragEventArgs e, string file)
     {
-        if (!_dropOnStrip)
+        if (_dropPlacement is not { } placement)
             return false;
-        _dropOnStrip = false;
-        OpenCompare(file, 0);
+        _dropPlacement = null;
+        OpenCompare(file, 0, placement);
         return true;
     }
 }

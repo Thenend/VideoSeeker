@@ -449,7 +449,13 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string CloseCompare => "Fechar a comparação";
     public override string CompareOpenTitle => "Comparar com outro vídeo";
     public override string CompareDropHint => "Comparar";
-    public override string CompareDropDetail => "Solte aqui para vê-lo ao lado do que está aberto";
+    public override string CompareDropOpen => "Abrir";
+    public override string CompareDropOpenDetail => "No lugar do vídeo aberto";
+    public override string ComparePlacementMenu => "Posição do segundo vídeo";
+    public override string ComparePlaceLeft => "À esquerda";
+    public override string ComparePlaceRight => "À direita";
+    public override string ComparePlaceTop => "Em cima";
+    public override string ComparePlaceBottom => "Embaixo";
     public override string CompareLockTip => "Sincronizar os dois vídeos (Ctrl + L): eles se movem juntos, com a distância atual. Com Alt pressionado, cada um é arrastado sozinho";
     public override string CompareUnlockTip => "Soltar os dois vídeos (Ctrl + L): cada um se move por conta própria";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
