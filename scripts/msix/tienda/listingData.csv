@@ -10,6 +10,7 @@ Cómo se usa:
 • B crea un bookmark: una región con nombre y una etiqueta o un color. Están en un panel, y los números del 1 al 9 llevan a cada uno.
 • J, K y L cambian la velocidad, también marcha atrás.
 • Un tramo se exporta como clip sin salir de la app.
+• Compara dos vídeos, o dos partes del mismo, uno al lado del otro y sincronizados frame a frame.
 
 Lee MKV, MP4, AVI, MOV y WebM con H.264, HEVC, AV1 o VP9 y audio AAC, AC3 o DTS, sin instalar códecs.
 
@@ -26,6 +27,7 @@ How it works:
 • B adds a bookmark: a region with a name and a label or a color. They're listed in a panel, and keys 1 to 9 jump to each one.
 • J, K and L change the speed, in reverse too.
 • Export a range as a clip without leaving the app.
+• Compare two videos, or two parts of the same one, side by side and synced frame by frame.
 
 Plays MKV, MP4, AVI, MOV and WebM with H.264, HEVC, AV1 or VP9 and AAC, AC3 or DTS audio, with no codecs to install.
 
@@ -42,6 +44,7 @@ Comment ça marche :
 • B ajoute un signet : une région avec un nom et une étiquette ou une couleur. Ils sont dans un panneau, et les touches 1 à 9 mènent à chacun.
 • J, K et L changent la vitesse, en arrière aussi.
 • Une plage s'exporte en clip sans quitter l'application.
+• Comparez deux vidéos, ou deux passages de la même, côte à côte et synchronisées image par image.
 
 Lit les MKV, MP4, AVI, MOV et WebM en H.264, HEVC, AV1 ou VP9 avec du son AAC, AC3 ou DTS, sans codecs à installer.
 
@@ -58,6 +61,7 @@ So funktioniert es:
 • B setzt ein Lesezeichen: eine Region mit Namen und einem Label oder einer Farbe. Sie stehen in einer Liste, und die Tasten 1 bis 9 springen zu jedem.
 • J, K und L ändern die Geschwindigkeit, auch rückwärts.
 • Ein Abschnitt lässt sich als Clip exportieren, ohne die App zu verlassen.
+• Zwei Videos, oder zwei Stellen desselben, nebeneinander vergleichen, Frame für Frame synchron.
 
 Spielt MKV, MP4, AVI, MOV und WebM mit H.264, HEVC, AV1 oder VP9 und AAC-, AC3- oder DTS-Ton ab, ohne zusätzliche Codecs.
 
@@ -74,6 +78,7 @@ Come si usa:
 • B aggiunge un segnalibro: una regione con un nome e un'etichetta o un colore. Stanno in un pannello, e i tasti da 1 a 9 portano a ciascuno.
 • J, K e L cambiano la velocità, anche all'indietro.
 • Un tratto si esporta come clip senza uscire dall'app.
+• Confronta due video, o due punti dello stesso, fianco a fianco e sincronizzati fotogramma per fotogramma.
 
 Riproduce MKV, MP4, AVI, MOV e WebM in H.264, HEVC, AV1 o VP9 con audio AAC, AC3 o DTS, senza installare codec.
 
@@ -90,49 +95,26 @@ Como funciona:
 • B cria um marcador: uma região com nome e uma etiqueta ou uma cor. Eles ficam em um painel, e as teclas de 1 a 9 levam a cada um.
 • J, K e L mudam a velocidade, também de trás para a frente.
 • Um trecho pode ser exportado como clipe sem sair do app.
+• Compare dois vídeos, ou duas partes do mesmo, lado a lado e sincronizados quadro a quadro.
 
 Reproduz MKV, MP4, AVI, MOV e WebM em H.264, HEVC, AV1 ou VP9 com áudio AAC, AC3 ou DTS, sem instalar codecs.
 
 Gratuito e de código aberto (GPL v3), sem anúncios nem conta: https://github.com/Thenend/VideoSeeker
 
 As capturas mostram “Sprite Fright” (Blender Foundation, studio.blender.org), com licença CC BY 4.0."
-ReleaseNotes,3,Text,,"• Ctrl + rueda amplía o reduce en las dos barras; el salto largo (30 s) pasa a Alt + flechas o Alt + rueda.
-• Arrastrar con el botón central sobre la barra ampliada la desplaza.
-• La barra ampliada se desliza suavemente hasta el nuevo tramo, y el panel de bookmarks se abre con una transición (se puede quitar en Ajustes).
-• Menú del vídeo con iconos, y nueva opción para exportar como clip el tramo ampliado.
-• Cuadro del nombre: botón Aceptar y se puede recorrer con Tab.
-• El final y los bucles llegan de verdad al último frame.
-• Los menús y las miniaturas ya no saltan al otro monitor.","• Ctrl + wheel zooms on both bars; the long jump (30 s) moves to Alt + arrows or Alt + wheel.
-• Middle-button drag on the zoomed bar pans it.
-• The zoomed bar glides to the new range, and the bookmarks panel slides in (can be turned off in Settings).
-• Video menu with icons, and a new option to export the zoomed range as a clip.
-• Name box: OK button, and Tab moves through it.
-• The end and loops now reach the true last frame.
-• Menus and thumbnails no longer jump to the other monitor.","• Ctrl + molette zoome sur les deux barres ; le grand saut (30 s) passe à Alt + flèches ou Alt + molette.
-• Un glisser avec le bouton du milieu sur la barre agrandie la fait défiler.
-• La barre agrandie glisse jusqu'à la nouvelle plage, et le panneau des signets s'ouvre en glissant (désactivable dans les Paramètres).
-• Menu de la vidéo avec des icônes, et nouvelle option pour exporter la plage agrandie en clip.
-• Boîte du nom : bouton OK, et on la parcourt avec Tab.
-• La fin et les boucles atteignent vraiment la dernière image.
-• Les menus et les miniatures ne sautent plus sur l'autre écran.","• Strg + Mausrad zoomt auf beiden Leisten; der große Sprung (30 s) liegt jetzt auf Alt + Pfeiltasten oder Alt + Mausrad.
-• Ziehen mit der mittleren Maustaste verschiebt die vergrößerte Leiste.
-• Die vergrößerte Leiste gleitet zum neuen Abschnitt, und die Lesezeichen gleiten herein (in den Einstellungen abschaltbar).
-• Videomenü mit Symbolen und neue Option, den vergrößerten Abschnitt als Clip zu exportieren.
-• Namensfeld: OK-Schaltfläche, und mit Tab erreichbar.
-• Ende und Schleifen erreichen jetzt wirklich den letzten Frame.
-• Menüs und Vorschaubilder springen nicht mehr auf den anderen Bildschirm.","• Ctrl + rotellina ingrandisce o riduce su entrambe le barre; il salto lungo (30 s) passa ad Alt + frecce o Alt + rotellina.
-• Trascinando col tasto centrale sulla barra ingrandita la si sposta.
-• La barra ingrandita scorre fino al nuovo tratto, e il pannello dei segnalibri si apre scorrendo (si può disattivare nelle Impostazioni).
-• Menu del video con icone, e nuova opzione per esportare come clip il tratto ingrandito.
-• Riquadro del nome: pulsante OK, e si percorre con Tab.
-• La fine e i loop arrivano davvero all'ultimo fotogramma.
-• Menu e miniature non saltano più sull'altro monitor.","• Ctrl + roda dá zoom nas duas barras; o salto longo (30 s) passa para Alt + setas ou Alt + roda.
-• Arrastar com o botão do meio na barra ampliada a desloca.
-• A barra ampliada desliza até o novo trecho, e o painel de marcadores abre deslizando (dá para desativar em Configurações).
-• Menu do vídeo com ícones, e nova opção para exportar o trecho ampliado como clipe.
-• Caixa do nome: botão OK, e dá para percorrê-la com Tab.
-• O fim e os loops chegam de verdade ao último quadro.
-• Menus e miniaturas não pulam mais para o outro monitor."
+ReleaseNotes,3,Text,,"• Comparar dos vídeos: arrastra otro vídeo a un borde de la ventana (o Ctrl + Shift + O) y se abre al lado. Con «Sincronizar» (Ctrl + L) van juntos frame a frame, también reproduciendo; con Alt pulsado se mueve solo uno.
+• También se puede comparar con otra parte del mismo vídeo o con un bookmark, desde sus menús.
+• El segundo vídeo tiene sus propios controles y su sonido.","• Compare two videos: drag another video onto an edge of the window (or Ctrl + Shift + O) and it opens alongside. With Sync (Ctrl + L) they move together frame by frame, also while playing; hold Alt to move just one.
+• You can also compare with another part of the same video or with a bookmark, from their menus.
+• The second video has its own controls and sound.","• Comparer deux vidéos : faites glisser une autre vidéo sur un bord de la fenêtre (ou Ctrl + Maj + O) et elle s'ouvre à côté. Avec « Synchroniser » (Ctrl + L), elles avancent ensemble image par image, même en lecture ; avec Alt enfoncé, une seule bouge.
+• On peut aussi comparer avec un autre passage de la même vidéo ou avec un signet, depuis leurs menus.
+• La seconde vidéo a ses propres commandes et son propre son.","• Zwei Videos vergleichen: Zieh ein weiteres Video an einen Rand des Fensters (oder Strg + Umschalt + O), und es öffnet sich daneben. Mit „Synchronisieren“ (Strg + L) laufen beide Frame für Frame zusammen, auch bei der Wiedergabe; mit gedrückter Alt-Taste bewegt sich nur eins.
+• Vergleichen geht auch mit einer anderen Stelle desselben Videos oder mit einem Lesezeichen, über ihre Menüs.
+• Das zweite Video hat eigene Steuerelemente und eigenen Ton.","• Confrontare due video: trascina un altro video su un bordo della finestra (o Ctrl + Maiusc + O) e si apre accanto. Con «Sincronizza» (Ctrl + L) vanno insieme fotogramma per fotogramma, anche in riproduzione; tenendo premuto Alt se ne muove uno solo.
+• Si può confrontare anche con un altro punto dello stesso video o con un segnalibro, dai loro menu.
+• Il secondo video ha i suoi comandi e il suo audio.","• Comparar dois vídeos: arraste outro vídeo para uma borda da janela (ou Ctrl + Shift + O) e ele abre ao lado. Com “Sincronizar” (Ctrl + L) os dois andam juntos quadro a quadro, também reproduzindo; com Alt pressionado, só um se move.
+• Também dá para comparar com outra parte do mesmo vídeo ou com um marcador, pelos menus.
+• O segundo vídeo tem seus próprios controles e som."
 Title,4,Text,,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker
 ShortTitle,5,Text,,,,,,,
 SortTitle,6,Text,,,,,,,
@@ -442,7 +424,7 @@ Feature4,703,Text,,"Bookmarks de regiones con nombre, etiqueta o color","Region 
 Feature5,704,Text,,Miniatura del frame al pasar el ratón por la barra,Frame thumbnail when hovering over the bar,Miniature de l'image au survol de la barre,Vorschaubild des Frames beim Überfahren der Leiste,Miniatura del fotogramma passando sulla barra,Miniatura do quadro ao passar o mouse na barra
 Feature6,705,Text,,Exportar un tramo como clip,Export a range as a clip,Exporter une plage en clip,Einen Abschnitt als Clip exportieren,Esportare un tratto come clip,Exportar um trecho como clipe
 Feature7,706,Text,,"MKV, MP4, HEVC, AV1, AC3, DTS… sin instalar códecs","MKV, MP4, HEVC, AV1, AC3, DTS… no codecs to install","MKV, MP4, HEVC, AV1, AC3, DTS… sans codecs à installer","MKV, MP4, HEVC, AV1, AC3, DTS… ohne zusätzliche Codecs","MKV, MP4, HEVC, AV1, AC3, DTS… senza installare codec","MKV, MP4, HEVC, AV1, AC3, DTS… sem instalar codecs"
-Feature8,707,Text,,,,,,,
+Feature8,707,Text,,"Comparar dos vídeos sincronizados, lado a lado","Compare two videos side by side, synced","Comparer deux vidéos synchronisées, côte à côte",Zwei Videos synchron nebeneinander vergleichen,"Confrontare due video sincronizzati, fianco a fianco","Comparar dois vídeos sincronizados, lado a lado"
 Feature9,708,Text,,,,,,,
 Feature10,709,Text,,,,,,,
 Feature11,710,Text,,,,,,,
