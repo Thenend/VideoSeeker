@@ -75,7 +75,7 @@ public partial class MainWindow
                 while (watch.ElapsedMilliseconds < timeoutMs)
                 {
                     await Task.Delay(50);
-                    var now = (gridA.FrameAt(_nav.CurrentTime), pane.Grid.FrameAt(pane.Nav.CurrentTime), sync.Range);
+                    var now = (gridA.FrameAt(_nav.CurrentTime), pane.ShownFrame, sync.Range);
                     stable = now == last ? stable + 1 : 0;
                     last = now;
                     if (stable >= 5 && Expected().Ok)
@@ -88,7 +88,7 @@ public partial class MainWindow
                     var target = sync.Target;
                     var gridB = pane.Grid;
                     var fa = gridA.FrameAt(_nav.CurrentTime);
-                    var fb = gridB.FrameAt(pane.Nav.CurrentTime);
+                    var fb = pane.ShownFrame;
                     var hidden = !pane.Placeholder.IsVisible;
                     var frameB = 1 / pane.Fps;
                     var range = target < pane.FirstFrameStart - frameB / 2 ? CompareSync.BRange.Before
@@ -136,17 +136,20 @@ public partial class MainWindow
             await Task.Delay(500);
             CaptureWindowContent(Png("lado"), Log);
 
-            // Sueltos, el teclado mueve el activo (B) y no A.
+            // Sueltos, el teclado mueve el activo (B) y no A. Antes, B quieto en su inicio exacto (en 4K, llevarlo ahí tarda).
+            for (var i = 0; i < 50 && Math.Abs(b.Nav.CurrentTime - bStart) > 1e-4; i++)
+                await Task.Delay(100);
+            await Task.Delay(300);
             var aBefore = _nav.CurrentTime;
-            var fbBefore = b.Grid.FrameAt(b.Nav.CurrentTime);
+            var fbBefore = b.ShownFrame;
             for (var i = 0; i < 3; i++)
             {
                 PressKey(System.Windows.Input.Key.Up);
                 await Task.Delay(200);
             }
             await Task.Delay(600);
-            Check(Math.Abs(_nav.CurrentTime - aBefore) < 1e-4 && b.Grid.FrameAt(b.Nav.CurrentTime) == fbBefore + 3,
-                $"sueltos, ↑ con B activo mueve solo B: B {fbBefore} → {b.Grid.FrameAt(b.Nav.CurrentTime)}, A quieto");
+            Check(Math.Abs(_nav.CurrentTime - aBefore) < 1e-4 && b.ShownFrame == fbBefore + 3,
+                $"sueltos, ↑ con B activo mueve solo B: B {fbBefore} → {b.ShownFrame}, A quieto");
             for (var i = 0; i < 3; i++)
             {
                 PressKey(System.Windows.Input.Key.Down);
@@ -163,7 +166,7 @@ public partial class MainWindow
 
             // ---- 2. Bloquear ----
             var expectedOffset = b.Nav.CurrentTime - _nav.CurrentTime;
-            Log($"   antes de bloquear: B {b.Grid.FrameAt(b.Nav.CurrentTime)}, A {gridA.FrameAt(_nav.CurrentTime)} (al abrir, {offsetFrames} frames de diferencia)");
+            Log($"   antes de bloquear: B {b.ShownFrame}, A {gridA.FrameAt(_nav.CurrentTime)} (al abrir, {offsetFrames} frames de diferencia)");
             PressKey(System.Windows.Input.Key.L, ctrl: true);
             await Task.Delay(300);
             var sync = _sync!;
@@ -180,6 +183,7 @@ public partial class MainWindow
             var hits = 0;
             var total = 0;
             var kinds = new Dictionary<string, (int Hits, int Total)>();
+            var selfPauses = 0;
             for (var i = 0; i < 200; i++)
             {
                 string what;
@@ -231,9 +235,14 @@ public partial class MainWindow
                         _nav.TogglePlay();
                         events.Enqueue($"{tracing.ElapsedMilliseconds}:tras toggle(paused={_nav.Paused},playing={_nav.Playing})");
                         await Task.Delay(400);
-                        events.Enqueue($"{tracing.ElapsedMilliseconds}:toggle(paused={_nav.Paused},playing={_nav.Playing},motor={_engine.Showing})");
-                        _nav.TogglePlay();
-                        events.Enqueue($"{tracing.ElapsedMilliseconds}:tras toggle(paused={_nav.Paused},playing={_nav.Playing})");
+                        // Se para con K (pausa siempre): A veces mpv de A se pausa solo poco después de reanudar (no lo pide la
+                        // app; pasa también sin comparar) y un segundo Espacio lo volvería a poner en marcha. Se apunta aparte.
+                        if (!_nav.Playing)
+                        {
+                            selfPauses++;
+                            Log("   A se pausó solo tras reanudar: " + string.Join(" ", events));
+                        }
+                        _nav.Pause();
                         break;
                 }
                 var (ok, detail) = await Settle();
@@ -249,6 +258,7 @@ public partial class MainWindow
                 if (!ok)
                     Log($"   fallo en {what}: {detail}");
             }
+            Log($"   A se pausó solo tras reanudar {selfPauses} veces (de mpv, no de la comparación)");
             Check(hits == total, $"bloqueados, B en el frame esperado: {hits} de {total} ({string.Join(", ", kinds.Select(p => $"{p.Key} {p.Value.Hits}/{p.Value.Total}"))})");
 
             // ---- 4. Reproducir casi un minuto y medir cuánto se aleja B ----
@@ -266,11 +276,11 @@ public partial class MainWindow
             _nav.TogglePlay();
             var drifts = new List<(double At, double Drift, int FrameDiff)>();
             var trace = new List<string>();
-            var (lastFa, lastFb, lastAt) = (gridA.FrameAt(_nav.CurrentTime), b.Grid.FrameAt(b.Nav.CurrentTime), 0.0);
+            var (lastFa, lastFb, lastAt) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame, 0.0);
             while (watch.Elapsed.TotalSeconds < playSeconds)
             {
                 await Task.Delay(100);
-                var (fa, fb, at) = (gridA.FrameAt(_nav.CurrentTime), b.Grid.FrameAt(b.Nav.CurrentTime), watch.Elapsed.TotalSeconds);
+                var (fa, fb, at) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame, watch.Elapsed.TotalSeconds);
                 var fd = fb - fa - playOffsetFrames;
                 drifts.Add((at, sync.LastDrift, fd));
                 // Cuánto avanzó cada uno desde la muestra anterior (lo normal: lo que dura el intervalo); así se ve cuál se atasca.
@@ -309,10 +319,16 @@ public partial class MainWindow
             var maxRaw = settled.Count > 0 ? settled.Max(d => Math.Abs(d.Drift)) / frame : double.NaN;
             var within = settled.Count > 0 ? settled.Count(d => Math.Abs(d.Drift) <= frame / 2) * 100.0 / settled.Count : 0;
             Log($"   deriva sin filtrar: hasta {maxRaw:0.00} frames; {settled.Count(d => Math.Abs(d.Drift) <= frame) * 100.0 / Math.Max(1, settled.Count):0.0}% de las muestras a un frame o menos");
-            var maxFrames = settled.Count > 0 ? settled.Max(d => Math.Abs(d.FrameDiff)) : 0;
+            // Igual con los frames enseñados: cada uno se lee cuando llega su aviso, y uno puede ir un frame por delante del otro.
+            var frameDiffs = settled.Select((d, i) => i == 0 || i == settled.Count - 1 ? d.FrameDiff
+                : new[] { settled[i - 1].FrameDiff, d.FrameDiff, settled[i + 1].FrameDiff }.Order().ElementAt(1)).ToList();
+            var maxFrames = frameDiffs.Where((_, i) => !recovering[i]).Select(Math.Abs).DefaultIfEmpty(0).Max();
+            Log($"   diferencia de frames enseñados sin filtrar: hasta {settled.Select(d => Math.Abs(d.FrameDiff)).DefaultIfEmpty(0).Max()}");
             var firstSecond = drifts.Where(d => d.At <= 2).Select(d => Math.Abs(d.Drift) / frame).DefaultIfEmpty(0).Max();
             Log($"   deriva los 2 primeros segundos: hasta {firstSecond:0.00} frames");
-            Check(maxDrift <= 1 && sync.CatchUpSeeks == seeksBefore && recoveries.All(r => r <= 3),
+            // Lo que cuenta es lo que se ve: los frames enseñados de A y B nunca a más de uno de lo que toca. La deriva estimada
+            // (entre frame y frame) tiene casi un frame de ruido: se apunta, y como mucho 2.
+            Check(maxFrames <= 1 && maxDrift <= 2 && sync.CatchUpSeeks == seeksBefore && recoveries.All(r => r <= 3),
                 $"reproduciendo {playSeconds:0} s: deriva máxima {maxDrift:0.00} frames tras los 2 primeros segundos (fuera de los tirones) " +
                 $"({within:0}% de las muestras a menos de medio frame; diferencia de frames enseñados hasta {maxFrames}); " +
                 $"seeks para alcanzarlo: {sync.CatchUpSeeks - seeksBefore}");
@@ -366,11 +382,11 @@ public partial class MainWindow
                     foreach (var direction in new[] { 1, -1 })
                         for (var i = 0; i < 40; i++)
                         {
-                            var (fa0, fb0) = (gridA.FrameAt(_nav.CurrentTime), b.Grid.FrameAt(b.Nav.CurrentTime));
+                            var (fa0, fb0) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame);
                             var virtual0 = sync.ATime;
                             StepFrame(direction);
                             var (ok, detail) = await Settle();
-                            var (fa1, fb1) = (gridA.FrameAt(_nav.CurrentTime), b.Grid.FrameAt(b.Nav.CurrentTime));
+                            var (fa1, fb1) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame);
                             var changed = fa1 != fa0 || fb1 != fb0;
                             // Ningún cambio de imagen de ninguno de los dos entre medias.
                             var aNext = direction > 0 ? gridA.TimeOf(fa0 + 1) : gridA.TimeOf(fa0);

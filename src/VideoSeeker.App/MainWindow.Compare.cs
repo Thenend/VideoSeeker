@@ -507,7 +507,7 @@ public partial class MainWindow
             return;
         _bScrubResume = pane.Nav.Speed;
         pane.Nav.Pause();
-        _bScrubStartFrame = pane.Grid.FrameAt(pane.Nav.CurrentTime);
+        _bScrubStartFrame = pane.ShownFrame;
         _bScrubLast = 0;
         _bScrubShift = 0;
         _sync?.Forget();
@@ -685,15 +685,16 @@ public partial class MainWindow
         var other = WithIcon(new MenuItem { Header = S.CompareWithOtherVideo, InputGestureText = $"{S.KeyCtrl}+{S.KeyShift}+O" }, "CompareMenuIcon");
         other.Click += (_, _) => ShowCompareDialog();
         menu.Items.Add(other);
-        var same = new MenuItem { Header = S.CompareWithThisVideo };
+        var same = WithIcon(new MenuItem { Header = S.CompareWithThisVideo }, "CompareSameIcon");
         same.Click += (_, _) => CompareWithCurrentFrame();
         menu.Items.Add(same);
         if (_compare == null || _sync == null)
             return;
-        var locked = new MenuItem { Header = S.CompareLockMenu, InputGestureText = $"{S.KeyCtrl}+L", IsCheckable = true, IsChecked = _sync.Locked, IsEnabled = _compare.Ready };
+        var locked = WithIcon(new MenuItem { Header = S.CompareLockMenu, InputGestureText = $"{S.KeyCtrl}+L", IsEnabled = _compare.Ready },
+            _sync.Locked ? "LockClosedIcon" : "LockOpenIcon");
         locked.Click += (_, _) => ToggleCompareLock();
         menu.Items.Add(locked);
-        var close = new MenuItem { Header = S.CloseCompare };
+        var close = WithIcon(new MenuItem { Header = S.CloseCompare }, "CompareCloseIcon");
         close.Click += (_, _) => CloseCompare();
         menu.Items.Add(close);
     }

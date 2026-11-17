@@ -35,7 +35,7 @@ public sealed class CompareSync : IDisposable
     private (double Pos, long Ticks) _lastA, _lastB;
     private double _ema;
     // En cuánto tiempo se recupera lo que B se ha alejado reproduciendo.
-    private const double CatchUpSeconds = 1;
+    private const double CatchUpSeconds = 0.5;
     private bool _emaValid;
 
     public bool Locked { get; private set; }
@@ -235,7 +235,7 @@ public sealed class CompareSync : IDisposable
     private void Request(int frame)
     {
         var grid = _b.Grid;
-        var there = grid.FrameAt(_b.Nav.CurrentTime) == frame && !_b.Nav.Moving;
+        var there = _b.ShownFrame == frame && !_b.Nav.Moving;
         if (_requestedFrame == frame && (there || _requestedAt.ElapsedMilliseconds < RetryMs))
             return;
         _requestedFrame = frame;
@@ -283,9 +283,8 @@ public sealed class CompareSync : IDisposable
 
     /// <summary>
     /// Reproduciendo: si B se aleja más de medio frame, va algo más deprisa o más despacio hasta alcanzar a A, en
-    /// proporción a lo que se ha alejado (lo recupera en un segundo: a 60 fps, un 1 % con medio frame y un 2 % con uno; si
-    /// se atasca 10 frames, un 17 %), hasta un 25 %; si se aleja más de 0,5 s, salta. Por debajo de un cuarto de frame
-    /// no se toca.
+    /// proporción a lo que se ha alejado (lo recupera en medio segundo: a 60 fps, un 2 % con medio frame y un 3 % con
+    /// uno), hasta un 25 %; si se aleja más de 0,5 s, salta. Por debajo de un cuarto de frame no se toca.
     /// </summary>
     private void CorrectDrift()
     {
@@ -309,7 +308,7 @@ public sealed class CompareSync : IDisposable
             _b.Nav.GoTo(_b.Grid.Snap(estA + Offset + speed * 0.1));
             return;
         }
-        _ema = _emaValid ? 0.7 * _ema + 0.3 * d : d;
+        _ema = _emaValid ? 0.5 * _ema + 0.5 * d : d;
         _emaValid = true;
         var size = Math.Abs(_ema);
         // Entre un cuarto y medio frame se deja como esté (sin cambiar a cada muestra).
@@ -380,7 +379,7 @@ public sealed class CompareSync : IDisposable
         if (!_b.Ready)
             return;
         var grid = _b.Grid;
-        var fb = grid.FrameAt(_b.Nav.CurrentTime);
+        var fb = _b.ShownFrame;
         var lastB = grid.FrameAt(_b.LastFrameStart);
         var to = Math.Clamp(fb + direction, 0, Math.Max(0, lastB));
         if (to == fb)

@@ -42,6 +42,12 @@ public sealed class ComparePane
     public double Fps => _containerFps > 0 ? _containerFps : 30;
     public bool FpsKnown => _containerFps > 0;
     public FrameGrid Grid => new(Index, Fps);
+
+    /// <summary>
+    /// El frame que se ve ahora. mpv da los instantes de algunos archivos (MKV, con milisegundos) hasta 1 ms antes que el
+    /// índice: se le da ese margen para no tomar el frame anterior.
+    /// </summary>
+    public int ShownFrame => Grid.FrameAt(Nav.CurrentTime + Math.Min(0.002, 0.25 / Fps));
     /// <summary>Inicio del último frame (0 si aún no se sabe la duración).</summary>
     public double LastFrameStart { get; private set; }
     public double FirstFrameStart { get; private set; }
@@ -151,6 +157,7 @@ public sealed class ComparePane
         {
             _firstFrame = true;
             Aspect = Player.VideoAspect ?? 0;
+            // Con mucho trabajo, mpv abre a veces en el keyframe siguiente al pedido: se le lleva al pedido.
             if (Math.Abs(Nav.CurrentTime - _start) > 0.5 / Fps)
                 Nav.SeekTo(_start);
             Changed?.Invoke();
