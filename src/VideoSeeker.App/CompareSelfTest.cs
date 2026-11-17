@@ -173,6 +173,50 @@ public partial class MainWindow
             Check(sync.Locked && Math.Abs(sync.Offset - expectedOffset) < 1e-3 && Math.Abs(expectedOffset - (bStart - aStart)) < 1e-3,
                 $"Ctrl + L bloquea con desfase {sync.Offset:0.0000} s (B − A {expectedOffset:0.0000}, al abrir {bStart - aStart:0.0000}); texto «{_cmpOffset.Text}»");
 
+            // ---- 2b. Alt pulsado: el candado se abre, cada arrastre mueve solo su vídeo; al soltar, desfase nuevo ----
+            {
+                var offsetBefore = sync.Offset;
+                _testAlt = true;
+                UpdateCompareHold();
+                Check(sync.Held && !sync.Following && _cmpLockIcon.Data == FindResource("LockOpenIcon"), "con Alt pulsado el candado se ve abierto");
+                var (fa0, fb0) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame);
+                var from = _nav.CurrentTime;
+                Seek.SimulateLeftDrag(Seek.TrackPoint(from), Seek.TrackPoint(from + 3), steps: 12);
+                await Task.Delay(1200);
+                var fa1 = gridA.FrameAt(_nav.CurrentTime);
+                Check(Math.Abs(fa1 - fa0 - 3 * Fps) <= Fps / 2 && b.ShownFrame == fb0,
+                    $"Alt + arrastre de la barra: solo A ({fa0} → {fa1}), B quieto ({fb0} → {b.ShownFrame})");
+                // Arrastre sobre la imagen de B: 10 frames.
+                OnCompareDragStarted();
+                OnCompareDragMoved(10 * Math.Max(1, _store.Settings.ScrubPixelsPerFrame));
+                OnCompareDragEnded();
+                await Task.Delay(800);
+                Check(b.ShownFrame == fb0 + 10 && gridA.FrameAt(_nav.CurrentTime) == fa1,
+                    $"Alt + arrastre sobre la imagen de B: solo B ({fb0} → {b.ShownFrame}), A quieto ({gridA.FrameAt(_nav.CurrentTime)})");
+                // Alt + ← sigue siendo el salto largo de los dos juntos.
+                var (fa2, fb2) = (gridA.FrameAt(_nav.CurrentTime), b.ShownFrame);
+                SeekRelativeWithCompare(-1);
+                await Task.Delay(1200);
+                Check(Math.Abs(fa2 - gridA.FrameAt(_nav.CurrentTime) - Fps) <= 1 && Math.Abs(fb2 - b.ShownFrame - b.Fps) <= 1,
+                    $"con Alt, el salto largo mueve los dos: A {fa2} → {gridA.FrameAt(_nav.CurrentTime)}, B {fb2} → {b.ShownFrame}");
+                _testAlt = false;
+                UpdateCompareHold();
+                await Task.Delay(300);
+                var newOffset = b.Nav.CurrentTime - _nav.CurrentTime;
+                Check(sync.Following && Math.Abs(sync.Offset - newOffset) < 1e-3 && Math.Abs(sync.Offset - offsetBefore) > 1,
+                    $"al soltar Alt, bloqueados con el desfase nuevo: {offsetBefore:0.000} → {sync.Offset:0.000} s («{_cmpOffset.Text}»)");
+                StepFrame(1);
+                var (stepOk, stepDetail) = await Settle();
+                Check(stepOk, $"y vuelven a ir juntos: {stepDetail}");
+                _testAlt = null;
+                // Para lo que sigue, el desfase de antes.
+                sync.Unlock();
+                b.Nav.SeekTo(b.Grid.TimeOf(gridA.FrameAt(_nav.CurrentTime) + offsetFrames));
+                await Task.Delay(1500);
+                sync.Lock();
+                Log($"   desfase para lo que sigue: {sync.Offset:0.000} s");
+            }
+
             // ---- 3. Pasos, saltos, clics y arrastres al azar ----
             var events = new System.Collections.Concurrent.ConcurrentQueue<string>();
             Stopwatch? tracing = null;

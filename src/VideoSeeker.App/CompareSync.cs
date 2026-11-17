@@ -39,6 +39,17 @@ public sealed class CompareSync : IDisposable
     private bool _emaValid;
 
     public bool Locked { get; private set; }
+    /// <summary>
+    /// Bloqueados pero con Alt pulsado: el candado se abre un momento y cada vídeo se mueve por su cuenta. Al soltar
+    /// (<see cref="Release"/>) se vuelve a bloquear con el desfase que haya entonces.
+    /// </summary>
+    public bool Held { get; private set; }
+    /// <summary>Bloqueados y siguiendo a A (no con Alt pulsado).</summary>
+    public bool Following => Locked && !Held;
+    /// <summary>El desfase que se ve: el guardado o, con Alt pulsado, el de ahora (tiempo de B − tiempo de A).</summary>
+    public double CurrentOffset => Held ? _b.Nav.CurrentTime - _a.CurrentTime : Offset;
+    /// <summary>Cada 100 ms comparando (para mirar si Alt sigue pulsado).</summary>
+    public event Action? Ticking;
     /// <summary>Tiempo de B − tiempo de A.</summary>
     public double Offset { get; private set; }
     /// <summary>Dónde cae "tiempo de A + desfase" respecto a B (bloqueados; sueltos, siempre dentro).</summary>
@@ -108,10 +119,43 @@ public sealed class CompareSync : IDisposable
         StateChanged?.Invoke();
     }
 
+    /// <summary>Alt pulsado: se deja de seguir a A hasta <see cref="Release"/>.</summary>
+    public void Hold()
+    {
+        if (!Locked || Held)
+            return;
+        Held = true;
+        _virtual = null;
+        _b.Nav.SpeedTrim = 1;
+        if (_bDragging)
+        {
+            _bDragging = false;
+            _b.Nav.SeekTo(_b.Nav.CurrentTime);
+        }
+        // Suelto, B se ve aunque estuviera fuera (su imagen oscura).
+        Range = BRange.Inside;
+        StateChanged?.Invoke();
+    }
+
+    /// <summary>Alt soltado: bloqueados otra vez, con el desfase de ahora.</summary>
+    public void Release()
+    {
+        if (!Held)
+            return;
+        Held = false;
+        if (_b.Ready)
+            Offset = _b.Nav.CurrentTime - _a.CurrentTime;
+        _requestedFrame = null;
+        _emaValid = false;
+        Follow();
+        StateChanged?.Invoke();
+    }
+
     public void Unlock()
     {
         if (!Locked)
             return;
+        Held = false;
         Locked = false;
         _timer.Stop();
         _virtual = null;
@@ -136,7 +180,7 @@ public sealed class CompareSync : IDisposable
     private void OnAShown(double time)
     {
         _lastA = (time, Stopwatch.GetTimestamp());
-        if (!Locked)
+        if (!Following)
             return;
         // A se fue a otro frame por otro camino (no un paso de los dos): manda ese.
         if (_virtual is { } v && _gridA().FrameAt(v) != _gridA().FrameAt(time))
@@ -149,13 +193,14 @@ public sealed class CompareSync : IDisposable
 
     private void OnASpeedChanged()
     {
-        if (Locked)
+        if (Following)
             Follow();
     }
 
     private void Tick()
     {
-        if (!Locked)
+        Ticking?.Invoke();
+        if (!Following)
             return;
         Follow();
         if (_a.Moving && _b.Nav.Moving && Range == BRange.Inside)
@@ -165,7 +210,7 @@ public sealed class CompareSync : IDisposable
     /// <summary>Lleva B a donde debe estar según A: a su frame en pausa o reproduciendo como A.</summary>
     private void Follow()
     {
-        if (!Locked || !_b.Ready)
+        if (!Following || !_b.Ready)
             return;
         var target = Target;
         var frameB = 1 / _b.Fps;
@@ -373,7 +418,25 @@ public sealed class CompareSync : IDisposable
         Follow();
     }
 
-    /// <summary>Alt + , / Alt + .: solo B un frame; bloqueados, el desfase cambia en lo mismo.</summary>
+    /// <summary>Alt + , / Alt + . con A activo: solo A un frame; bloqueados, el desfase cambia en lo mismo (B no se mueve).</summary>
+    public void NudgeA(int direction)
+    {
+        var grid = _gridA();
+        var fa = grid.FrameAt(_a.CurrentTime);
+        var to = Math.Clamp(fa + direction, 0, Math.Max(0, grid.FrameAt(_lastFrameA())));
+        if (to == fa)
+            return;
+        var time = grid.TimeOf(to);
+        if (Following)
+        {
+            Offset -= time - grid.TimeOf(fa);
+            _virtual = null;
+            StateChanged?.Invoke();
+        }
+        _a.ScrubTo(time);
+    }
+
+    /// <summary>Alt + , / Alt + . con B activo: solo B un frame; bloqueados, el desfase cambia en lo mismo.</summary>
     public void NudgeB(int direction)
     {
         if (!_b.Ready)
@@ -385,7 +448,7 @@ public sealed class CompareSync : IDisposable
         if (to == fb)
             return;
         var time = grid.TimeOf(to);
-        if (Locked)
+        if (Following)
         {
             Offset += time - grid.TimeOf(fb);
             _requestedFrame = to;

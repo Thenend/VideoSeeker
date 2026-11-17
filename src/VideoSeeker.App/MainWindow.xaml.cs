@@ -130,7 +130,7 @@ public partial class MainWindow : Window
         InitCompare();
 
         Seek.SeekRequested += OnTimelineSeek;
-        Seek.WheelSeekRequested += (notches, modifiers) => _nav.SeekRelative(notches * SeekStep(modifiers));
+        Seek.WheelSeekRequested += (notches, modifiers) => SeekRelativeWithCompare(notches * SeekStep(modifiers));
         // Alt + rueda (en cualquier sitio, también sobre la imagen): ese Alt no abre el menú de la ventana al soltarlo.
         PreviewMouseWheel += (_, e) =>
         {
@@ -616,6 +616,8 @@ public partial class MainWindow : Window
 
     private void OnTimelineSeek(double time, bool final)
     {
+        // Comparando y bloqueados con Alt pulsado, la barra mueve solo A.
+        UpdateCompareHold();
         if (final)
             _nav.SeekTo(time);
         else

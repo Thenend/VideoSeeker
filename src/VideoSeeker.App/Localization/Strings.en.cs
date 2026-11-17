@@ -450,10 +450,10 @@ public sealed class EnglishStrings : Strings
     public override string CompareOpenTitle => "Compare with another video";
     public override string CompareDropHint => "Compare";
     public override string CompareDropDetail => "Drop here to see it next to the open one";
-    public override string CompareLockTip => "Sync the two videos (Ctrl + L): they move together, keeping their current distance";
+    public override string CompareLockTip => "Sync the two videos (Ctrl + L): they move together, keeping their current distance. Hold Alt to drag each one on its own";
     public override string CompareUnlockTip => "Unsync the two videos (Ctrl + L): each one moves on its own";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";
-    public override string CompareOffsetTip => "Time of B minus time of A. Alt + , / Alt + . move only B by one frame";
+    public override string CompareOffsetTip => "Time of B minus time of A. Alt + , / Alt + . move only the active video by one frame";
     public override string CompareStartsAt(string time) => $"B starts at {time}";
     public override string CompareEnded => "B has already ended";
     public override string CompareLockedToast(string offset) => $"Videos synced · {offset}";

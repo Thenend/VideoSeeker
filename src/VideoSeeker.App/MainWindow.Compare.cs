@@ -53,7 +53,23 @@ public partial class MainWindow
         DragOver += OnCompareDragOver;
         DragLeave += OnCompareDragLeave;
         PreviewDrop += OnComparePreviewDrop;
-        _surface.DragStarted += () => SetCompareActive(false);
+        _surface.DragStarted += () =>
+        {
+            SetCompareActive(false);
+            UpdateCompareHold();
+        };
+        // Alt pulsado o soltado: el candado se abre o se vuelve a cerrar al momento (y cada 100 ms, por si se soltó fuera).
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.System && e.SystemKey is Key.LeftAlt or Key.RightAlt)
+                UpdateCompareHold();
+        };
+        PreviewKeyUp += (_, e) =>
+        {
+            if ((e.Key == Key.System ? e.SystemKey : e.Key) is Key.LeftAlt or Key.RightAlt)
+                UpdateCompareHold();
+        };
+        PreviewMouseUp += (_, _) => Dispatcher.BeginInvoke(UpdateCompareHold);
         VideoGrid.SizeChanged += (_, _) =>
         {
             if (_compare != null)
@@ -105,6 +121,7 @@ public partial class MainWindow
             var pane = _compare = new ComparePane(this, Dispatcher, _store.Folder, _ffmpegReady, _store.Settings.HardwareDecoding);
             _sync = new CompareSync(_nav, _player, pane, () => Zoom.Grid, () => _lastFrameStart);
             _sync.StateChanged += UpdateCompareUi;
+            _sync.Ticking += UpdateCompareHold;
             pane.Changed += OnCompareChanged;
             pane.Nav.PositionShown += OnComparePositionB;
             pane.Nav.SpeedChanged += UpdateCompareHeaderB;
@@ -123,7 +140,7 @@ public partial class MainWindow
             surface.Wheel += OnCompareWheel;
             surface.MiddleClicked += () =>
             {
-                if (_sync is { Locked: true })
+                if (_sync is { Following: true })
                     ResetRate();
                 else if (_compare?.Ready == true)
                     SetCompareRate(1);
@@ -339,7 +356,12 @@ public partial class MainWindow
         UpdateCompareUi();
     }
 
-    private void OnComparePositionA(double time) => UpdateCompareHeaderA();
+    private void OnComparePositionA(double time)
+    {
+        UpdateCompareHeaderA();
+        if (_sync is { Held: true })
+            _cmpOffset.Text = CompareOffsetLabel();
+    }
 
     private void OnComparePositionB(double time)
     {
@@ -347,6 +369,8 @@ public partial class MainWindow
             return;
         _cmpBar.Position = time;
         UpdateCompareHeaderB();
+        if (_sync is { Held: true })
+            _cmpOffset.Text = CompareOffsetLabel();
     }
 
     private void UpdateCompareHeaderA()
@@ -377,12 +401,14 @@ public partial class MainWindow
     {
         if (!_compareUiBuilt || _compare is not { } pane || _sync is not { } sync)
             return;
-        var locked = sync.Locked;
+        // Con Alt pulsado se ve abierto y el desfase, el de ahora y apagado.
+        var locked = sync.Following;
+        _cmpOffset.Foreground = sync.Held ? (Brush)FindResource("FgMuted") : CompareActiveBrush;
         _cmpLockIcon.Data = (Geometry)FindResource(locked ? "LockClosedIcon" : "LockOpenIcon");
         _cmpLock.Foreground = locked ? CompareActiveBrush : (Brush)FindResource("Fg");
         _cmpLock.ToolTip = locked ? S.CompareUnlockTip : S.CompareLockTip;
-        _cmpOffset.Visibility = locked ? Visibility.Visible : Visibility.Collapsed;
-        _cmpOffset.Text = locked ? CompareOffsetLabel() : "";
+        _cmpOffset.Visibility = sync.Locked ? Visibility.Visible : Visibility.Collapsed;
+        _cmpOffset.Text = sync.Locked ? CompareOffsetLabel() : "";
         var outside = locked && sync.Range != CompareSync.BRange.Inside;
         pane.Placeholder.Visibility = outside ? Visibility.Hidden : Visibility.Visible;
         _cmpOutside.Visibility = outside ? Visibility.Visible : Visibility.Collapsed;
@@ -396,7 +422,7 @@ public partial class MainWindow
     /// <summary>"B +1.250 s (+75 frames)": el desfase con el formato de tiempo de los ajustes y en frames de A.</summary>
     private string CompareOffsetLabel()
     {
-        var offset = _sync?.Offset ?? 0;
+        var offset = _sync?.CurrentOffset ?? 0;
         var sign = offset < -1e-6 ? "−" : "+";
         var size = Math.Abs(offset);
         var time = TimeFormat.UseFrames ? TimeFormat.Timecode(size, Fps)
@@ -462,7 +488,7 @@ public partial class MainWindow
             return;
         }
         _clickOnlyActivated = false;
-        if (_sync is { Locked: true })
+        if (_sync is { Following: true })
         {
             _beforeClick = (_nav.Paused, _nav.CurrentTime);
             _nav.TogglePlay();
@@ -480,7 +506,7 @@ public partial class MainWindow
     {
         if (_compare is not { } pane)
             return;
-        if (_sync is { Locked: true })
+        if (_sync is { Following: true })
         {
             _nav.TogglePlay();
             if (_beforeClick is { Paused: true } before && Math.Abs(_nav.CurrentTime - before.Time) > 0.5 / Fps)
@@ -498,7 +524,8 @@ public partial class MainWindow
     {
         SetCompareActive(true);
         ReturnFocusToVideo();
-        if (_sync is { Locked: true })
+        UpdateCompareHold();
+        if (_sync is { Following: true })
         {
             OnSurfaceDragStarted();
             return;
@@ -516,7 +543,7 @@ public partial class MainWindow
     // Sueltos, como en A pero sin bucles: se para en el primer y el último frame de B.
     private void OnCompareDragMoved(int dx)
     {
-        if (_sync is { Locked: true })
+        if (_sync is { Following: true })
         {
             OnSurfaceDragMoved(dx);
             return;
@@ -536,7 +563,7 @@ public partial class MainWindow
 
     private void OnCompareDragEnded()
     {
-        if (_sync is { Locked: true })
+        if (_sync is { Following: true })
         {
             OnSurfaceDragEnded();
             return;
@@ -556,7 +583,7 @@ public partial class MainWindow
     // Rueda sobre B: sueltos, su velocidad (con el ajuste de la rueda en velocidad); bloqueados o con el volumen, como en A.
     private void OnCompareWheel(int delta)
     {
-        if (_compare is not { Ready: true } pane || _sync is { Locked: true } || _store.Settings.WheelOnVideo == Data.Settings.WheelVolume)
+        if (_compare is not { Ready: true } pane || _sync is { Following: true } || _store.Settings.WheelOnVideo == Data.Settings.WheelVolume)
         {
             OnVideoWheel(delta);
             return;
@@ -587,7 +614,8 @@ public partial class MainWindow
         if (_compare is not { Ready: true } pane || _sync is not { } sync)
             return;
         SetCompareActive(true);
-        if (sync.Locked)
+        UpdateCompareHold();
+        if (sync.Following)
         {
             OnTimelineSeek(Math.Clamp(time - sync.Offset, 0, _lastFrameStart > 0 ? _lastFrameStart : _duration), final);
             return;
@@ -618,9 +646,20 @@ public partial class MainWindow
             ToggleCompareLock();
             return true;
         }
+        // Alt + , / Alt + .: un frame solo el activo (bloqueados, el desfase cambia en lo mismo).
         if (modifiers == ModifierKeys.Alt && key is Key.OemComma or Key.OemPeriod)
         {
-            sync.NudgeB(key == Key.OemPeriod ? 1 : -1);
+            if (_compareActiveB)
+                sync.NudgeB(key == Key.OemPeriod ? 1 : -1);
+            else
+                sync.NudgeA(key == Key.OemPeriod ? 1 : -1);
+            return true;
+        }
+        // Con Alt pulsado el candado está abierto, pero Alt + ← / → sigue siendo el salto largo de los dos juntos.
+        if (sync.Held && modifiers.HasFlag(ModifierKeys.Alt) && key is Key.Left or Key.Right)
+        {
+            var jump = SeekStep(modifiers);
+            SeekRelativeWithCompare(key == Key.Left ? -jump : jump);
             return true;
         }
         if (!_compareActiveB || sync.Locked || !pane.Ready || modifiers.HasFlag(ModifierKeys.Control))
@@ -674,6 +713,43 @@ public partial class MainWindow
         }
         sync.Forget();
         return true;
+    }
+
+    // ---- Alt: el candado se abre mientras está pulsado ----
+
+    /// <summary>Para la autoprueba: Alt pulsado (true / false) sin teclado de verdad.</summary>
+    private bool? _testAlt;
+
+    private bool CompareAltDown => _testAlt ?? (IsActive && GetAsyncKeyState(0x12 /* VK_MENU */) < 0);
+
+    /// <summary>
+    /// Bloqueados, mientras Alt está pulsado el candado se abre (cada arrastre mueve solo su vídeo); al soltarlo se
+    /// vuelve a bloquear con el desfase nuevo. Si se suelta con un botón pulsado, el arrastre sigue suelto hasta soltarlo.
+    /// </summary>
+    private void UpdateCompareHold()
+    {
+        if (_sync is not { Locked: true } sync)
+            return;
+        if (CompareAltDown)
+        {
+            if (sync.Held)
+                return;
+            sync.Hold();
+            // Soltar Alt no abre el menú de la ventana (como tras Alt + rueda).
+            _altUsedWithWheel = true;
+        }
+        else if (sync.Held && !MouseButtonHeld && !_cmpBar.IsMouseCaptured)
+        {
+            sync.Release();
+        }
+    }
+
+    /// <summary>Salto relativo de A (← → y rueda en la barra); con Alt pulsado comparando, también de B (los dos juntos).</summary>
+    private void SeekRelativeWithCompare(double seconds)
+    {
+        _nav.SeekRelative(seconds);
+        if (_sync is { Held: true } && _compare is { Ready: true } pane)
+            pane.Nav.SeekRelative(seconds);
     }
 
     // ---- Menús ----

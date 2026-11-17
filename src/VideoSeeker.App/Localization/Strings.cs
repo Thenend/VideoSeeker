@@ -864,13 +864,13 @@ public abstract class Strings
     public abstract string CompareDropHint { get; }
     /// <summary>Suelta aquí para verlo al lado del que está abierto</summary>
     public abstract string CompareDropDetail { get; }
-    /// <summary>Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora</summary>
+    /// <summary>Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora. Con Alt pulsado, cada uno se arrastra por su cuenta</summary>
     public abstract string CompareLockTip { get; }
     /// <summary>Soltar los dos vídeos (Ctrl + L): cada uno se mueve por su cuenta</summary>
     public abstract string CompareUnlockTip { get; }
     /// <summary>B {time} ({frames}): el desfase de B; "time" y "frames" llevan signo y "frames" ya dice "frames"</summary>
     public abstract string CompareOffset(string time, string frames);
-    /// <summary>Tiempo de B menos tiempo de A. Alt + , / Alt + . mueven solo B un frame</summary>
+    /// <summary>Tiempo de B menos tiempo de A. Alt + , / Alt + . mueven un frame solo el vídeo activo</summary>
     public abstract string CompareOffsetTip { get; }
     /// <summary>B empieza en {time}</summary>
     public abstract string CompareStartsAt(string time);
