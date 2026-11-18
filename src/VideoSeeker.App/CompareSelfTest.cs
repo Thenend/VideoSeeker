@@ -439,12 +439,12 @@ public partial class MainWindow
                         _nav.TogglePlay();
                         events.Enqueue($"{tracing.ElapsedMilliseconds}:tras toggle(paused={_nav.Paused},playing={_nav.Playing})");
                         await Task.Delay(400);
-                        // Se para con K (pausa siempre): A veces mpv de A se pausa solo poco después de reanudar (no lo pide la
-                        // app; pasa también sin comparar) y un segundo Espacio lo volvería a poner en marcha. Se apunta aparte.
+                        // Se para con K (pausa siempre): si antes tocó «Fin», reproducir desde los últimos frames llega al final
+                        // en unos 100 ms y se queda ahí en pausa; un segundo Espacio volvería a empezar desde el principio.
                         if (!_nav.Playing)
                         {
                             selfPauses++;
-                            Log("   A se pausó solo tras reanudar: " + string.Join(" ", events));
+                            Log("   A llegó al final y se paró: " + string.Join(" ", events));
                         }
                         _nav.Pause();
                         break;
@@ -462,7 +462,7 @@ public partial class MainWindow
                 if (!ok)
                     Log($"   fallo en {what}: {detail}");
             }
-            Log($"   A se pausó solo tras reanudar {selfPauses} veces (de mpv, no de la comparación)");
+            Log($"   «reproducir» llegó al final del vídeo {selfPauses} veces (tras «Fin»)");
             Check(hits == total, $"bloqueados, B en el frame esperado: {hits} de {total} ({string.Join(", ", kinds.Select(p => $"{p.Key} {p.Value.Hits}/{p.Value.Total}"))})");
 
             // ---- 4. Reproducir casi un minuto y medir cuánto se aleja B ----
