@@ -104,16 +104,22 @@ Gratuito e de código aberto (GPL v3), sem anúncios nem conta: https://github.c
 As capturas mostram “Sprite Fright” (Blender Foundation, studio.blender.org), com licença CC BY 4.0."
 ReleaseNotes,3,Text,,"• Comparar dos vídeos: arrastra otro vídeo a un borde de la ventana (o Ctrl + Shift + O) y se abre al lado. Con «Sincronizar» (Ctrl + L) van juntos frame a frame, también reproduciendo; con Alt pulsado se mueve solo uno.
 • También se puede comparar con otra parte del mismo vídeo o con un bookmark, desde sus menús.
+• Con los dos vídeos sincronizados, «Exportar clip de los dos vídeos» (Ctrl + Shift + M) guarda el tramo de ambos, uno al lado del otro, en un solo MP4.
 • El segundo vídeo tiene sus propios controles y su sonido.","• Compare two videos: drag another video onto an edge of the window (or Ctrl + Shift + O) and it opens alongside. With Sync (Ctrl + L) they move together frame by frame, also while playing; hold Alt to move just one.
 • You can also compare with another part of the same video or with a bookmark, from their menus.
+• With both videos synced, “Export a clip of both videos” (Ctrl + Shift + M) saves the range of both, side by side, in a single MP4.
 • The second video has its own controls and sound.","• Comparer deux vidéos : faites glisser une autre vidéo sur un bord de la fenêtre (ou Ctrl + Maj + O) et elle s'ouvre à côté. Avec « Synchroniser » (Ctrl + L), elles avancent ensemble image par image, même en lecture ; avec Alt enfoncé, une seule bouge.
 • On peut aussi comparer avec un autre passage de la même vidéo ou avec un signet, depuis leurs menus.
+• Avec les deux vidéos synchronisées, « Exporter un clip des deux vidéos » (Ctrl + Maj + M) enregistre la plage des deux, côte à côte, dans un seul MP4.
 • La seconde vidéo a ses propres commandes et son propre son.","• Zwei Videos vergleichen: Zieh ein weiteres Video an einen Rand des Fensters (oder Strg + Umschalt + O), und es öffnet sich daneben. Mit „Synchronisieren“ (Strg + L) laufen beide Frame für Frame zusammen, auch bei der Wiedergabe; mit gedrückter Alt-Taste bewegt sich nur eins.
 • Vergleichen geht auch mit einer anderen Stelle desselben Videos oder mit einem Lesezeichen, über ihre Menüs.
+• Sind beide Videos synchron, speichert „Clip beider Videos exportieren“ (Strg + Umschalt + M) den Abschnitt beider nebeneinander in einer einzigen MP4.
 • Das zweite Video hat eigene Steuerelemente und eigenen Ton.","• Confrontare due video: trascina un altro video su un bordo della finestra (o Ctrl + Maiusc + O) e si apre accanto. Con «Sincronizza» (Ctrl + L) vanno insieme fotogramma per fotogramma, anche in riproduzione; tenendo premuto Alt se ne muove uno solo.
 • Si può confrontare anche con un altro punto dello stesso video o con un segnalibro, dai loro menu.
+• Con i due video sincronizzati, «Esporta clip dei due video» (Ctrl + Maiusc + M) salva il tratto di entrambi, fianco a fianco, in un solo MP4.
 • Il secondo video ha i suoi comandi e il suo audio.","• Comparar dois vídeos: arraste outro vídeo para uma borda da janela (ou Ctrl + Shift + O) e ele abre ao lado. Com “Sincronizar” (Ctrl + L) os dois andam juntos quadro a quadro, também reproduzindo; com Alt pressionado, só um se move.
 • Também dá para comparar com outra parte do mesmo vídeo ou com um marcador, pelos menus.
+• Com os dois vídeos sincronizados, “Exportar clipe dos dois vídeos” (Ctrl + Shift + M) salva o trecho dos dois, lado a lado, em um único MP4.
 • O segundo vídeo tem seus próprios controles e som."
 Title,4,Text,,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker,VideoSeeker
 ShortTitle,5,Text,,,,,,,

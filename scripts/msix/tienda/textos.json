@@ -28,7 +28,7 @@
       "Guardar un tramo como bookmark, con nombre y etiqueta.",
       "Ajustes."
     ],
-    "ReleaseNotes": "• Comparar dos vídeos: arrastra otro vídeo a un borde de la ventana (o Ctrl + Shift + O) y se abre al lado. Con «Sincronizar» (Ctrl + L) van juntos frame a frame, también reproduciendo; con Alt pulsado se mueve solo uno.\n• También se puede comparar con otra parte del mismo vídeo o con un bookmark, desde sus menús.\n• El segundo vídeo tiene sus propios controles y su sonido."
+    "ReleaseNotes": "• Comparar dos vídeos: arrastra otro vídeo a un borde de la ventana (o Ctrl + Shift + O) y se abre al lado. Con «Sincronizar» (Ctrl + L) van juntos frame a frame, también reproduciendo; con Alt pulsado se mueve solo uno.\n• También se puede comparar con otra parte del mismo vídeo o con un bookmark, desde sus menús.\n• Con los dos vídeos sincronizados, «Exportar clip de los dos vídeos» (Ctrl + Shift + M) guarda el tramo de ambos, uno al lado del otro, en un solo MP4.\n• El segundo vídeo tiene sus propios controles y su sonido."
   },
   "en": {
     "ShortDescription": "For reviewing recordings, gameplay, animation or any video in detail, frame by frame. Quick and intuitive: forward and back with no waiting, bookmarks and a zoomable timeline.",
@@ -59,7 +59,7 @@
       "Saving a range as a bookmark, with a name and a label.",
       "Settings."
     ],
-    "ReleaseNotes": "• Compare two videos: drag another video onto an edge of the window (or Ctrl + Shift + O) and it opens alongside. With Sync (Ctrl + L) they move together frame by frame, also while playing; hold Alt to move just one.\n• You can also compare with another part of the same video or with a bookmark, from their menus.\n• The second video has its own controls and sound."
+    "ReleaseNotes": "• Compare two videos: drag another video onto an edge of the window (or Ctrl + Shift + O) and it opens alongside. With Sync (Ctrl + L) they move together frame by frame, also while playing; hold Alt to move just one.\n• You can also compare with another part of the same video or with a bookmark, from their menus.\n• With both videos synced, “Export a clip of both videos” (Ctrl + Shift + M) saves the range of both, side by side, in a single MP4.\n• The second video has its own controls and sound."
   },
   "fr": {
     "ShortDescription": "Pour examiner en détail des enregistrements, des parties de jeu, des animations ou toute vidéo, image par image. Rapide et intuitif : avant et arrière sans attendre, signets et timeline zoomable.",
@@ -90,7 +90,7 @@
       "Enregistrer une plage comme signet, avec un nom et une étiquette.",
       "Paramètres."
     ],
-    "ReleaseNotes": "• Comparer deux vidéos : faites glisser une autre vidéo sur un bord de la fenêtre (ou Ctrl + Maj + O) et elle s'ouvre à côté. Avec « Synchroniser » (Ctrl + L), elles avancent ensemble image par image, même en lecture ; avec Alt enfoncé, une seule bouge.\n• On peut aussi comparer avec un autre passage de la même vidéo ou avec un signet, depuis leurs menus.\n• La seconde vidéo a ses propres commandes et son propre son."
+    "ReleaseNotes": "• Comparer deux vidéos : faites glisser une autre vidéo sur un bord de la fenêtre (ou Ctrl + Maj + O) et elle s'ouvre à côté. Avec « Synchroniser » (Ctrl + L), elles avancent ensemble image par image, même en lecture ; avec Alt enfoncé, une seule bouge.\n• On peut aussi comparer avec un autre passage de la même vidéo ou avec un signet, depuis leurs menus.\n• Avec les deux vidéos synchronisées, « Exporter un clip des deux vidéos » (Ctrl + Maj + M) enregistre la plage des deux, côte à côte, dans un seul MP4.\n• La seconde vidéo a ses propres commandes et son propre son."
   },
   "de": {
     "ShortDescription": "Zum genauen Prüfen von Aufnahmen, Gameplay, Animationen oder jedem Video, Frame für Frame. Flink und intuitiv: vor und zurück ohne Wartezeit, Lesezeichen und eine zoombare Zeitleiste.",
@@ -121,7 +121,7 @@
       "Einen Abschnitt als Lesezeichen speichern, mit Namen und Label.",
       "Einstellungen."
     ],
-    "ReleaseNotes": "• Zwei Videos vergleichen: Zieh ein weiteres Video an einen Rand des Fensters (oder Strg + Umschalt + O), und es öffnet sich daneben. Mit „Synchronisieren“ (Strg + L) laufen beide Frame für Frame zusammen, auch bei der Wiedergabe; mit gedrückter Alt-Taste bewegt sich nur eins.\n• Vergleichen geht auch mit einer anderen Stelle desselben Videos oder mit einem Lesezeichen, über ihre Menüs.\n• Das zweite Video hat eigene Steuerelemente und eigenen Ton."
+    "ReleaseNotes": "• Zwei Videos vergleichen: Zieh ein weiteres Video an einen Rand des Fensters (oder Strg + Umschalt + O), und es öffnet sich daneben. Mit „Synchronisieren“ (Strg + L) laufen beide Frame für Frame zusammen, auch bei der Wiedergabe; mit gedrückter Alt-Taste bewegt sich nur eins.\n• Vergleichen geht auch mit einer anderen Stelle desselben Videos oder mit einem Lesezeichen, über ihre Menüs.\n• Sind beide Videos synchron, speichert „Clip beider Videos exportieren“ (Strg + Umschalt + M) den Abschnitt beider nebeneinander in einer einzigen MP4.\n• Das zweite Video hat eigene Steuerelemente und eigenen Ton."
   },
   "it": {
     "ShortDescription": "Per rivedere nel dettaglio registrazioni, gameplay, animazioni o qualsiasi video, fotogramma per fotogramma. Agile e intuitivo: avanti e indietro senza attese, segnalibri e timeline con zoom.",
@@ -152,7 +152,7 @@
       "Salvare un tratto come segnalibro, con nome ed etichetta.",
       "Impostazioni."
     ],
-    "ReleaseNotes": "• Confrontare due video: trascina un altro video su un bordo della finestra (o Ctrl + Maiusc + O) e si apre accanto. Con «Sincronizza» (Ctrl + L) vanno insieme fotogramma per fotogramma, anche in riproduzione; tenendo premuto Alt se ne muove uno solo.\n• Si può confrontare anche con un altro punto dello stesso video o con un segnalibro, dai loro menu.\n• Il secondo video ha i suoi comandi e il suo audio."
+    "ReleaseNotes": "• Confrontare due video: trascina un altro video su un bordo della finestra (o Ctrl + Maiusc + O) e si apre accanto. Con «Sincronizza» (Ctrl + L) vanno insieme fotogramma per fotogramma, anche in riproduzione; tenendo premuto Alt se ne muove uno solo.\n• Si può confrontare anche con un altro punto dello stesso video o con un segnalibro, dai loro menu.\n• Con i due video sincronizzati, «Esporta clip dei due video» (Ctrl + Maiusc + M) salva il tratto di entrambi, fianco a fianco, in un solo MP4.\n• Il secondo video ha i suoi comandi e il suo audio."
   },
   "pt-BR": {
     "ShortDescription": "Para revisar em detalhe gravações, gameplays, animações ou qualquer vídeo, quadro a quadro. Ágil e intuitivo: para a frente e para trás sem espera, marcadores e linha do tempo com zoom.",
@@ -183,6 +183,6 @@
       "Salvar um trecho como marcador, com nome e etiqueta.",
       "Configurações."
     ],
-    "ReleaseNotes": "• Comparar dois vídeos: arraste outro vídeo para uma borda da janela (ou Ctrl + Shift + O) e ele abre ao lado. Com “Sincronizar” (Ctrl + L) os dois andam juntos quadro a quadro, também reproduzindo; com Alt pressionado, só um se move.\n• Também dá para comparar com outra parte do mesmo vídeo ou com um marcador, pelos menus.\n• O segundo vídeo tem seus próprios controles e som."
+    "ReleaseNotes": "• Comparar dois vídeos: arraste outro vídeo para uma borda da janela (ou Ctrl + Shift + O) e ele abre ao lado. Com “Sincronizar” (Ctrl + L) os dois andam juntos quadro a quadro, também reproduzindo; com Alt pressionado, só um se move.\n• Também dá para comparar com outra parte do mesmo vídeo ou com um marcador, pelos menus.\n• Com os dois vídeos sincronizados, “Exportar clipe dos dois vídeos” (Ctrl + Shift + M) salva o trecho dos dois, lado a lado, em um único MP4.\n• O segundo vídeo tem seus próprios controles e som."
   }
 }
