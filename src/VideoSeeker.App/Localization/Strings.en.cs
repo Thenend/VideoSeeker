@@ -91,6 +91,8 @@ public sealed class EnglishStrings : Strings
     public override string WheelTip => "Speed: ±0.1× (middle button: 1×). Volume: ±5%.";
     public override string Wheel => "Mouse wheel over the video";
     public override string Resume => "Resume each video where you left off";
+    public override string KeepHistory => "Keep video history";
+    public override string KeepHistoryTip => "When you reopen the app, you can go back to the videos from last time.";
     public override string SectionTimeAndBookmarks => "TIME AND BOOKMARKS";
     public override string TimeFormatTip => "In 00:01:23:11, the last number is the frame within the second.";
     public override string TimeFormat => "Time format";

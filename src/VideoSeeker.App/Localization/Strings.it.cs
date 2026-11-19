@@ -91,6 +91,8 @@ public sealed class ItalianStrings : Strings
     public override string WheelTip => "Velocità: ±0,1× (tasto centrale: 1×). Volume: ±5%.";
     public override string Wheel => "Rotellina del mouse sul video";
     public override string Resume => "Riprendi ogni video da dove si era interrotto";
+    public override string KeepHistory => "Conserva la cronologia dei video";
+    public override string KeepHistoryTip => "Riaprendo l'app, si può tornare ai video dell'ultima volta.";
     public override string SectionTimeAndBookmarks => "TEMPO E SEGNALIBRI";
     public override string TimeFormatTip => "In 00:01:23:11, l'ultimo numero è il fotogramma all'interno di ogni secondo.";
     public override string TimeFormat => "Formato del tempo";

@@ -62,6 +62,7 @@ public partial class MainWindow
         // La caché de frames: al abrir el siguiente vídeo.
         if (_engine != null)
             _engine.BudgetBytes = s.FrameCacheMegabytes * 1024L * 1024;
+        ApplyHistorySetting();
 
         if (_appliedTimesInList != null && _appliedTimesInList != s.BookmarkTimesInList)
         {
@@ -120,6 +121,7 @@ public partial class MainWindow
             Check(d.ScrubPixelsPerFrame == 6, "scrubbing 6 px por frame");
             Check(d.WheelOnVideo == Settings.WheelSpeed, "la rueda sobre el vídeo cambia la velocidad");
             Check(d.ResumePlayback, "reanudar sí");
+            Check(!d.KeepVideoHistory, "por defecto el historial de vídeos no se guarda");
             Check(!d.TimeWithFrames, "tiempo con milisegundos");
             Check(d.BookmarkTimesInList, "tiempos de los bookmarks en la lista");
             Check(d.NewBookmarkColor == BookmarkColors.Default, "color de los nuevos: el rosa");

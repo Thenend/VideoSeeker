@@ -58,6 +58,11 @@ public sealed class Settings
     public const string WheelSpeed = "speed", WheelVolume = "volume";
     /// <summary>Abrir cada vídeo donde se dejó.</summary>
     public bool ResumePlayback { get; set; } = true;
+    /// <summary>
+    /// El historial de vídeos (‹ ›) se guarda en history.json y sigue al volver a abrir la app. Desactivado por
+    /// defecto; al desactivarlo se borra.
+    /// </summary>
+    public bool KeepVideoHistory { get; set; }
     /// <summary>Tiempos precisos como timecode hh:mm:ss:ff en vez de con milisegundos.</summary>
     public bool TimeWithFrames { get; set; }
     /// <summary>Color de los bookmarks nuevos (de BookmarkColors.Palette).</summary>
@@ -130,6 +135,7 @@ public sealed class Settings
         ScrubPixelsPerFrame = d.ScrubPixelsPerFrame;
         WheelOnVideo = d.WheelOnVideo;
         ResumePlayback = d.ResumePlayback;
+        KeepVideoHistory = d.KeepVideoHistory;
         TimeWithFrames = d.TimeWithFrames;
         NewBookmarkColor = d.NewBookmarkColor;
         RepeatLastLabel = d.RepeatLastLabel;
@@ -165,6 +171,21 @@ public sealed class VideoEntry
     /// <summary>Fps del contenedor, para los timecodes de sus bookmarks en el panel sin abrirlo; 0 si no se sabe.</summary>
     public double Fps { get; set; }
     public DateTime LastOpened { get; set; }
+}
+
+/// <summary>Historial de vídeos guardado entre sesiones (history.json, con el ajuste KeepVideoHistory).</summary>
+public sealed class VideoHistoryFile
+{
+    public List<VideoHistoryItem> Videos { get; set; } = [];
+    /// <summary>El que estaba abierto al cerrar (los de después, «adelante», no se usan al volver a abrir); -1 ninguno.</summary>
+    public int Current { get; set; } = -1;
+}
+
+public sealed class VideoHistoryItem
+{
+    public string Path { get; set; } = "";
+    /// <summary>Dónde se dejó, para volver justo ahí.</summary>
+    public double Position { get; set; }
 }
 
 public sealed class Library
@@ -387,6 +408,20 @@ public sealed class DataStore
             SaveFile(Path.Combine(Folder, name), value);
     }
 
+    /// <summary>Borra un JSON de la carpeta de datos y su copia .bak (si no se puede, se queda: no es grave).</summary>
+    public void Delete(string name)
+    {
+        lock (_gate)
+            foreach (var path in new[] { Path.Combine(Folder, name), Path.Combine(Folder, name + ".bak") })
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                }
+    }
+
     // Escritura atómica: temporal + reemplazo, conservando la versión anterior como .bak.
     public static void SaveFile<T>(string path, T value)
     {
@@ -402,6 +437,7 @@ public sealed class DataStore
 
 [JsonSerializable(typeof(Settings))]
 [JsonSerializable(typeof(Library))]
+[JsonSerializable(typeof(VideoHistoryFile))]
 [JsonSerializable(typeof(DataLocation))]
 [JsonSerializable(typeof(BookmarkFile))]
 [JsonSerializable(typeof(LabelFile))]

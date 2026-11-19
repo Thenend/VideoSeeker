@@ -1668,6 +1668,7 @@ public partial class MainWindow : Window
         _indexing?.Cancel();
         Step("miniaturas");
         SavePosition();
+        SaveHistory(closing: true);
         _store.SaveSettings();
         Step("datos guardados");
         App.ReleaseSingleInstance();

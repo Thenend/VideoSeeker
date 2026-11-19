@@ -91,6 +91,8 @@ public sealed class GermanStrings : Strings
     public override string WheelTip => "Geschwindigkeit: ±0,1× (mittlere Taste: 1×). Lautstärke: ±5 %.";
     public override string Wheel => "Mausrad über dem Video";
     public override string Resume => "Jedes Video dort fortsetzen, wo man aufgehört hat";
+    public override string KeepHistory => "Videoverlauf behalten";
+    public override string KeepHistoryTip => "Beim nächsten Öffnen der App kann man zu den Videos vom letzten Mal zurück.";
     public override string SectionTimeAndBookmarks => "ZEIT UND LESEZEICHEN";
     public override string TimeFormatTip => "In 00:01:23:11 ist die letzte Zahl der Frame innerhalb der Sekunde.";
     public override string TimeFormat => "Zeitformat";

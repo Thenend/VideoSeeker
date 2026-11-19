@@ -7,18 +7,28 @@ using System.Windows.Input;
 namespace VideoSeeker.App;
 
 // Historial de vídeos abiertos, como el de una pestaña del navegador: ‹ › junto a «Abrir vídeo», botones laterales
-// del ratón y teclas de navegador (Alt + ← / → es el salto largo desde el 12 de noviembre). Cada entrada recuerda dónde se dejó el vídeo para volver justo ahí. Dura lo que la sesión.
+// del ratón y teclas de navegador (Alt + ← / → es el salto largo desde el 12 de noviembre). Cada entrada recuerda dónde se dejó el vídeo para volver justo ahí. Dura lo que la sesión
+// o, con el ajuste «Guardar el historial de vídeos», sigue en history.json al volver a abrir la app.
 public partial class MainWindow
 {
-    private sealed class HistoryEntry(string path)
+    private sealed class HistoryEntry(string path, double position = 0)
     {
         public string Path { get; } = path;
-        public double Position { get; set; }
+        public double Position { get; set; } = position;
     }
 
     private const int HistoryLimit = 50;
+    private const string HistoryFile = "history.json";
     private readonly List<HistoryEntry> _videoHistory = [];
+    // El vídeo abierto en el historial; -1 sin historial. Recién arrancado con el de la vez anterior y sin vídeo abierto,
+    // uno más que el último: «atrás» lleva al que se tenía abierto al cerrar.
     private int _videoHistoryIndex = -1;
+    // Hasta haber leído el de la vez anterior no se guarda (se perdería).
+    private bool _historyRestored;
+    private bool? _appliedKeepHistory;
+
+    private HistoryEntry? CurrentHistory =>
+        _videoHistoryIndex >= 0 && _videoHistoryIndex < _videoHistory.Count ? _videoHistory[_videoHistoryIndex] : null;
 
     private void InitHistory()
     {
@@ -27,6 +37,88 @@ public partial class MainWindow
         PreviewMouseUp += (_, e) => e.Handled |= e.ChangedButton is MouseButton.XButton1 or MouseButton.XButton2;
         _surface.SideButton += forward => GoHistory(forward ? 1 : -1);
         UpdateHistoryUi();
+        RestoreHistory();
+    }
+
+    /// <summary>
+    /// El historial de la vez anterior, sin los vídeos que ya no están (mirarlo puede tardar con unidades de red, así
+    /// que va aparte); si mientras tanto se abrió uno, van antes de él.
+    /// </summary>
+    private async void RestoreHistory()
+    {
+        try
+        {
+            if (!_store.Settings.KeepVideoHistory)
+                return;
+            var saved = await Task.Run(() =>
+            {
+                var file = _store.Load<VideoHistoryFile>(HistoryFile);
+                var current = file.Current < 0 ? file.Videos.Count - 1 : Math.Min(file.Current, file.Videos.Count - 1);
+                return file.Videos.Take(current + 1)
+                    .Where(v => v.Path.Length > 0 && File.Exists(v.Path))
+                    .Select(v => new HistoryEntry(v.Path, v.Position))
+                    .TakeLast(HistoryLimit).ToList();
+            });
+            if (saved.Count == 0)
+                return;
+            if (_videoHistory.Count > 0 && SamePath(saved[^1].Path, _videoHistory[0].Path))
+                saved.RemoveAt(saved.Count - 1);
+            _videoHistory.InsertRange(0, saved);
+            _videoHistoryIndex = _videoHistoryIndex < 0 ? _videoHistory.Count : _videoHistoryIndex + saved.Count;
+            var excess = _videoHistory.Count - HistoryLimit;
+            if (excess > 0)
+            {
+                _videoHistory.RemoveRange(0, excess);
+                _videoHistoryIndex -= excess;
+            }
+            UpdateHistoryUi();
+        }
+        catch (Exception)
+        {
+            // Sin el de la vez anterior (o con una ruta rara) se empieza de cero.
+        }
+        finally
+        {
+            _historyRestored = true;
+        }
+    }
+
+    /// <summary>
+    /// Con el ajuste, guarda el historial, cada vídeo con dónde se dejó; al cerrar, el abierto con dónde está ahora (al
+    /// abrir otro, el que se deja ya lo apuntó RecordHistory).
+    /// </summary>
+    private void SaveHistory(bool closing = false)
+    {
+        if (!_store.Settings.KeepVideoHistory || !_historyRestored)
+            return;
+        if (closing && CurrentHistory is { } current && _current != null)
+            current.Position = _position;
+        var file = new VideoHistoryFile
+        {
+            Videos = _videoHistory.Select(h => new VideoHistoryItem { Path = h.Path, Position = h.Position }).ToList(),
+            Current = Math.Min(_videoHistoryIndex, _videoHistory.Count - 1),
+        };
+        try
+        {
+            _store.Save(HistoryFile, file);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Se intenta otra vez con el siguiente cambio.
+        }
+    }
+
+    // Al activarlo se guarda el de esta sesión; al desactivarlo se borra el guardado.
+    private void ApplyHistorySetting()
+    {
+        var keep = _store.Settings.KeepVideoHistory;
+        if (_appliedKeepHistory == keep)
+            return;
+        _appliedKeepHistory = keep;
+        if (keep)
+            SaveHistory();
+        else
+            _store.Delete(HistoryFile);
     }
 
     /// <summary>
@@ -35,21 +127,31 @@ public partial class MainWindow
     /// </summary>
     private void RecordHistory(string path, int? historyIndex)
     {
-        if (_videoHistoryIndex >= 0)
-            _videoHistory[_videoHistoryIndex].Position = _position;
+        if (CurrentHistory is { } current && _current != null)
+            current.Position = _position;
         if (historyIndex is { } index)
         {
             _videoHistoryIndex = index;
         }
-        else if (_videoHistoryIndex < 0 || !SamePath(_videoHistory[_videoHistoryIndex].Path, path))
+        else if (CurrentHistory is not { } open || !SamePath(open.Path, path))
         {
-            _videoHistory.RemoveRange(_videoHistoryIndex + 1, _videoHistory.Count - _videoHistoryIndex - 1);
-            _videoHistory.Add(new HistoryEntry(Path.GetFullPath(path)));
-            if (_videoHistory.Count > HistoryLimit)
-                _videoHistory.RemoveAt(0);
-            _videoHistoryIndex = _videoHistory.Count - 1;
+            // Recién arrancado con el historial de la vez anterior, el que se tenía abierto al cerrar sigue en su sitio.
+            if (_videoHistoryIndex == _videoHistory.Count && _videoHistory.Count > 0 && SamePath(_videoHistory[^1].Path, path))
+            {
+                _videoHistoryIndex = _videoHistory.Count - 1;
+            }
+            else
+            {
+                var keep = Math.Min(_videoHistoryIndex + 1, _videoHistory.Count);
+                _videoHistory.RemoveRange(keep, _videoHistory.Count - keep);
+                _videoHistory.Add(new HistoryEntry(Path.GetFullPath(path)));
+                if (_videoHistory.Count > HistoryLimit)
+                    _videoHistory.RemoveAt(0);
+                _videoHistoryIndex = _videoHistory.Count - 1;
+            }
         }
         UpdateHistoryUi();
+        SaveHistory();
     }
 
     private static bool SamePath(string a, string b) =>
@@ -70,6 +172,7 @@ public partial class MainWindow
                 _videoHistoryIndex--;
             ShowToast(S.VideoGone(Path.GetFileName(entry.Path)));
             UpdateHistoryUi();
+            SaveHistory();
             return;
         }
         Open(entry.Path, entry.Position, index);

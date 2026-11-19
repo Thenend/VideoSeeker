@@ -333,6 +333,11 @@
                             <CheckBox DockPanel.Dock="Right" x:Name="ResumeCheck" Style="{StaticResource Switch}" />
                             <TextBlock Style="{StaticResource Label}" Text="{l:Tr Resume}" />
                         </DockPanel>
+                        <Rectangle Style="{StaticResource Divider}" />
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" x:Name="KeepHistoryCheck" Style="{StaticResource Switch}" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr KeepHistoryTip}" Text="{l:Tr KeepHistory}" />
+                        </DockPanel>
                     </StackPanel>
                 </Border>
 

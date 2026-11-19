@@ -91,6 +91,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string WheelTip => "Velocidade: ±0,1× (botão do meio: 1×). Volume: ±5%.";
     public override string Wheel => "Roda do mouse sobre o vídeo";
     public override string Resume => "Retomar cada vídeo de onde parou";
+    public override string KeepHistory => "Manter o histórico de vídeos";
+    public override string KeepHistoryTip => "Ao reabrir o app, dá para voltar aos vídeos da última vez.";
     public override string SectionTimeAndBookmarks => "TEMPO E MARCADORES";
     public override string TimeFormatTip => "Em 00:01:23:11, o último número é o quadro dentro de cada segundo.";
     public override string TimeFormat => "Formato do tempo";

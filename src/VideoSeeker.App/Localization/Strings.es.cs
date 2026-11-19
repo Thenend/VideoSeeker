@@ -91,6 +91,8 @@ public sealed class SpanishStrings : Strings
     public override string WheelTip => "Velocidad: ±0,1× (botón central: 1×). Volumen: ±5 %.";
     public override string Wheel => "Rueda del ratón sobre el vídeo";
     public override string Resume => "Reanudar cada vídeo donde se dejó";
+    public override string KeepHistory => "Guardar el historial de vídeos";
+    public override string KeepHistoryTip => "Al volver a abrir la app, se puede ir atrás a los vídeos de la última vez.";
     public override string SectionTimeAndBookmarks => "TIEMPO Y BOOKMARKS";
     public override string TimeFormatTip => "En 00:01:23:11, el último número es el frame dentro de cada segundo.";
     public override string TimeFormat => "Formato del tiempo";

@@ -57,6 +57,7 @@ public partial class SettingsWindow : Window
         WheelVolumeRadio.Checked += (_, _) => Change(() => s.WheelOnVideo = Settings.WheelVolume);
         WheelSpeedRadio.Checked += (_, _) => Change(() => s.WheelOnVideo = Settings.WheelSpeed);
         Bind(ResumeCheck, v => s.ResumePlayback = v);
+        Bind(KeepHistoryCheck, v => s.KeepVideoHistory = v);
         TimeFramesRadio.Checked += (_, _) => Change(() => s.TimeWithFrames = true);
         TimeMsRadio.Checked += (_, _) => Change(() => s.TimeWithFrames = false);
         Bind(RepeatLabelCheck, v => s.RepeatLastLabel = v);
@@ -158,6 +159,7 @@ public partial class SettingsWindow : Window
             ScrubText.Text = S.PixelsPerFrame((int)ScrubSlider.Value);
             (s.WheelOnVideo == Settings.WheelVolume ? WheelVolumeRadio : WheelSpeedRadio).IsChecked = true;
             ResumeCheck.IsChecked = s.ResumePlayback;
+            KeepHistoryCheck.IsChecked = s.KeepVideoHistory;
             (s.TimeWithFrames ? TimeFramesRadio : TimeMsRadio).IsChecked = true;
             BuildColorSwatches();
             RepeatLabelCheck.IsChecked = s.RepeatLastLabel;

@@ -91,6 +91,8 @@ public sealed class FrenchStrings : Strings
     public override string WheelTip => "Vitesse : ±0,1× (bouton central : 1×). Volume : ±5 %.";
     public override string Wheel => "Molette de la souris sur la vidéo";
     public override string Resume => "Reprendre chaque vidéo là où elle s'était arrêtée";
+    public override string KeepHistory => "Conserver l'historique des vidéos";
+    public override string KeepHistoryTip => "En rouvrant l'application, on peut revenir aux vidéos de la dernière fois.";
     public override string SectionTimeAndBookmarks => "TEMPS ET SIGNETS";
     public override string TimeFormatTip => "Dans 00:01:23:11, le dernier nombre est l'image dans la seconde.";
     public override string TimeFormat => "Format du temps";

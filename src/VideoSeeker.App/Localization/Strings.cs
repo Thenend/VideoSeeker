@@ -173,6 +173,10 @@ public abstract class Strings
     public abstract string Wheel { get; }
     /// <summary>Reanudar cada vídeo donde se dejó</summary>
     public abstract string Resume { get; }
+    /// <summary>Guardar el historial de vídeos</summary>
+    public abstract string KeepHistory { get; }
+    /// <summary>Al volver a abrir la app, se puede ir atrás a los vídeos de la última vez.</summary>
+    public abstract string KeepHistoryTip { get; }
     /// <summary>TIEMPO Y BOOKMARKS</summary>
     public abstract string SectionTimeAndBookmarks { get; }
     /// <summary>En 00:01:23:11, el último número es el frame dentro de cada segundo.</summary>
