@@ -210,8 +210,8 @@ public sealed class GermanStrings : Strings
     public override string VideoGone(string name) => $"Nicht mehr vorhanden: {name}";
     public override string HistoryBackTip => "Zurück zum davor geöffneten Video (Maus-Seitentaste)";
     public override string HistoryForwardTip => "Vor zum danach geöffneten Video (Maus-Seitentaste)";
-    public override string HistoryAllBack(int count) => $"Rechtsklick: die {count} vorherigen";
-    public override string HistoryAllForward(int count) => $"Rechtsklick: die {count} nächsten";
+    public override string HistoryMenuTip => "Rechtsklick: zuletzt geöffnete Videos";
+    public override string ClearHistory => "Verlauf löschen";
 
     // ---- Bookmarks ----
 

@@ -9,7 +9,9 @@ namespace VideoSeeker.App;
 
 // Historial de vídeos abiertos, como el de una pestaña del navegador: ‹ › junto a «Abrir vídeo», botones laterales
 // del ratón y teclas de navegador (Alt + ← / → es el salto largo desde el 12 de noviembre). Cada entrada recuerda dónde se dejó el vídeo para volver justo ahí. Dura lo que la sesión
-// o, con el ajuste «Guardar el historial de vídeos», sigue en history.json al volver a abrir la app.
+// o, con el ajuste «Guardar el historial de vídeos», sigue en history.json al volver a abrir la app. Las flechas descartan
+// lo de «adelante» al abrir otro, como el navegador; el clic derecho en ellas lista todos los recientes (también esos,
+// para no perderlos: Mario, 19 de noviembre) y permite limpiar el historial.
 public partial class MainWindow
 {
     private sealed class HistoryEntry(string path, double position = 0)
@@ -21,6 +23,10 @@ public partial class MainWindow
     private const int HistoryLimit = 50;
     private const string HistoryFile = "history.json";
     private readonly List<HistoryEntry> _videoHistory = [];
+    // Los vídeos recientes, el último abierto primero y sin repetir, con dónde se dejó cada uno.
+    private readonly List<HistoryEntry> _recentVideos = [];
+    // Limpiado antes de leer el de la vez anterior: ya no se añade.
+    private bool _historyCleared;
     // El vídeo abierto en el historial; -1 sin historial. Recién arrancado con el de la vez anterior y sin vídeo abierto,
     // uno más que el último: «atrás» lleva al que se tenía abierto al cerrar.
     private int _videoHistoryIndex = -1;
@@ -51,17 +57,28 @@ public partial class MainWindow
         {
             if (!_store.Settings.KeepVideoHistory)
                 return;
-            var saved = await Task.Run(() =>
+            var (saved, recent) = await Task.Run(() =>
             {
                 var file = _store.Load<VideoHistoryFile>(HistoryFile);
-                var current = file.Current < 0 ? file.Videos.Count - 1 : Math.Min(file.Current, file.Videos.Count - 1);
-                return file.Videos.Take(current + 1)
-                    .Where(v => v.Path.Length > 0 && File.Exists(v.Path))
-                    .Select(v => new HistoryEntry(v.Path, v.Position))
-                    .TakeLast(HistoryLimit).ToList();
+                var exists = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+                List<HistoryEntry> Existing(IEnumerable<VideoHistoryItem>? items) => (items ?? [])
+                    .Where(v => v.Path is { Length: > 0 } path && (exists.TryGetValue(path, out var e) ? e : exists[path] = File.Exists(path)))
+                    .Select(v => new HistoryEntry(v.Path, v.Position)).ToList();
+                var videos = file.Videos ?? [];
+                var current = file.Current < 0 ? videos.Count - 1 : Math.Min(file.Current, videos.Count - 1);
+                return (Existing(videos.Take(current + 1)).TakeLast(HistoryLimit).ToList(), Existing(file.Recent).Take(HistoryLimit).ToList());
             });
-            if (saved.Count == 0)
+            if (_historyCleared)
                 return;
+            // Los recientes de esta sesión (si ya se abrió alguno) van delante.
+            foreach (var entry in recent)
+                if (_recentVideos.Count < HistoryLimit && !_recentVideos.Any(r => SamePath(r.Path, entry.Path)))
+                    _recentVideos.Add(entry);
+            if (saved.Count == 0)
+            {
+                UpdateHistoryUi();
+                return;
+            }
             if (_videoHistory.Count > 0 && SamePath(saved[^1].Path, _videoHistory[0].Path))
                 saved.RemoveAt(saved.Count - 1);
             _videoHistory.InsertRange(0, saved);
@@ -92,12 +109,15 @@ public partial class MainWindow
     {
         if (!_store.Settings.KeepVideoHistory || !_historyRestored)
             return;
-        if (closing && CurrentHistory is { } current && _current != null)
-            current.Position = _position;
+        if (closing)
+            NoteLeftPosition();
+        static List<VideoHistoryItem> Items(List<HistoryEntry> entries) =>
+            entries.Select(h => new VideoHistoryItem { Path = h.Path, Position = h.Position }).ToList();
         var file = new VideoHistoryFile
         {
-            Videos = _videoHistory.Select(h => new VideoHistoryItem { Path = h.Path, Position = h.Position }).ToList(),
+            Videos = Items(_videoHistory),
             Current = Math.Min(_videoHistoryIndex, _videoHistory.Count - 1),
+            Recent = Items(_recentVideos),
         };
         try
         {
@@ -128,8 +148,7 @@ public partial class MainWindow
     /// </summary>
     private void RecordHistory(string path, int? historyIndex)
     {
-        if (CurrentHistory is { } current && _current != null)
-            current.Position = _position;
+        NoteLeftPosition();
         if (historyIndex is { } index)
         {
             _videoHistoryIndex = index;
@@ -151,8 +170,27 @@ public partial class MainWindow
                 _videoHistoryIndex = _videoHistory.Count - 1;
             }
         }
+        // El que se abre pasa a ser el más reciente (con la posición que tuviera, que se apunta al dejarlo).
+        var found = _recentVideos.FindIndex(r => SamePath(r.Path, path));
+        var recent = found >= 0 ? _recentVideos[found] : new HistoryEntry(Path.GetFullPath(path));
+        if (found >= 0)
+            _recentVideos.RemoveAt(found);
+        _recentVideos.Insert(0, recent);
+        if (_recentVideos.Count > HistoryLimit)
+            _recentVideos.RemoveAt(_recentVideos.Count - 1);
         UpdateHistoryUi();
         SaveHistory();
+    }
+
+    // Dónde está el vídeo abierto, en su entrada del historial y en la de recientes (al dejarlo y al cerrar).
+    private void NoteLeftPosition()
+    {
+        if (_current == null || _currentPath == null)
+            return;
+        if (CurrentHistory is { } current)
+            current.Position = _position;
+        if (_recentVideos.FirstOrDefault(r => SamePath(r.Path, _currentPath)) is { } recent)
+            recent.Position = _position;
     }
 
     private static bool SamePath(string a, string b) =>
@@ -160,7 +198,7 @@ public partial class MainWindow
 
     private void GoHistory(int step) => GoToHistory(_videoHistoryIndex + step);
 
-    private void GoToHistory(int index)
+    private void GoToHistory(int index, double? at = null)
     {
         if (index < 0 || index >= _videoHistory.Count || index == _videoHistoryIndex)
             return;
@@ -176,26 +214,66 @@ public partial class MainWindow
             SaveHistory();
             return;
         }
-        Open(entry.Path, entry.Position, index);
+        Open(entry.Path, at ?? entry.Position, index);
     }
+
+    // Desde el menú de las flechas: si sigue en el historial se va a su entrada (la más cercana) y si no, se abre como
+    // uno nuevo; en los dos casos donde se dejó la última vez.
+    private void OpenRecent(HistoryEntry entry)
+    {
+        if (!File.Exists(entry.Path))
+        {
+            _recentVideos.Remove(entry);
+            ShowToast(S.VideoGone(Path.GetFileName(entry.Path)));
+            UpdateHistoryUi();
+            SaveHistory();
+            return;
+        }
+        var index = Enumerable.Range(0, _videoHistory.Count)
+            .Where(i => i != _videoHistoryIndex && SamePath(_videoHistory[i].Path, entry.Path))
+            .OrderBy(i => Math.Abs(i - _videoHistoryIndex)).DefaultIfEmpty(-1).First();
+        if (index >= 0)
+            GoToHistory(index, entry.Position);
+        else
+            Open(entry.Path, entry.Position);
+    }
+
+    // Se queda solo el vídeo abierto (si hay uno).
+    private void ClearHistory()
+    {
+        _historyCleared = true;
+        var current = _currentPath != null ? CurrentHistory : null;
+        var recent = current != null ? _recentVideos.FirstOrDefault(r => SamePath(r.Path, current.Path)) : null;
+        _videoHistory.Clear();
+        _recentVideos.Clear();
+        if (current != null)
+            _videoHistory.Add(current);
+        if (recent != null)
+            _recentVideos.Add(recent);
+        _videoHistoryIndex = current != null ? 0 : -1;
+        UpdateHistoryUi();
+        SaveHistory();
+    }
+
+    private List<HistoryEntry> OtherRecentVideos() =>
+        _recentVideos.Where(r => _currentPath == null || !SamePath(r.Path, _currentPath)).ToList();
 
     private void UpdateHistoryUi()
     {
         HistoryBackButton.IsEnabled = _videoHistoryIndex > 0;
         HistoryForwardButton.IsEnabled = _videoHistoryIndex >= 0 && _videoHistoryIndex < _videoHistory.Count - 1;
-        HistoryBackButton.ToolTip = HistoryTip(S.HistoryBackTip, _videoHistoryIndex - 1,
-            Math.Max(_videoHistoryIndex, 0), S.HistoryAllBack);
-        HistoryForwardButton.ToolTip = HistoryTip(S.HistoryForwardTip, _videoHistoryIndex + 1,
-            _videoHistory.Count - 1 - _videoHistoryIndex, S.HistoryAllForward);
+        var menu = OtherRecentVideos().Count > 1;
+        HistoryBackButton.ToolTip = HistoryTip(S.HistoryBackTip, _videoHistoryIndex - 1, menu);
+        HistoryForwardButton.ToolTip = HistoryTip(S.HistoryForwardTip, _videoHistoryIndex + 1, menu);
     }
 
-    // Con destino: su nombre (y, si hay más de uno de ese lado, cómo verlos todos); sin él, solo la acción.
-    private string HistoryTip(string action, int index, int count, Func<int, string> all)
+    // Con destino: su nombre (y, si hay más recientes, cómo verlos todos); sin él, solo la acción.
+    private string HistoryTip(string action, int index, bool menu)
     {
         if (index < 0 || index >= _videoHistory.Count)
             return action;
         var tip = $"{action}\n{Path.GetFileName(_videoHistory[index].Path)}";
-        return count > 1 ? $"{tip}\n{all(count)}" : tip;
+        return menu ? $"{tip}\n{S.HistoryMenuTip}" : tip;
     }
 
     private static string HistoryLabel(HistoryEntry entry) =>
@@ -205,26 +283,31 @@ public partial class MainWindow
 
     private void OnHistoryForwardClick(object sender, RoutedEventArgs e) => GoHistory(1);
 
-    // Clic derecho en una flecha: los vídeos de ese lado, el más cercano arriba, para saltar varios de golpe.
+    // Clic derecho en una flecha: los vídeos recientes, el último abierto arriba (también los que las flechas ya
+    // descartaron), y limpiar el historial.
     private void OnHistoryRightClick(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        var menu = HistoryMenu((Button)sender);
-        if (menu.Items.Count > 0)
+        if (HistoryMenu((Button)sender) is { } menu)
             menu.IsOpen = true;
     }
 
-    private ContextMenu HistoryMenu(Button button)
+    private ContextMenu? HistoryMenu(Button button)
     {
-        var step = button == HistoryBackButton ? -1 : 1;
+        var others = OtherRecentVideos();
+        if (others.Count == 0)
+            return null;
         var menu = new ContextMenu { PlacementTarget = button, Placement = PlacementMode.Top };
-        for (var i = _videoHistoryIndex + step; i >= 0 && i < _videoHistory.Count; i += step)
+        foreach (var entry in others)
         {
-            var index = i;
-            var item = new MenuItem { Header = HistoryLabel(_videoHistory[i]) };
-            item.Click += (_, _) => GoToHistory(index);
+            var item = new MenuItem { Header = HistoryLabel(entry) };
+            item.Click += (_, _) => OpenRecent(entry);
             menu.Items.Add(item);
         }
+        menu.Items.Add(new Separator());
+        var clear = WithIcon(new MenuItem { Header = S.ClearHistory }, "ClearHistoryMenuIcon");
+        clear.Click += (_, _) => ClearHistory();
+        menu.Items.Add(clear);
         return menu;
     }
 
@@ -371,8 +454,17 @@ public partial class MainWindow
             Check(_videoHistory.Count == 2, "reabrir el mismo vídeo no añade entrada");
             await WaitLoaded(others[1]);
 
-            var items = HistoryMenu(HistoryBackButton).Items.OfType<MenuItem>().Select(i => (string)i.Header).ToList();
-            Check(items.Count == 1 && items[0].StartsWith(Path.GetFileName(first)), $"clic derecho en atrás: {string.Join(" | ", items)}");
+            // El menú de las flechas tiene también el que se descartó de «adelante», y se puede volver a él.
+            var items = HistoryMenu(HistoryBackButton)!.Items.OfType<MenuItem>().Select(i => (string)i.Header).ToList();
+            Check(items.Count == 3 && items[0].StartsWith(Path.GetFileName(first)) && items[1].StartsWith(Path.GetFileName(others[0]))
+                && items[2] == S.ClearHistory, $"clic derecho en atrás: {string.Join(" | ", items)}");
+            OpenRecent(_recentVideos.First(r => SamePath(r.Path, others[0])));
+            await WaitLoaded(others[0]);
+            Check(SamePath(_currentPath!, others[0]) && _videoHistory.Count == 3 && _videoHistoryIndex == 2,
+                $"desde el menú, al descartado ({_videoHistory.Count} entradas, en la {_videoHistoryIndex})");
+            ClearHistory();
+            Check(_videoHistory.Count == 1 && _recentVideos.Count == 1 && !HistoryBackButton.IsEnabled && !HistoryForwardButton.IsEnabled
+                && HistoryMenu(HistoryBackButton) == null, "limpiar el historial deja solo el abierto");
         }
         catch (Exception e)
         {

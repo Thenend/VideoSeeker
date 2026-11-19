@@ -210,8 +210,8 @@ public sealed class ItalianStrings : Strings
     public override string VideoGone(string name) => $"Non c'è più: {name}";
     public override string HistoryBackTip => "Torna al video precedente (tasto laterale del mouse)";
     public override string HistoryForwardTip => "Vai al video successivo (tasto laterale del mouse)";
-    public override string HistoryAllBack(int count) => $"Clic destro: i {count} precedenti";
-    public override string HistoryAllForward(int count) => $"Clic destro: i {count} successivi";
+    public override string HistoryMenuTip => "Clic destro: video recenti";
+    public override string ClearHistory => "Cancella la cronologia";
 
     // ---- Bookmarks ----
 

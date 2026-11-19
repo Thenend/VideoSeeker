@@ -28,6 +28,8 @@
         <Geometry x:Key="ZoomMenuIcon">M7.5,2.5 A5,5 0 1 1 7.49,2.5 Z M5.2,7.5 H9.8 M7.5,5.2 V9.8 M11.2,11.2 L15.5,15.5</Geometry>
         <!-- Exportar clip: una claqueta, con las rayas en la caja y la tapa abierta (si no, de pequeña parece la carpeta). -->
         <Geometry x:Key="ClipMenuIcon">M2,8 H17 V15 H2 Z M2,10.5 H17 M7,8 L5,10.5 M12,8 L10,10.5 M17,8 L15,10.5 M2,8 L1.2,5 L15.5,1.2</Geometry>
+        <!-- Limpiar el historial: un reloj y una equis. -->
+        <Geometry x:Key="ClearHistoryMenuIcon">M7,2.5 A5.5,5.5 0 1 1 6.99,2.5 Z M7,5 V8 L9.2,9.3 M13,11.5 L17,15.5 M17,11.5 L13,15.5</Geometry>
         <Geometry x:Key="FolderMenuIcon">M1.5,3 H7 L8.8,5 H17.5 V14 H1.5 Z M1.5,7.5 H17.5</Geometry>
         <!-- Comparar: dos imágenes una al lado de la otra. El candado entre las dos (cerrado: sincronizados). -->
         <Geometry x:Key="CompareMenuIcon">M1.5,3.5 H8.5 V13.5 H1.5 Z M10.5,3.5 H17.5 V13.5 H10.5 Z</Geometry>

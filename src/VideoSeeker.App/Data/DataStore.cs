@@ -179,6 +179,8 @@ public sealed class VideoHistoryFile
     public List<VideoHistoryItem> Videos { get; set; } = [];
     /// <summary>El que estaba abierto al cerrar (los de después, «adelante», no se usan al volver a abrir); -1 ninguno.</summary>
     public int Current { get; set; } = -1;
+    /// <summary>Los vídeos recientes del menú de las flechas, el último abierto primero (también los que el historial ya descartó).</summary>
+    public List<VideoHistoryItem> Recent { get; set; } = [];
 }
 
 public sealed class VideoHistoryItem

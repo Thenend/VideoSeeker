@@ -210,8 +210,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string VideoGone(string name) => $"Não encontrado: {name}";
     public override string HistoryBackTip => "Voltar ao vídeo anterior (botão lateral do mouse)";
     public override string HistoryForwardTip => "Avançar para o próximo vídeo (botão lateral do mouse)";
-    public override string HistoryAllBack(int count) => $"Clique direito: os {count} anteriores";
-    public override string HistoryAllForward(int count) => $"Clique direito: os {count} seguintes";
+    public override string HistoryMenuTip => "Clique direito: vídeos recentes";
+    public override string ClearHistory => "Limpar o histórico";
 
     // ---- Bookmarks ----
 

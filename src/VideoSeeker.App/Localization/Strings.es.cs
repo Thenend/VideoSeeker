@@ -210,8 +210,8 @@ public sealed class SpanishStrings : Strings
     public override string VideoGone(string name) => $"Ya no está: {name}";
     public override string HistoryBackTip => "Volver al vídeo que se abrió antes (botón lateral del ratón)";
     public override string HistoryForwardTip => "Ir al vídeo que se abrió después (botón lateral del ratón)";
-    public override string HistoryAllBack(int count) => $"Clic derecho: los {count} anteriores";
-    public override string HistoryAllForward(int count) => $"Clic derecho: los {count} siguientes";
+    public override string HistoryMenuTip => "Clic derecho: vídeos recientes";
+    public override string ClearHistory => "Limpiar el historial";
 
     // ---- Bookmarks ----
 

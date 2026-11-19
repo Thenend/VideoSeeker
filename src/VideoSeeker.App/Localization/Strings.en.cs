@@ -210,8 +210,8 @@ public sealed class EnglishStrings : Strings
     public override string VideoGone(string name) => $"Not found: {name}";
     public override string HistoryBackTip => "Back to the previous video (mouse side button)";
     public override string HistoryForwardTip => "Forward to the next video (mouse side button)";
-    public override string HistoryAllBack(int count) => $"Right-click: the previous {count}";
-    public override string HistoryAllForward(int count) => $"Right-click: the next {count}";
+    public override string HistoryMenuTip => "Right-click: recent videos";
+    public override string ClearHistory => "Clear history";
 
     // ---- Bookmarks ----
 

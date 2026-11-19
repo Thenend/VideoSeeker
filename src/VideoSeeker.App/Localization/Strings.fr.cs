@@ -210,8 +210,8 @@ public sealed class FrenchStrings : Strings
     public override string VideoGone(string name) => $"Introuvable : {name}";
     public override string HistoryBackTip => "Revenir à la vidéo précédente (bouton latéral de la souris)";
     public override string HistoryForwardTip => "Aller à la vidéo suivante (bouton latéral de la souris)";
-    public override string HistoryAllBack(int count) => $"Clic droit : les {count} précédentes";
-    public override string HistoryAllForward(int count) => $"Clic droit : les {count} suivantes";
+    public override string HistoryMenuTip => "Clic droit : vidéos récentes";
+    public override string ClearHistory => "Effacer l'historique";
 
     // ---- Bookmarks ----
 

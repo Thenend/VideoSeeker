@@ -408,10 +408,10 @@ public abstract class Strings
     public abstract string HistoryBackTip { get; }
     /// <summary>Ir al vídeo que se abrió después (botón lateral del ratón)</summary>
     public abstract string HistoryForwardTip { get; }
-    /// <summary>Clic derecho: los {count} anteriores</summary>
-    public abstract string HistoryAllBack(int count);
-    /// <summary>Clic derecho: los {count} siguientes</summary>
-    public abstract string HistoryAllForward(int count);
+    /// <summary>Clic derecho: vídeos recientes</summary>
+    public abstract string HistoryMenuTip { get; }
+    /// <summary>Limpiar el historial</summary>
+    public abstract string ClearHistory { get; }
 
     // ---- Bookmarks ----
 
