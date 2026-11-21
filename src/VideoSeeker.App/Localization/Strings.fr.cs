@@ -483,6 +483,13 @@ public sealed class FrenchStrings : Strings
     public override string ExportBothExactTip => "Les deux en H.264, à la taille de la plus petite, avec le débit des deux réunis";
     public override string ExportBothStart => "Exporter";
     public override string ExportBothBlack(string from, string to) => $"De {from} à {to}, B n'a pas d'image : ce sera noir";
+    public override string ExportAtSpeed => "À une autre vitesse…";
+    public override string ExportAtSpeedTip => "Ralenti ou accéléré ; le son garde sa hauteur";
+    public override string ExportAtSpeedTitle => "Exporter un clip à une autre vitesse";
+    public override string ExportSpeed => "Vitesse";
+    public override string ExportSpeedRange => "Entre 0,1× et 20×";
+    public override string ExportSpeedLength(string length) => $"Durée : {length}";
+    public override string ExportSpeedNoSound => "Sans son : le son de la vidéo est coupé";
 
     // ---- Avisos ----
 

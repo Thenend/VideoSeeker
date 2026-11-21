@@ -925,6 +925,20 @@ public abstract class Strings
     public abstract string ExportBothStart { get; }
     /// <summary>De {from} a {to} B no tiene imagen: saldrá en negro</summary>
     public abstract string ExportBothBlack(string from, string to);
+    /// <summary>A otra velocidad…</summary>
+    public abstract string ExportAtSpeed { get; }
+    /// <summary>Ralentizado o acelerado; el sonido no cambia de tono</summary>
+    public abstract string ExportAtSpeedTip { get; }
+    /// <summary>Exportar clip a otra velocidad</summary>
+    public abstract string ExportAtSpeedTitle { get; }
+    /// <summary>Velocidad</summary>
+    public abstract string ExportSpeed { get; }
+    /// <summary>Entre 0,1× y 20×</summary>
+    public abstract string ExportSpeedRange { get; }
+    /// <summary>Duración: {length}</summary>
+    public abstract string ExportSpeedLength(string length);
+    /// <summary>Sin sonido: el vídeo está silenciado</summary>
+    public abstract string ExportSpeedNoSound { get; }
 
     // ---- Avisos ----
 

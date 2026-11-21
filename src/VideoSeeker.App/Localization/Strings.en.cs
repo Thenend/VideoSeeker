@@ -483,6 +483,13 @@ public sealed class EnglishStrings : Strings
     public override string ExportBothExactTip => "Both in H.264, at the size of the smaller one, with the bitrate of both together";
     public override string ExportBothStart => "Export";
     public override string ExportBothBlack(string from, string to) => $"From {from} to {to} B has no image: it will be black";
+    public override string ExportAtSpeed => "At another speed…";
+    public override string ExportAtSpeedTip => "Slowed down or sped up; the sound keeps its pitch";
+    public override string ExportAtSpeedTitle => "Export clip at another speed";
+    public override string ExportSpeed => "Speed";
+    public override string ExportSpeedRange => "Between 0.1× and 20×";
+    public override string ExportSpeedLength(string length) => $"Length: {length}";
+    public override string ExportSpeedNoSound => "No sound: the video is muted";
 
     // ---- Avisos ----
 

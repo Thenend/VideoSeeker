@@ -271,6 +271,18 @@ public partial class MainWindow
             }
             CloseNaming(commit: false);
             await Task.Delay(100);
+
+            // El cuadro de exportar a otra velocidad, sin exportar.
+            var (speedWindow, _) = BuildSpeedExportDialog(_duration * 0.3, _duration * 0.3 + 2, probe.Name);
+            speedWindow.Show();
+            await Task.Delay(500);
+            if (speedWindow.Content is FrameworkElement speedBody)
+            {
+                SaveElementSnapshot(speedBody, Png("velocidad"));
+                Inspect("Cuadro de exportar a otra velocidad", speedBody, trimmedIsFailure: false);
+            }
+            speedWindow.Close();
+            SpeedExportDialog = null;
         }
         catch (Exception e)
         {

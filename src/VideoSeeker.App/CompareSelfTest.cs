@@ -229,9 +229,9 @@ public partial class MainWindow
                 clipSettings.CopyClipToClipboard = false;
                 try
                 {
-                    async Task<ClipJob?> Export(double from, double to)
+                    async Task<ClipJob?> Export(double from, double to, double speed = 1)
                     {
-                        var job = ExportCompareClip(from, to, null, ClipPreset.Light);
+                        var job = ExportCompareClip(from, to, null, ClipPreset.Light, speed);
                         for (var i = 0; i < 1200 && !(_lastClip is { } last && last.Job == job); i++)
                             await Task.Delay(100);
                         return _lastClip is { } done && done.Job == job && done.Error == null && File.Exists(job!.Output) ? job : null;
@@ -302,6 +302,28 @@ public partial class MainWindow
                         else
                         {
                             Check(false, "no se pudieron decodificar los frames del clip y de los originales");
+                        }
+                    }
+
+                    // A 0,5×: los dos juntos, los mismos frames a la mitad de fps (el cuadro trae 1× si se reproduce a 1×).
+                    {
+                        var (speedWindow, _) = BuildCompareExportDialog(s0, s1);
+                        speedWindow.Show();
+                        await Task.Delay(300);
+                        Check(ParseSpeed(SpeedExportDialog!.Value.Speed.Text) == (_nav.Rate is 1 or -1 ? 1 : Math.Abs(_nav.Rate)),
+                            $"el cuadro de los dos trae la velocidad de reproducción: «{SpeedExportDialog.Value.Speed.Text}»");
+                        speedWindow.Close();
+                        CompareExportDialog = null;
+                        SpeedExportDialog = null;
+                        var slowWatch = Stopwatch.StartNew();
+                        var slow = await Export(s0, s1, speed: 0.5);
+                        Check(slow != null && Path.GetFileName(slow.Output!).Contains(" (0,5×)"), $"clip de los dos a 0,5× en {slowWatch.Elapsed.TotalSeconds:0.0} s: {Path.GetFileName(slow?.Output)}");
+                        if (slow != null)
+                        {
+                            var probe = ClipProbe.Measure(slow.Output!, 0, 6, CancellationToken.None);
+                            var frames = FrameIndex.Build(slow.Output!, CancellationToken.None).Count;
+                            Check(Math.Abs(probe.Fps - Fps / 2) < 0.05 && Math.Abs(frames - count) <= 1 && probe.Width == 3840,
+                                $"a 0,5×: {probe.Width}×{probe.Height}, {probe.Fps:0.###} fps, {frames} frames (esperado {Fps / 2:0.###} fps, {count})");
                         }
                     }
 

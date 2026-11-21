@@ -37,6 +37,13 @@ public sealed class ClipJob
     /// <summary>Comparando: el segundo vídeo, que sale junto al primero en el mismo clip (null, un vídeo solo).</summary>
     public CompareClip? Compare { get; init; }
     public bool HardwareDecoding { get; init; } = true;
+    /// <summary>
+    /// Velocidad del clip (1, la normal): por debajo de 1, a cámara lenta. Cada frame original dura más (ni se inventan
+    /// ni se repiten frames) y el sonido se estira sin cambiar de tono, como se oye al reproducir a esa velocidad.
+    /// </summary>
+    public double Speed { get; init; } = 1;
+    /// <summary>A otra velocidad, sin sonido (el vídeo está silenciado).</summary>
+    public bool NoAudio { get; init; }
 
     /// <summary>El archivo que se está escribiendo (o el que quedó).</summary>
     public string? Output { get; internal set; }
@@ -273,6 +280,27 @@ public sealed class ClipExporter : IDisposable
                     ]));
                 break;
             }
+            case ClipPreset.Exact when job.Speed != 1:
+            {
+                // A otra velocidad hay que recodificar también el sonido; los subtítulos irían a destiempo y se quitan.
+                var ext = sourceExt is ".mp4" or ".m4v" or ".mov" ? ".mp4" : sourceExt == ".webm" ? ".webm" : ".mkv";
+                var codec = source!.VideoCodec is "h264" or "hevc" or "av1" ? source.VideoCodec : ext == ".webm" ? "av1" : "h264";
+                var rate = source.VideoBitrate > 0 ? Math.Max(source.VideoBitrate, 500_000) : 8_000_000;
+                var length = (job.End - job.Start) / job.Speed;
+                var fps = SpeedFps(source.Fps, job.Speed, cap: Math.Max(source.Fps, 60));
+                foreach (var encoder in Encoders(codec))
+                    foreach (var container in Containers(ext))
+                        attempts.Add(new(container, length,
+                        [
+                            .. Common, .. HardwareInput(encoder, gpuFrames: false, job.HardwareDecoding),
+                            "-ss", Seconds(job.Start - 0.0005), "-i", job.Source,
+                            .. SpeedMaps(job, source), "-vf", SpeedVideo(job.Speed, fps),
+                            "-c:v", encoder, .. EncoderOptions(encoder, rate, peak: 2, light: false),
+                            .. SpeedAudio(job, source, container == ".webm" ? "libopus" : "aac", 192_000),
+                            "-t", Seconds(length), .. Muxer(container),
+                        ]));
+                break;
+            }
             case ClipPreset.Exact:
             {
                 var ext = sourceExt is ".mp4" or ".m4v" or ".mov" ? ".mp4" : sourceExt == ".webm" ? ".webm" : ".mkv";
@@ -303,15 +331,27 @@ public sealed class ClipExporter : IDisposable
                 if (source!.VideoBitrate > 0)
                     video = Math.Min(video, source.VideoBitrate);
                 video = Math.Max(video, 200_000);
+                var length = (job.End - job.Start) / job.Speed;
                 var filters = new List<string>();
-                // Como mucho 1080p (el lado corto, para que un vídeo vertical no se quede diminuto) y 60 fps.
+                // Como mucho 60 fps (también a otra velocidad) y 1080p (el lado corto, para que un vídeo vertical no se
+                // quede diminuto).
+                if (job.Speed != 1)
+                    filters.Add(SpeedVideo(job.Speed, SpeedFps(source.Fps, job.Speed, cap: 60)));
+                else if (source.Fps > 61)
+                    filters.Add("fps=60");
                 if (Math.Min(source.Width, source.Height) > 1080)
                     filters.Add(source.Width >= source.Height ? "scale=-2:1080" : "scale=1080:-2");
-                if (source.Fps > 61)
-                    filters.Add("fps=60");
                 filters.Add("format=yuv420p");
                 foreach (var encoder in Encoders("h264"))
-                    attempts.Add(new(ext, job.End - job.Start,
+                    attempts.Add(new(ext, length, job.Speed != 1
+                    ?
+                    [
+                        .. Common, .. HardwareInput(encoder, gpuFrames: false, job.HardwareDecoding),
+                        "-ss", Seconds(job.Start - 0.0005), "-i", job.Source,
+                        .. SpeedMaps(job, source), "-vf", string.Join(",", filters), "-c:v", encoder, .. EncoderOptions(encoder, video, peak: 1, light: true),
+                        .. SpeedAudio(job, source, "aac", audio), "-t", Seconds(length), .. Muxer(ext),
+                    ]
+                    :
                     [
                         .. Common, .. HardwareInput(encoder, gpuFrames: false, job.HardwareDecoding),
                         "-ss", Seconds(job.Start - 0.0005), "-i", job.Source, "-t", Seconds(job.End - job.Start),
@@ -368,15 +408,24 @@ public sealed class ClipExporter : IDisposable
         var graph = $"[0:v]{common},trim=duration={Seconds(length)}[va];" +
             $"[1:v]{common},tpad=start_duration={Seconds(lead)}:stop_mode=add:stop_duration={Seconds(length)}:color=black," +
             $"trim=duration={Seconds(length)},setpts=PTS-STARTPTS[vb];" +
-            (compare.First ? "[vb][va]" : "[va][vb]") + (compare.Stacked ? "vstack" : "hstack") + "=inputs=2[v]";
-        var audioFromB = compare.AudioFromB && b.HasAudio && bLength > 0;
+            (compare.First ? "[vb][va]" : "[va][vb]") + (compare.Stacked ? "vstack" : "hstack") + "=inputs=2" +
+            // A otra velocidad, los dos juntos ya sincronizados; el tramo de cada uno sigue siendo el mismo.
+            (job.Speed != 1 ? "," + SpeedVideo(job.Speed, SpeedFps(fps, job.Speed, cap: light ? 60 : Math.Max(fps, 60))) : "") + "[v]";
+        var output = length / job.Speed;
+        var tempo = job.Speed != 1 ? "," + Tempo(job.Speed) : "";
+        var audioFromB = !job.NoAudio && compare.AudioFromB && b.HasAudio && bLength > 0;
+        var audioFromA = !job.NoAudio && !compare.AudioFromB && a.HasAudio;
         if (audioFromB)
         {
             var delay = (long)Math.Round(lead * 1000);
-            graph += $";[1:a]asetpts=PTS-STARTPTS,adelay={delay}:all=1,apad,atrim=duration={Seconds(length)}[aud]";
+            graph += $";[1:a]asetpts=PTS-STARTPTS,adelay={delay}:all=1,apad,atrim=duration={Seconds(length)}{tempo}[aud]";
         }
-        string[] audioMap = audioFromB ? ["-map", "[aud]"]
-            : !compare.AudioFromB && a.HasAudio ? ["-map", job.AudioStream is { } s ? $"0:{s}?" : "0:a:0?"]
+        else if (audioFromA && job.Speed != 1)
+        {
+            graph += $";[{(job.AudioStream is { } track ? $"0:{track}" : "0:a:0")}]asetpts=PTS-STARTPTS{tempo}[aud]";
+        }
+        string[] audioMap = audioFromB || (audioFromA && job.Speed != 1) ? ["-map", "[aud]"]
+            : audioFromA ? ["-map", job.AudioStream is { } s ? $"0:{s}?" : "0:a:0?"]
             : ["-an"];
         long video;
         int audio;
@@ -398,20 +447,57 @@ public sealed class ClipExporter : IDisposable
             string[] second = bLength > 0
                 ? [.. HardwareInput(encoder, gpuFrames: false, job.HardwareDecoding), "-ss", Seconds(bFrom - 0.0005), "-t", Seconds(bLength), "-i", compare.Source]
                 : ["-f", "lavfi", "-i", $"color=c=black:s={Math.Max(2, b.Width)}x{Math.Max(2, b.Height)}:r={f}:d={Seconds(length)}"];
-            attempts.Add(new(".mp4", length,
+            attempts.Add(new(".mp4", output,
             [
                 .. Common, .. HardwareInput(encoder, gpuFrames: false, job.HardwareDecoding),
                 "-ss", Seconds(job.Start - 0.0005), "-t", Seconds(length), "-i", job.Source, .. second,
                 "-filter_complex", graph, "-map", "[v]", .. audioMap, "-sn", "-dn", "-map_chapters", "-1",
                 "-c:v", encoder, .. EncoderOptions(encoder, video, peak: light ? 1 : 2, light),
                 .. audioMap[0] == "-an" ? (string[])[] : ["-c:a", "aac", "-b:a", audio.ToString(CultureInfo.InvariantCulture), "-ac", "2"],
-                "-t", Seconds(length), .. Muxer(".mp4"),
+                "-t", Seconds(output), .. Muxer(".mp4"),
             ]));
         }
         return attempts;
     }
 
     private static int Even(double value) => Math.Max(2, (int)Math.Floor(value / 2) * 2);
+
+    // ---- A otra velocidad ----
+
+    /// <summary>Los fps del clip a otra velocidad: los del original por la velocidad (60 fps a 0,5×, 30), sin pasar de cap.</summary>
+    private static double SpeedFps(double fps, double speed, double cap) => Math.Min((fps > 0 ? fps : 30) * speed, cap);
+
+    /// <summary>Cada frame dura 1/speed más; fps fija la cadencia (sin repetir frames salvo en un vídeo de fps variable).</summary>
+    private static string SpeedVideo(double speed, double fps) =>
+        $"setpts=(PTS-STARTPTS)/{Number(speed)},fps={Number(fps)}";
+
+    /// <summary>El sonido estirado sin cambiar de tono: atempo va de 0,5 a 100, así que por debajo de 0,5 se encadena.</summary>
+    private static string Tempo(double speed)
+    {
+        var parts = new List<string>();
+        while (speed < 0.5)
+        {
+            parts.Add("atempo=0.5");
+            speed /= 0.5;
+        }
+        parts.Add($"atempo={Number(speed)}");
+        return string.Join(",", parts);
+    }
+
+    private static string Number(double value) => value.ToString("0.######", CultureInfo.InvariantCulture);
+
+    private static bool SpeedHasAudio(ClipJob job, ClipSource source) => !job.NoAudio && source.HasAudio;
+
+    // La pista de vídeo y, si se oye, la de audio que se está oyendo; sin subtítulos (irían a destiempo).
+    private static IEnumerable<string> SpeedMaps(ClipJob job, ClipSource source) =>
+    [
+        "-map", "0:V:0", .. SpeedHasAudio(job, source) ? ["-map", job.AudioStream is { } a ? $"0:{a}" : "0:a:0"] : (string[])["-an"],
+        "-sn", "-dn", "-map_chapters", "-1",
+    ];
+
+    private static IEnumerable<string> SpeedAudio(ClipJob job, ClipSource source, string codec, int bitrate) =>
+        !SpeedHasAudio(job, source) ? []
+        : ["-af", $"asetpts=PTS-STARTPTS,{Tempo(job.Speed)}", "-c:a", codec, "-b:a", bitrate.ToString(CultureInfo.InvariantCulture), "-ac", "2"];
 
     private static IEnumerable<string> Containers(string ext) => ext == ".mkv" ? [ext] : [ext, ".mkv"];
 
@@ -499,6 +585,8 @@ public sealed class ClipExporter : IDisposable
         if (job.Compare is { } compare)
             video = $"{video} vs {Path.GetFileNameWithoutExtension(compare.Source)}";
         var name = job.Name is { Length: > 0 } bookmark ? $"{video} - {bookmark}" : $"{video} {Stamp(job.Start)}-{Stamp(job.End)}";
+        if (job.Speed != 1)
+            name += $" ({job.Speed.ToString("0.##", Loc.Culture)}×)";
         if (job.Preset == ClipPreset.Light)
             name += S.LightClipSuffix;
         // «Jefe: fase 2/3?» → «Jefe. fase 2-3».

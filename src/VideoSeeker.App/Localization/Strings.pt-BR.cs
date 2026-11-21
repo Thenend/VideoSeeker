@@ -483,6 +483,13 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ExportBothExactTip => "Os dois em H.264, no tamanho do menor, com o bitrate dos dois juntos";
     public override string ExportBothStart => "Exportar";
     public override string ExportBothBlack(string from, string to) => $"De {from} a {to} B não tem imagem: ficará preto";
+    public override string ExportAtSpeed => "Em outra velocidade…";
+    public override string ExportAtSpeedTip => "Em câmera lenta ou acelerado; o som mantém o tom";
+    public override string ExportAtSpeedTitle => "Exportar clipe em outra velocidade";
+    public override string ExportSpeed => "Velocidade";
+    public override string ExportSpeedRange => "Entre 0,1× e 20×";
+    public override string ExportSpeedLength(string length) => $"Duração: {length}";
+    public override string ExportSpeedNoSound => "Sem som: o vídeo está silenciado";
 
     // ---- Avisos ----
 

@@ -483,6 +483,13 @@ public sealed class ItalianStrings : Strings
     public override string ExportBothExactTip => "Entrambi in H.264, alla dimensione del più piccolo, con il bitrate dei due insieme";
     public override string ExportBothStart => "Esporta";
     public override string ExportBothBlack(string from, string to) => $"Da {from} a {to} B non ha immagine: sarà nero";
+    public override string ExportAtSpeed => "A un'altra velocità…";
+    public override string ExportAtSpeedTip => "Rallentato o accelerato; il suono mantiene l'intonazione";
+    public override string ExportAtSpeedTitle => "Esporta clip a un'altra velocità";
+    public override string ExportSpeed => "Velocità";
+    public override string ExportSpeedRange => "Tra 0,1× e 20×";
+    public override string ExportSpeedLength(string length) => $"Durata: {length}";
+    public override string ExportSpeedNoSound => "Senza audio: l'audio del video è disattivato";
 
     // ---- Avisos ----
 

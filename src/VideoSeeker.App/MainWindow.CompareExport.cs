@@ -84,11 +84,11 @@ public partial class MainWindow
         var (window, chosen) = BuildCompareExportDialog(start, end);
         window.ShowDialog();
         CompareExportDialog = null;
-        if (chosen() is { } preset)
-            ExportCompareClip(start, end, name, preset);
+        if (chosen() is { } choice)
+            ExportCompareClip(start, end, name, choice.Preset, choice.Speed);
     }
 
-    internal ClipJob? ExportCompareClip(double start, double end, string? name, ClipPreset preset)
+    internal ClipJob? ExportCompareClip(double start, double end, string? name, ClipPreset preset, double speed = 1)
     {
         if (_compare is not { } pane || _sync == null || _currentPath == null)
             return null;
@@ -98,6 +98,8 @@ public partial class MainWindow
             Source = _currentPath, Start = start, End = end, Name = name, Preset = preset,
             AudioStream = _tracks.FirstOrDefault(t => t is { Type: "audio", Selected: true })?.FfIndex,
             Folder = settings.ClipFolder, LightMegabytesPerSecond = settings.LightClipMegabytesPerSecond, HardwareDecoding = settings.HardwareDecoding,
+            // A otra velocidad, como se oye: sin sonido si los dos están silenciados.
+            Speed = speed, NoAudio = speed != 1 && pane.Muted && ExportMuted,
             Compare = new CompareClip
             {
                 Source = pane.Path!, Start = start + _sync.CurrentOffset, End = pane.LastFrameStart + 1 / pane.Fps,
@@ -115,7 +117,7 @@ public partial class MainWindow
     /// la duración), lo que saldrá en negro, la calidad y Exportar / Cancelar. Devuelve la ventana sin mostrar y la calidad
     /// elegida (null si se cancela).
     /// </summary>
-    private (Window Window, Func<ClipPreset?> Chosen) BuildCompareExportDialog(double start, double end)
+    private (Window Window, Func<(ClipPreset Preset, double Speed)?> Chosen) BuildCompareExportDialog(double start, double end)
     {
         var plan = PlanCompareClip(start, end);
         var pane = _compare!;
@@ -128,7 +130,7 @@ public partial class MainWindow
             SizeToContent = SizeToContent.WidthAndHeight, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false,
             UseLayoutRounding = true, Background = (Brush)FindResource("Bg"),
         };
-        ClipPreset? result = null;
+        (ClipPreset, double)? result = null;
         var body = new StackPanel { Margin = new Thickness(20, 16, 20, 12) };
 
         string Frame(FrameGrid grid, int frame, double fps) => $"{S.FrameNumber(frame)} ({TimeFormat.Precise(grid.TimeOf(frame), fps)})";
@@ -190,29 +192,36 @@ public partial class MainWindow
         };
         quality.Children.Add(exact);
         quality.Children.Add(light);
-        body.Children.Add(quality);
 
+        // La velocidad, como en «A otra velocidad…»; aquí por defecto la normal, salvo que se reproduzca a otra.
         var export = new Button { Content = S.ExportBothStart, MinWidth = 88, IsDefault = true, Style = (Style)FindResource("AccentButton") };
+        var length = new TextBlock { Foreground = muted, FontSize = 12.5, Margin = new Thickness(0, 10, 0, 0) };
+        Func<double?> speed = () => 1;
+        void Update()
+        {
+            export.IsEnabled = speed() != null;
+            length.Text = speed() is { } s ? S.ExportSpeedLength(LengthText((end - start) / s)) : S.ExportSpeedRange;
+        }
+        var (speedRow, speedBox, value) = BuildSpeedRow(InitialExportSpeed(atNormal: 1), Update);
+        speed = value;
+        body.Children.Add(speedRow);
+        quality.Margin = new Thickness(0, 10, 0, 0);
+        body.Children.Add(quality);
+        body.Children.Add(length);
+        Update();
+
         export.Click += (_, _) =>
         {
-            result = exact.IsChecked == true ? ClipPreset.Exact : ClipPreset.Light;
+            if (speed() is not { } s)
+                return;
+            result = (exact.IsChecked == true ? ClipPreset.Exact : ClipPreset.Light, s);
             window.Close();
         };
-        var cancel = new Button { Content = S.Cancel, MinWidth = 88, IsCancel = true, Margin = new Thickness(8, 0, 0, 0), Style = (Style)FindResource("DarkButton") };
-        cancel.Click += (_, _) => window.Close();
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-        buttons.Children.Add(export);
-        buttons.Children.Add(cancel);
-        var footer = new Border
-        {
-            Padding = new Thickness(20, 12, 20, 12), BorderThickness = new Thickness(0, 1, 0, 0), BorderBrush = line,
-            Background = (Brush)FindResource("Panel"), Child = buttons,
-        };
-        DockPanel.SetDock(footer, Dock.Bottom);
-        window.Content = new DockPanel { Background = (Brush)FindResource("Bg"), Children = { footer, body } };
+        window.Content = DialogWithButtons(body, export, () => window.Close());
         window.SourceInitialized += (_, _) => Dialog.UseDarkTitleBar(window);
         window.Loaded += (_, _) => export.Focus();
         CompareExportDialog = (window, plan);
+        SpeedExportDialog = (window, speedBox, length);
         return (window, () => result);
     }
 
