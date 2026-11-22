@@ -489,7 +489,10 @@ public sealed class SpanishStrings : Strings
     public override string ExportSpeed => "Velocidad";
     public override string ExportSpeedRange => "Entre 0,1× y 20×";
     public override string ExportSpeedLength(string length) => $"Duración: {length}";
-    public override string ExportSpeedNoSound => "Sin sonido: el vídeo está silenciado";
+    public override string ExportSound => "Sonido";
+    public override string ExportWithSound => "Con sonido";
+    public override string ExportWithoutSound => "Sin sonido";
+    public override string ExportPreviewTip => "Reproducir la vista previa";
 
     // ---- Avisos ----
 

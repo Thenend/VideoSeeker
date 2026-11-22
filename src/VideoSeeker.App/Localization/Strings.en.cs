@@ -489,7 +489,10 @@ public sealed class EnglishStrings : Strings
     public override string ExportSpeed => "Speed";
     public override string ExportSpeedRange => "Between 0.1× and 20×";
     public override string ExportSpeedLength(string length) => $"Length: {length}";
-    public override string ExportSpeedNoSound => "No sound: the video is muted";
+    public override string ExportSound => "Sound";
+    public override string ExportWithSound => "With sound";
+    public override string ExportWithoutSound => "No sound";
+    public override string ExportPreviewTip => "Play the preview";
 
     // ---- Avisos ----
 

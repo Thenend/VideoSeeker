@@ -1,22 +1,32 @@
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Rectangle = System.Windows.Shapes.Rectangle;
+using VideoSeeker.App.Controls;
+using VideoSeeker.Playback;
 
 namespace VideoSeeker.App;
 
 /// <summary>
 /// Exportar un clip a otra velocidad (sobre todo a cámara lenta, para mandar algo muy rápido que se vea bien): «A otra
-/// velocidad…» en el submenú de exportar abre un cuadro con la velocidad (la de reproducción por defecto), la calidad
-/// y lo que durará. El cuadro del clip de los dos vídeos lleva la misma fila de velocidad.
+/// velocidad…» en el submenú de exportar abre un cuadro con una vista previa pequeña (un mpv propio que repite el tramo
+/// a la velocidad elegida, con o sin sonido: lo mismo que saldrá), la velocidad en un slider (la de reproducción por
+/// defecto), con o sin sonido, la calidad y lo que durará. El cuadro del clip de los dos vídeos lleva las mismas filas
+/// de velocidad y sonido.
 /// </summary>
 public partial class MainWindow
 {
-    private static readonly double[] ExportSpeeds = [0.1, 0.25, 0.5, 1, 2, 4];
     private const double MinExportSpeed = 0.1, MaxExportSpeed = 20;
+    // El slider va de 0,1× a 4× en escala logarítmica (1× cerca del centro); el campo admite hasta 20×.
+    private const double SliderMinSpeed = 0.1, SliderMaxSpeed = 4;
 
-    /// <summary>El último cuadro de exportar a otra velocidad (autoprueba): la ventana, el campo de la velocidad y la duración.</summary>
-    internal (Window Window, TextBox Speed, TextBlock Length)? SpeedExportDialog { get; private set; }
+    /// <summary>
+    /// El último cuadro de exportar a otra velocidad (autoprueba): la ventana, el campo y el slider de la velocidad, la
+    /// duración, el reproductor de la vista previa (null en el de los dos vídeos o hasta que arranca) y su play.
+    /// </summary>
+    internal (Window Window, TextBox Speed, Slider Slider, TextBlock Length, Func<MpvPlayer?> Preview, Action Play)? SpeedExportDialog { get; private set; }
 
     /// <summary>La velocidad con la que se abre el cuadro: la de reproducción si no es 1× (sin signo); si no, la dada.</summary>
     private double InitialExportSpeed(double atNormal)
@@ -38,51 +48,99 @@ public partial class MainWindow
         return ok && value >= MinExportSpeed - 1e-9 && value <= MaxExportSpeed + 1e-9 ? Math.Round(value, 3) : null;
     }
 
+    // Del slider (logaritmo de la velocidad) a una velocidad redonda: de 0,05 en 0,05 por debajo de 1×, de 0,25 en 0,25
+    // hasta 2× y de 0,5 en 0,5 por encima.
+    private static double SliderSpeed(double position)
+    {
+        var speed = Math.Exp(position);
+        var step = speed < 1 ? 0.05 : speed < 2 ? 0.25 : 0.5;
+        return Math.Clamp(Math.Round(speed / step) * step, SliderMinSpeed, SliderMaxSpeed);
+    }
+
+    /// <summary>Una fila de las del cuadro: el nombre a la izquierda (todos alineados) y lo que se elige.</summary>
+    private void AddDialogRow(Grid grid, string label, UIElement content, double top = 10)
+    {
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var row = grid.RowDefinitions.Count - 1;
+        var text = new TextBlock
+        {
+            Text = label, Foreground = (Brush)FindResource("FgMuted"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, top, 14, 0),
+        };
+        Grid.SetRow(text, row);
+        grid.Children.Add(text);
+        if (content is FrameworkElement element)
+            element.Margin = new Thickness(0, top, 0, 0);
+        Grid.SetRow(content, row);
+        Grid.SetColumn(content, 1);
+        grid.Children.Add(content);
+    }
+
+    private static Grid DialogRows() => new()
+    {
+        ColumnDefinitions = { new ColumnDefinition { Width = GridLength.Auto }, new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } },
+    };
+
     /// <summary>
-    /// «Velocidad [0,1×] [0,25×] [0,5×] [1×] [2×] [4×] [ 0,5 ]×»: los botones rellenan el campo y el campo admite
-    /// cualquiera entre 0,1× y 20×. Devuelve la fila, el campo y la velocidad elegida (null si no vale); changed avisa
+    /// La velocidad: un slider (0,1× a 4×, logarítmico) y, al lado, el valor, que también se puede escribir (de 0,1× a
+    /// 20×). Devuelve lo que va en la fila, el campo, el slider y la velocidad elegida (null si no vale); changed avisa
     /// de cada cambio.
     /// </summary>
-    private (FrameworkElement Row, TextBox Box, Func<double?> Speed) BuildSpeedRow(double initial, Action changed)
+    private (FrameworkElement Content, TextBox Box, Slider Slider, Func<double?> Speed) BuildSpeedControl(double initial, Action changed)
     {
-        var muted = (Brush)FindResource("FgMuted");
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
-        row.Children.Add(new TextBlock { Text = S.ExportSpeed, Foreground = muted, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) });
+        var panel = new DockPanel();
         var box = new TextBox
         {
-            Text = ExportSpeedText(initial), Width = 54, Style = (Style)FindResource("DarkTextBox"), VerticalAlignment = VerticalAlignment.Center,
-            HorizontalContentAlignment = HorizontalAlignment.Right, Margin = new Thickness(6, 0, 0, 0),
+            Text = ExportSpeedText(initial), Width = 52, Style = (Style)FindResource("DarkTextBox"), VerticalAlignment = VerticalAlignment.Center,
+            HorizontalContentAlignment = HorizontalAlignment.Right, Margin = new Thickness(12, 0, 0, 0),
         };
-        var buttons = new List<(RadioButton Button, double Speed)>();
-        var updating = false;
-        foreach (var speed in ExportSpeeds)
+        var times = new TextBlock { Text = "×", Foreground = (Brush)FindResource("FgMuted"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(3, 0, 0, 0) };
+        DockPanel.SetDock(times, Dock.Right);
+        DockPanel.SetDock(box, Dock.Right);
+        var slider = new Slider
         {
-            var button = new RadioButton { Content = SpeedLabel(speed), Style = (Style)FindResource("ScopeButton"), GroupName = "speed" + GetHashCode() };
-            button.Checked += (_, _) =>
-            {
-                if (updating)
-                    return;
-                box.Text = ExportSpeedText(speed);
-            };
-            buttons.Add((button, speed));
-            row.Children.Add(button);
-        }
-        void Sync()
+            Minimum = Math.Log(SliderMinSpeed), Maximum = Math.Log(SliderMaxSpeed), Style = (Style)FindResource("DarkSlider"),
+            MinWidth = 220, VerticalAlignment = VerticalAlignment.Center, SmallChange = 0.05, LargeChange = 0.3, IsMoveToPointEnabled = true,
+            Value = Math.Log(Math.Clamp(initial, SliderMinSpeed, SliderMaxSpeed)),
+        };
+        var updating = false;
+        slider.ValueChanged += (_, _) =>
+        {
+            if (updating)
+                return;
+            updating = true;
+            box.Text = ExportSpeedText(SliderSpeed(slider.Value));
+            updating = false;
+            changed();
+        };
+        box.TextChanged += (_, _) =>
         {
             var value = ParseSpeed(box.Text);
-            updating = true;
-            foreach (var (button, speed) in buttons)
-                button.IsChecked = value is { } v && Math.Abs(v - speed) < 1e-9;
-            updating = false;
             box.BorderBrush = value != null ? (Brush)FindResource("Line") : (Brush)FindResource("Error");
             box.ToolTip = value != null ? null : S.ExportSpeedRange;
+            if (!updating && value is { } v)
+            {
+                updating = true;
+                slider.Value = Math.Log(Math.Clamp(v, SliderMinSpeed, SliderMaxSpeed));
+                updating = false;
+            }
             changed();
-        }
-        box.TextChanged += (_, _) => Sync();
-        row.Children.Add(box);
-        row.Children.Add(new TextBlock { Text = "×", Foreground = muted, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(3, 0, 0, 0) });
-        Sync();
-        return (row, box, () => ParseSpeed(box.Text));
+        };
+        panel.Children.Add(times);
+        panel.Children.Add(box);
+        panel.Children.Add(slider);
+        return (panel, box, slider, () => ParseSpeed(box.Text));
+    }
+
+    /// <summary>«Con sonido» / «Sin sonido»: lo que va en la fila y si lleva sonido.</summary>
+    private (FrameworkElement Content, Func<bool> WithSound) BuildSoundControl(bool initial, Action changed)
+    {
+        var group = "sound" + Guid.NewGuid().ToString("N");
+        var with = new RadioButton { Content = S.ExportWithSound, Style = (Style)FindResource("ScopeButton"), GroupName = group, IsChecked = initial };
+        var without = new RadioButton { Content = S.ExportWithoutSound, Style = (Style)FindResource("ScopeButton"), GroupName = group, IsChecked = !initial };
+        with.Checked += (_, _) => changed();
+        without.Checked += (_, _) => changed();
+        return (new StackPanel { Orientation = Orientation.Horizontal, Children = { with, without } }, () => with.IsChecked == true);
     }
 
     private static string LengthText(double seconds) =>
@@ -91,18 +149,18 @@ public partial class MainWindow
     /// <summary>«A otra velocidad…»: el cuadro y, al aceptarlo, a la cola.</summary>
     private void AskSpeedExport(string video, double start, double end, string? name)
     {
-        var (window, chosen) = BuildSpeedExportDialog(start, end, name);
+        var (window, chosen) = BuildSpeedExportDialog(video, start, end, name);
         window.ShowDialog();
         SpeedExportDialog = null;
         if (chosen() is { } choice)
-            ExportClip(video, start, end, name, choice.Preset, null, choice.Speed);
+            ExportClip(video, start, end, name, choice.Preset, null, choice.Speed, !choice.WithSound);
     }
 
     /// <summary>
-    /// Qué se exporta, la velocidad, la calidad (alta o ligero: hay que recodificar) y lo que durará el clip (y pesará,
-    /// el ligero). Devuelve la ventana sin mostrar y lo elegido (null si se cancela).
+    /// La vista previa, la velocidad, el sonido, la calidad (alta o ligero: hay que recodificar) y lo que durará el clip
+    /// (y pesará, el ligero). Devuelve la ventana sin mostrar y lo elegido (null si se cancela).
     /// </summary>
-    private (Window Window, Func<(ClipPreset Preset, double Speed)?> Chosen) BuildSpeedExportDialog(double start, double end, string? name)
+    private (Window Window, Func<(ClipPreset Preset, double Speed, bool WithSound)?> Chosen) BuildSpeedExportDialog(string video, double start, double end, string? name)
     {
         var fg = (Brush)FindResource("Fg");
         var muted = (Brush)FindResource("FgMuted");
@@ -110,20 +168,35 @@ public partial class MainWindow
         {
             Title = S.ExportAtSpeedTitle, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner,
             SizeToContent = SizeToContent.WidthAndHeight, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false,
-            UseLayoutRounding = true, Background = (Brush)FindResource("Bg"), MinWidth = 380,
+            UseLayoutRounding = true, Background = (Brush)FindResource("Bg"),
         };
-        (ClipPreset, double)? result = null;
-        var body = new StackPanel { Margin = new Thickness(20, 16, 20, 12) };
+        (ClipPreset, double, bool)? result = null;
+        var body = new StackPanel { Margin = new Thickness(20, 16, 20, 12), Width = 448 };
         body.Children.Add(new TextBlock
         {
             Text = S.ExportWhat(RangeLabel(start, end, name)), Foreground = fg, FontWeight = FontWeights.SemiBold, FontSize = 13,
-            TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 520, Margin = new Thickness(0, 0, 0, 6),
+            TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 0, 0, 10),
         });
 
-        var length = new TextBlock { Foreground = muted, FontSize = 12.5, Margin = new Thickness(0, 10, 0, 0) };
+        // La vista previa: el hueco (mpv pinta encima en su ventana nativa), una línea con por dónde va y el play.
+        var screen = new Border { Width = 448, Height = 252, Background = Brushes.Black };
+        var progress = new Rectangle { Height = 3, Width = 0, HorizontalAlignment = HorizontalAlignment.Left, Fill = (Brush)FindResource("Accent") };
+        var track = new Border { Height = 3, Background = (Brush)FindResource("Line"), Child = progress };
+        var play = new Button
+        {
+            Style = (Style)FindResource("ToolButton"), FontFamily = (FontFamily)FindResource("Icons"), FontSize = 16, Content = GlyphPlay,
+            ToolTip = S.ExportPreviewTip, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0),
+        };
+        body.Children.Add(screen);
+        body.Children.Add(track);
+        body.Children.Add(play);
+
+        var length = new TextBlock { Foreground = muted, FontSize = 12.5, Margin = new Thickness(0, 12, 0, 0) };
         var export = new Button { Content = S.ExportBothStart, MinWidth = 88, IsDefault = true, Style = (Style)FindResource("AccentButton") };
         RadioButton? light = null;
         Func<double?> speed = () => null;
+        Func<bool> withSound = () => true;
+        MpvPlayer? preview = null;
         void Update()
         {
             if (speed() is not { } s)
@@ -141,13 +214,17 @@ public partial class MainWindow
                 text += $" · ≈ {megabytes.ToString(megabytes < 10 ? "0.#" : "0", Loc.Culture)} {S.MegabytesUnit}";
             }
             length.Text = text;
+            preview?.SetSpeed(s);
+            preview?.SetMute(!withSound());
         }
-        var (row, box, value) = BuildSpeedRow(InitialExportSpeed(atNormal: 0.5), Update);
-        speed = value;
-        body.Children.Add(row);
 
-        var quality = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
-        quality.Children.Add(new TextBlock { Text = S.ExportBothQuality, Foreground = muted, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) });
+        var rows = DialogRows();
+        var (speedControl, box, slider, speedValue) = BuildSpeedControl(InitialExportSpeed(atNormal: 0.5), Update);
+        speed = speedValue;
+        AddDialogRow(rows, S.ExportSpeed, speedControl, top: 6);
+        var (soundControl, soundValue) = BuildSoundControl(!ExportMuted, Update);
+        withSound = soundValue;
+        AddDialogRow(rows, S.ExportSound, soundControl);
         var exact = new RadioButton { Content = S.ExportBothExact, ToolTip = S.ExactOriginalTip, Style = (Style)FindResource("ScopeButton"), GroupName = "speedquality" };
         light = new RadioButton
         {
@@ -156,25 +233,91 @@ public partial class MainWindow
         };
         exact.Checked += (_, _) => Update();
         light.Checked += (_, _) => Update();
-        quality.Children.Add(exact);
-        quality.Children.Add(light);
-        body.Children.Add(quality);
+        AddDialogRow(rows, S.ExportBothQuality, new StackPanel { Orientation = Orientation.Horizontal, Children = { exact, light } });
+        body.Children.Add(rows);
         body.Children.Add(length);
-        if (ExportMuted)
-            body.Children.Add(new TextBlock { Text = S.ExportSpeedNoSound, Foreground = muted, FontSize = 12.5, Margin = new Thickness(0, 2, 0, 0) });
         Update();
+
+        // El reproductor de la vista previa: el tramo en bucle, a la velocidad y con el sonido elegidos. Al ponerlo en
+        // marcha se para el vídeo principal (y vuelve a reproducirse al cerrar si iba).
+        var surface = new VideoSurface(window, screen);
+        var resumeMain = false;
+        var closed = false;
+        var previewPaused = true;
+        void TogglePreview()
+        {
+            if (preview == null)
+                return;
+            var paused = previewPaused;
+            // Playing cuenta también el bucle del tramo, que pinta el motor con mpv en pausa.
+            if (paused && _nav.Playing)
+            {
+                resumeMain = !_nav.Reversing;
+                _nav.Pause();
+            }
+            preview.SetPause(!paused);
+        }
+        play.Click += (_, _) => TogglePreview();
+        surface.Clicked += TogglePreview;
+        if (File.Exists(video))
+        {
+            var settings = _store.Settings;
+            var player = new MpvPlayer { SubtitlesOnOpen = false };
+            var ready = Task.Run(() => player.Initialize(settings.Volume, mute: true, settings.HardwareDecoding, Path.Combine(_store.Folder, "cache", "mpv"), secondary: true));
+            window.Loaded += async (_, _) =>
+            {
+                try
+                {
+                    await ready;
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+                if (closed)
+                    return;
+                surface.Create();
+                player.SetWindow(surface.Handle);
+                player.PauseChanged += p => Dispatcher.BeginInvoke(() =>
+                {
+                    previewPaused = p;
+                    play.Content = p ? GlyphPlay : GlyphPause;
+                });
+                player.PositionChanged += t => Dispatcher.BeginInvoke(() =>
+                    progress.Width = track.ActualWidth * Math.Clamp((t - start) / Math.Max(1e-3, end - start), 0, 1));
+                player.Start();
+                player.Load(video, start, play: false);
+                player.SetLoop((start, end));
+                preview = player;
+                Update();
+            };
+            window.Closed += (_, _) =>
+            {
+                closed = true;
+                preview = null;
+                surface.Dispose();
+                // mpv tarda un poco en cerrarse: en segundo plano, sin esperar.
+                _ = Task.Run(async () =>
+                {
+                    try { await ready; } catch (Exception) { }
+                    player.Dispose();
+                });
+                if (resumeMain && !_nav.Playing)
+                    _nav.TogglePlay();
+            };
+        }
 
         export.Click += (_, _) =>
         {
             if (speed() is not { } s)
                 return;
-            result = (exact.IsChecked == true ? ClipPreset.Exact : ClipPreset.Light, s);
+            result = (exact.IsChecked == true ? ClipPreset.Exact : ClipPreset.Light, s, withSound());
             window.Close();
         };
         window.Content = DialogWithButtons(body, export, () => window.Close());
         window.SourceInitialized += (_, _) => Dialog.UseDarkTitleBar(window);
         window.Loaded += (_, _) => export.Focus();
-        SpeedExportDialog = (window, box, length);
+        SpeedExportDialog = (window, box, slider, length, () => preview, TogglePreview);
         return (window, () => result);
     }
 

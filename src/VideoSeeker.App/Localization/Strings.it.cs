@@ -489,7 +489,10 @@ public sealed class ItalianStrings : Strings
     public override string ExportSpeed => "Velocità";
     public override string ExportSpeedRange => "Tra 0,1× e 20×";
     public override string ExportSpeedLength(string length) => $"Durata: {length}";
-    public override string ExportSpeedNoSound => "Senza audio: l'audio del video è disattivato";
+    public override string ExportSound => "Audio";
+    public override string ExportWithSound => "Con audio";
+    public override string ExportWithoutSound => "Senza audio";
+    public override string ExportPreviewTip => "Riproduci l'anteprima";
 
     // ---- Avisos ----
 

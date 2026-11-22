@@ -489,7 +489,10 @@ public sealed class GermanStrings : Strings
     public override string ExportSpeed => "Geschwindigkeit";
     public override string ExportSpeedRange => "Zwischen 0,1× und 20×";
     public override string ExportSpeedLength(string length) => $"Dauer: {length}";
-    public override string ExportSpeedNoSound => "Ohne Ton: Das Video ist stumm";
+    public override string ExportSound => "Ton";
+    public override string ExportWithSound => "Mit Ton";
+    public override string ExportWithoutSound => "Ohne Ton";
+    public override string ExportPreviewTip => "Vorschau abspielen";
 
     // ---- Avisos ----
 

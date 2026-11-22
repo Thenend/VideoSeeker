@@ -489,7 +489,10 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ExportSpeed => "Velocidade";
     public override string ExportSpeedRange => "Entre 0,1× e 20×";
     public override string ExportSpeedLength(string length) => $"Duração: {length}";
-    public override string ExportSpeedNoSound => "Sem som: o vídeo está silenciado";
+    public override string ExportSound => "Som";
+    public override string ExportWithSound => "Com som";
+    public override string ExportWithoutSound => "Sem som";
+    public override string ExportPreviewTip => "Reproduzir a prévia";
 
     // ---- Avisos ----
 

@@ -42,7 +42,7 @@ public sealed class ClipJob
     /// ni se repiten frames) y el sonido se estira sin cambiar de tono, como se oye al reproducir a esa velocidad.
     /// </summary>
     public double Speed { get; init; } = 1;
-    /// <summary>A otra velocidad, sin sonido (el vídeo está silenciado).</summary>
+    /// <summary>Sin sonido (elegido en el cuadro de otra velocidad o en el de los dos vídeos).</summary>
     public bool NoAudio { get; init; }
 
     /// <summary>El archivo que se está escribiendo (o el que quedó).</summary>
@@ -317,7 +317,7 @@ public sealed class ClipExporter : IDisposable
                             // Lo que se copia (audio, subtítulos) también desde Start: ffmpeg copia por defecto desde el keyframe.
                             .. Maps(container), "-c", "copy", "-copypriorss", "0",
                             "-c:v", encoder, .. EncoderOptions(encoder, rate, peak: 2, light: false),
-                            .. Muxer(container),
+                            .. job.NoAudio ? (string[])["-an"] : [], .. Muxer(container),
                         ]));
                 break;
             }
@@ -357,7 +357,8 @@ public sealed class ClipExporter : IDisposable
                         "-ss", Seconds(job.Start - 0.0005), "-i", job.Source, "-t", Seconds(job.End - job.Start),
                         "-map", "0:V:0", "-map", job.AudioStream is { } a ? $"0:{a}?" : "0:a:0?", "-sn", "-dn", "-map_chapters", "-1",
                         "-vf", string.Join(",", filters), "-c:v", encoder, .. EncoderOptions(encoder, video, peak: 1, light: true),
-                        "-c:a", "aac", "-b:a", audio.ToString(CultureInfo.InvariantCulture), "-ac", "2", .. Muxer(ext),
+                        "-c:a", "aac", "-b:a", audio.ToString(CultureInfo.InvariantCulture), "-ac", "2",
+                        .. job.NoAudio ? (string[])["-an"] : [], .. Muxer(ext),
                     ]));
                 break;
             }

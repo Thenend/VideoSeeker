@@ -158,7 +158,7 @@ public partial class MainWindow
     private string RangeLabel(double start, double end, string? name) =>
         name is { Length: > 0 } ? S.QuotedName(name) : $"{TimeFormat.Short(start, Fps)} – {TimeFormat.Short(end, Fps)}";
 
-    private void ExportClip(string video, double start, double end, string? name, ClipPreset preset, double? keyframe, double speed = 1)
+    private void ExportClip(string video, double start, double end, string? name, ClipPreset preset, double? keyframe, double speed = 1, bool noAudio = false)
     {
         var settings = _store.Settings;
         var job = new ClipJob
@@ -168,7 +168,7 @@ public partial class MainWindow
             AudioStream = video == _currentPath ? _tracks.FirstOrDefault(t => t is { Type: "audio", Selected: true })?.FfIndex : null,
             Folder = settings.ClipFolder, LightMegabytesPerSecond = settings.LightClipMegabytesPerSecond,
             HardwareDecoding = settings.HardwareDecoding,
-            Speed = speed, NoAudio = speed != 1 && video == _currentPath && ExportMuted,
+            Speed = speed, NoAudio = noAudio,
         };
         var queued = _exporter.Busy;
         _exporter.Enqueue(job);
@@ -505,11 +505,20 @@ public partial class MainWindow
             Capture("selftest-clips.png");
             Capture("selftest-clips-aviso.png", (FrameworkElement)ClipPopup.Child);
 
-            // A otra velocidad: el cuadro trae la de reproducción; a 0,5× salen los mismos frames, a la mitad de fps,
-            // durando el doble y con sonido.
+            // A otra velocidad: el cuadro trae la de reproducción, el slider y el campo van juntos y la vista previa
+            // repite el tramo a esa velocidad; a 0,5× salen los mismos frames, a la mitad de fps, durando el doble y con
+            // sonido (o sin él, si se elige).
             var rate = _nav.Rate;
             _nav.SetRate(0.5);
-            var (speedWindow, _) = BuildSpeedExportDialog(start, end, null);
+            // Con el vídeo principal en marcha: la vista previa lo para y al cerrar sigue.
+            _nav.GoTo(start + 0.5);
+            await Task.Delay(500);
+            if (!_nav.Playing)
+                _nav.TogglePlay();
+            for (var i = 0; i < 30 && !_nav.Playing; i++)
+                await Task.Delay(100);
+            Check(_nav.Playing, $"vídeo principal en marcha ({_nav.CurrentTime:0.000} s)");
+            var (speedWindow, _) = BuildSpeedExportDialog(_currentPath!, start, end, null);
             speedWindow.Show();
             await Task.Delay(500);
             var dialog = SpeedExportDialog!.Value;
@@ -518,10 +527,27 @@ public partial class MainWindow
             Check(ParseSpeed(dialog.Speed.Text) == 0.3 && dialog.Length.Text.Contains("10,0 s"), $"a 0,3× durará 10 s: {dialog.Length.Text}");
             dialog.Speed.Text = "50";
             Check(ParseSpeed(dialog.Speed.Text) == null && dialog.Length.Text == S.ExportSpeedRange, $"50× no vale: {dialog.Length.Text}");
+            dialog.Slider.Value = Math.Log(0.25);
+            Check(dialog.Speed.Text == "0,25", $"el slider en 0,25× pone «{dialog.Speed.Text}»");
             dialog.Speed.Text = "0,5";
-            if (speedWindow.Content is FrameworkElement speedBody)
-                Capture("selftest-clips-velocidad.png", speedBody);
+            Check(Math.Abs(Math.Exp(dialog.Slider.Value) - 0.5) < 1e-6, $"el campo en 0,5 mueve el slider a {Math.Exp(dialog.Slider.Value):0.###}×");
+            VideoSeeker.Playback.MpvPlayer? preview = null;
+            for (var i = 0; i < 100 && (preview = dialog.Preview()) == null; i++)
+                await Task.Delay(100);
+            await Task.Delay(800);
+            var shown = preview?.Position;
+            Check(shown is { } p0 && Math.Abs(p0 - start) < 0.1, $"la vista previa abre el tramo en su inicio: {shown:0.000} (inicio {start:0.000})");
+            speedWindow.Activate();
+            dialog.Play();
+            await Task.Delay(1500);
+            var played = (preview?.Position ?? 0) - (shown ?? 0);
+            Check(played is > 0.4 and < 1.0, $"con play, la vista previa avanza a 0,5×: {played:0.00} s en 1,5 s");
+            Check(!_nav.Playing, "y para el vídeo principal");
+            PrintWindowTo(speedWindow, Path.Combine(_store.Folder, "selftest-clips-velocidad.png"));
             speedWindow.Close();
+            await Task.Delay(300);
+            Check(_nav.Playing, "al cerrar, el vídeo principal sigue reproduciéndose");
+            _nav.Pause();
             SpeedExportDialog = null;
             _nav.SetRate(rate);
 
@@ -529,20 +555,22 @@ public partial class MainWindow
             watch.Restart();
             foreach (var preset in new[] { ClipPreset.Light, ClipPreset.Exact })
                 ExportClip(_currentPath!, start, end, null, preset, null, speed: 0.5);
+            ExportClip(_currentPath!, start, end, "sin sonido", ClipPreset.Light, null, speed: 0.5, noAudio: true);
             while (_exporter.Busy && watch.Elapsed < TimeSpan.FromMinutes(3))
                 await Task.Delay(100);
             await Task.Delay(300);
             Log($"a 0,5× exportados en {watch.Elapsed.TotalSeconds:0.0} s");
             Check(_lastClip is { Error: null }, $"a 0,5× sin errores {_lastClip?.Error}");
             var slow = Directory.GetFiles(temp).Where(f => !before.Contains(f)).ToList();
-            Check(slow.Count == 2 && slow.All(f => Path.GetFileName(f).Contains(" (0,5×)")), $"dos clips a 0,5× marcados «(0,5×)»: {string.Join(", ", slow.Select(Path.GetFileName))}");
+            Check(slow.Count == 3 && slow.All(f => Path.GetFileName(f).Contains(" (0,5×)")), $"tres clips a 0,5× marcados «(0,5×)»: {string.Join(", ", slow.Select(Path.GetFileName))}");
             foreach (var file in slow)
             {
                 var probe = VideoSeeker.Inspect.ClipProbe.Measure(file, 0, 10, CancellationToken.None);
                 var index = VideoSeeker.Inspect.FrameIndex.Build(file, CancellationToken.None);
                 var length = index.Count / probe.Fps;
-                Check(Math.Abs(probe.Fps - Fps / 2) < 0.05 && Math.Abs(index.Count - count) <= 1 && Math.Abs(length - 6) < 0.1 && probe.HasAudio,
-                    $"{Path.GetFileName(file)}: {probe.Fps:0.###} fps, {index.Count} frames, {length:0.00} s, sonido {probe.HasAudio} (esperado {Fps / 2:0.###} fps, {count}, 6 s, con sonido)");
+                var sound = !file.Contains("sin sonido");
+                Check(Math.Abs(probe.Fps - Fps / 2) < 0.05 && Math.Abs(index.Count - count) <= 1 && Math.Abs(length - 6) < 0.1 && probe.HasAudio == sound,
+                    $"{Path.GetFileName(file)}: {probe.Fps:0.###} fps, {index.Count} frames, {length:0.00} s, sonido {probe.HasAudio} (esperado {Fps / 2:0.###} fps, {count}, 6 s, sonido {sound})");
             }
             CloseZone();
         }

@@ -937,8 +937,14 @@ public abstract class Strings
     public abstract string ExportSpeedRange { get; }
     /// <summary>Duración: {length}</summary>
     public abstract string ExportSpeedLength(string length);
-    /// <summary>Sin sonido: el vídeo está silenciado</summary>
-    public abstract string ExportSpeedNoSound { get; }
+    /// <summary>Sonido</summary>
+    public abstract string ExportSound { get; }
+    /// <summary>Con sonido</summary>
+    public abstract string ExportWithSound { get; }
+    /// <summary>Sin sonido</summary>
+    public abstract string ExportWithoutSound { get; }
+    /// <summary>Reproducir la vista previa</summary>
+    public abstract string ExportPreviewTip { get; }
 
     // ---- Avisos ----
 

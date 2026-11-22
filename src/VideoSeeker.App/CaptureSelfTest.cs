@@ -455,4 +455,36 @@ public partial class MainWindow
             ReleaseDC(0, screen);
         }
     }
+    /// <summary>
+    /// Una ventana cualquiera de la app, entera y con lo que pinta mpv en sus ventanas hijas (la vista previa del cuadro
+    /// de exportar a otra velocidad), en PNG. Para las autopruebas; false si no se pudo.
+    /// </summary>
+    internal static bool PrintWindowTo(Window window, string path)
+    {
+        var hwnd = new WindowInteropHelper(window).Handle;
+        if (hwnd == 0 || !GetCaptureWindowRect(hwnd, out var whole) || whole.Width <= 0 || whole.Height <= 0)
+            return false;
+        var screen = GetDC(0);
+        var memory = CreateCompatibleDC(screen);
+        var bitmap = CreateCompatibleBitmap(screen, whole.Width, whole.Height);
+        var old = SelectObject(memory, bitmap);
+        try
+        {
+            if (!PrintWindow(hwnd, memory, 2 /* PW_RENDERFULLCONTENT */))
+                return false;
+            SelectObject(memory, old);
+            var source = Imaging.CreateBitmapSourceFromHBitmap(bitmap, 0, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(new FormatConvertedBitmap(source, System.Windows.Media.PixelFormats.Bgr24, null, 0)));
+            using var stream = File.Create(path);
+            encoder.Save(stream);
+            return true;
+        }
+        finally
+        {
+            DeleteObject(bitmap);
+            DeleteDC(memory);
+            ReleaseDC(0, screen);
+        }
+    }
 }

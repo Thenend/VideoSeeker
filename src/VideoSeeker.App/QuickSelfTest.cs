@@ -273,7 +273,7 @@ public partial class MainWindow
             await Task.Delay(100);
 
             // El cuadro de exportar a otra velocidad, sin exportar.
-            var (speedWindow, _) = BuildSpeedExportDialog(_duration * 0.3, _duration * 0.3 + 2, probe.Name);
+            var (speedWindow, _) = BuildSpeedExportDialog(_currentPath!, _duration * 0.3, _duration * 0.3 + 2, probe.Name);
             speedWindow.Show();
             await Task.Delay(500);
             if (speedWindow.Content is FrameworkElement speedBody)

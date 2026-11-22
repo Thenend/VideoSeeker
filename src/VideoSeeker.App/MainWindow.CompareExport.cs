@@ -85,10 +85,10 @@ public partial class MainWindow
         window.ShowDialog();
         CompareExportDialog = null;
         if (chosen() is { } choice)
-            ExportCompareClip(start, end, name, choice.Preset, choice.Speed);
+            ExportCompareClip(start, end, name, choice.Preset, choice.Speed, choice.WithSound);
     }
 
-    internal ClipJob? ExportCompareClip(double start, double end, string? name, ClipPreset preset, double speed = 1)
+    internal ClipJob? ExportCompareClip(double start, double end, string? name, ClipPreset preset, double speed = 1, bool withSound = true)
     {
         if (_compare is not { } pane || _sync == null || _currentPath == null)
             return null;
@@ -98,8 +98,7 @@ public partial class MainWindow
             Source = _currentPath, Start = start, End = end, Name = name, Preset = preset,
             AudioStream = _tracks.FirstOrDefault(t => t is { Type: "audio", Selected: true })?.FfIndex,
             Folder = settings.ClipFolder, LightMegabytesPerSecond = settings.LightClipMegabytesPerSecond, HardwareDecoding = settings.HardwareDecoding,
-            // A otra velocidad, como se oye: sin sonido si los dos están silenciados.
-            Speed = speed, NoAudio = speed != 1 && pane.Muted && ExportMuted,
+            Speed = speed, NoAudio = !withSound,
             Compare = new CompareClip
             {
                 Source = pane.Path!, Start = start + _sync.CurrentOffset, End = pane.LastFrameStart + 1 / pane.Fps,
@@ -117,7 +116,7 @@ public partial class MainWindow
     /// la duración), lo que saldrá en negro, la calidad y Exportar / Cancelar. Devuelve la ventana sin mostrar y la calidad
     /// elegida (null si se cancela).
     /// </summary>
-    private (Window Window, Func<(ClipPreset Preset, double Speed)?> Chosen) BuildCompareExportDialog(double start, double end)
+    private (Window Window, Func<(ClipPreset Preset, double Speed, bool WithSound)?> Chosen) BuildCompareExportDialog(double start, double end)
     {
         var plan = PlanCompareClip(start, end);
         var pane = _compare!;
@@ -130,7 +129,7 @@ public partial class MainWindow
             SizeToContent = SizeToContent.WidthAndHeight, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false,
             UseLayoutRounding = true, Background = (Brush)FindResource("Bg"),
         };
-        (ClipPreset, double)? result = null;
+        (ClipPreset, double, bool)? result = null;
         var body = new StackPanel { Margin = new Thickness(20, 16, 20, 12) };
 
         string Frame(FrameGrid grid, int frame, double fps) => $"{S.FrameNumber(frame)} ({TimeFormat.Precise(grid.TimeOf(frame), fps)})";
@@ -182,8 +181,7 @@ public partial class MainWindow
                 });
 
         // La calidad, como en el clip de un vídeo (sin la copia directa: hay que juntar las dos imágenes).
-        var quality = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
-        quality.Children.Add(new TextBlock { Text = S.ExportBothQuality, Foreground = muted, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) });
+        var quality = new StackPanel { Orientation = Orientation.Horizontal };
         var exact = new RadioButton { Content = S.ExportBothExact, ToolTip = S.ExportBothExactTip, Style = (Style)FindResource("ScopeButton"), GroupName = "quality" };
         var light = new RadioButton
         {
@@ -193,7 +191,8 @@ public partial class MainWindow
         quality.Children.Add(exact);
         quality.Children.Add(light);
 
-        // La velocidad, como en «A otra velocidad…»; aquí por defecto la normal, salvo que se reproduzca a otra.
+        // La velocidad y el sonido, como en «A otra velocidad…»; aquí por defecto la normal, salvo que se reproduzca a
+        // otra, y con sonido si se oye alguno de los dos.
         var export = new Button { Content = S.ExportBothStart, MinWidth = 88, IsDefault = true, Style = (Style)FindResource("AccentButton") };
         var length = new TextBlock { Foreground = muted, FontSize = 12.5, Margin = new Thickness(0, 10, 0, 0) };
         Func<double?> speed = () => 1;
@@ -202,11 +201,16 @@ public partial class MainWindow
             export.IsEnabled = speed() != null;
             length.Text = speed() is { } s ? S.ExportSpeedLength(LengthText((end - start) / s)) : S.ExportSpeedRange;
         }
-        var (speedRow, speedBox, value) = BuildSpeedRow(InitialExportSpeed(atNormal: 1), Update);
+        var rows = DialogRows();
+        rows.MaxWidth = 560;
+        rows.HorizontalAlignment = HorizontalAlignment.Left;
+        var (speedControl, speedBox, speedSlider, value) = BuildSpeedControl(InitialExportSpeed(atNormal: 1), Update);
         speed = value;
-        body.Children.Add(speedRow);
-        quality.Margin = new Thickness(0, 10, 0, 0);
-        body.Children.Add(quality);
+        AddDialogRow(rows, S.ExportSpeed, speedControl, top: 4);
+        var (soundControl, withSound) = BuildSoundControl(!pane.Muted || !ExportMuted, () => { });
+        AddDialogRow(rows, S.ExportSound, soundControl);
+        AddDialogRow(rows, S.ExportBothQuality, quality);
+        body.Children.Add(rows);
         body.Children.Add(length);
         Update();
 
@@ -214,14 +218,14 @@ public partial class MainWindow
         {
             if (speed() is not { } s)
                 return;
-            result = (exact.IsChecked == true ? ClipPreset.Exact : ClipPreset.Light, s);
+            result = (exact.IsChecked == true ? ClipPreset.Exact : ClipPreset.Light, s, withSound());
             window.Close();
         };
         window.Content = DialogWithButtons(body, export, () => window.Close());
         window.SourceInitialized += (_, _) => Dialog.UseDarkTitleBar(window);
         window.Loaded += (_, _) => export.Focus();
         CompareExportDialog = (window, plan);
-        SpeedExportDialog = (window, speedBox, length);
+        SpeedExportDialog = (window, speedBox, speedSlider, length, () => null, () => { });
         return (window, () => result);
     }
 

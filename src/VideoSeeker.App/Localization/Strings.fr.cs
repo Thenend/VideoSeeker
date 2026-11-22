@@ -489,7 +489,10 @@ public sealed class FrenchStrings : Strings
     public override string ExportSpeed => "Vitesse";
     public override string ExportSpeedRange => "Entre 0,1× et 20×";
     public override string ExportSpeedLength(string length) => $"Durée : {length}";
-    public override string ExportSpeedNoSound => "Sans son : le son de la vidéo est coupé";
+    public override string ExportSound => "Son";
+    public override string ExportWithSound => "Avec le son";
+    public override string ExportWithoutSound => "Sans le son";
+    public override string ExportPreviewTip => "Lire l'aperçu";
 
     // ---- Avisos ----
 
