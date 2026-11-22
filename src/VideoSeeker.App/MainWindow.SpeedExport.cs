@@ -19,14 +19,17 @@ namespace VideoSeeker.App;
 public partial class MainWindow
 {
     private const double MinExportSpeed = 0.1, MaxExportSpeed = 20;
-    // El slider va de 0,1× a 4× en escala logarítmica (1× cerca del centro); el campo admite hasta 20×.
+    // El slider va a saltos por estas velocidades, espaciadas en escala logarítmica (1× cerca del centro); el campo
+    // admite cualquiera hasta 20×.
+    private static readonly double[] SliderSpeeds = [0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 3, 4];
     private const double SliderMinSpeed = 0.1, SliderMaxSpeed = 4;
 
     /// <summary>
     /// El último cuadro de exportar a otra velocidad (autoprueba): la ventana, el campo y el slider de la velocidad, la
-    /// duración, el reproductor de la vista previa (null en el de los dos vídeos o hasta que arranca) y su play.
+    /// duración, el reproductor de la vista previa (null en el de los dos vídeos o hasta que arranca), su play y su
+    /// barra (ir a una fracción del tramo).
     /// </summary>
-    internal (Window Window, TextBox Speed, Slider Slider, TextBlock Length, Func<MpvPlayer?> Preview, Action Play)? SpeedExportDialog { get; private set; }
+    internal (Window Window, TextBox Speed, Slider Slider, TextBlock Length, Func<MpvPlayer?> Preview, Action Play, Action<double> Seek)? SpeedExportDialog { get; private set; }
 
     /// <summary>La velocidad con la que se abre el cuadro: la de reproducción si no es 1× (sin signo); si no, la dada.</summary>
     private double InitialExportSpeed(double atNormal)
@@ -48,14 +51,9 @@ public partial class MainWindow
         return ok && value >= MinExportSpeed - 1e-9 && value <= MaxExportSpeed + 1e-9 ? Math.Round(value, 3) : null;
     }
 
-    // Del slider (logaritmo de la velocidad) a una velocidad redonda: de 0,05 en 0,05 por debajo de 1×, de 0,25 en 0,25
-    // hasta 2× y de 0,5 en 0,5 por encima.
-    private static double SliderSpeed(double position)
-    {
-        var speed = Math.Exp(position);
-        var step = speed < 1 ? 0.05 : speed < 2 ? 0.25 : 0.5;
-        return Math.Clamp(Math.Round(speed / step) * step, SliderMinSpeed, SliderMaxSpeed);
-    }
+    // Del slider (logaritmo de la velocidad, siempre en una de las marcas) a la velocidad de la marca más cercana.
+    private static double SliderSpeed(double position) =>
+        SliderSpeeds.MinBy(s => Math.Abs(Math.Log(s) - position));
 
     /// <summary>Una fila de las del cuadro: el nombre a la izquierda (todos alineados) y lo que se elige.</summary>
     private void AddDialogRow(Grid grid, string label, UIElement content, double top = 10)
@@ -82,8 +80,8 @@ public partial class MainWindow
     };
 
     /// <summary>
-    /// La velocidad: un slider (0,1× a 4×, logarítmico) y, al lado, el valor, que también se puede escribir (de 0,1× a
-    /// 20×). Devuelve lo que va en la fila, el campo, el slider y la velocidad elegida (null si no vale); changed avisa
+    /// La velocidad: un slider a saltos (de 0,1× a 4×, con una marca en cada velocidad posible) y, al lado, el valor,
+    /// que también se puede escribir (de 0,1× a 20×). Devuelve lo que va en la fila, el campo, el slider y la velocidad elegida (null si no vale); changed avisa
     /// de cada cambio.
     /// </summary>
     private (FrameworkElement Content, TextBox Box, Slider Slider, Func<double?> Speed) BuildSpeedControl(double initial, Action changed)
@@ -100,9 +98,29 @@ public partial class MainWindow
         var slider = new Slider
         {
             Minimum = Math.Log(SliderMinSpeed), Maximum = Math.Log(SliderMaxSpeed), Style = (Style)FindResource("DarkSlider"),
-            MinWidth = 220, VerticalAlignment = VerticalAlignment.Center, SmallChange = 0.05, LargeChange = 0.3, IsMoveToPointEnabled = true,
-            Value = Math.Log(Math.Clamp(initial, SliderMinSpeed, SliderMaxSpeed)),
+            MinWidth = 220, VerticalAlignment = VerticalAlignment.Center, IsMoveToPointEnabled = true, IsSnapToTickEnabled = true,
+            Ticks = new DoubleCollection(SliderSpeeds.Select(s => Math.Log(s))),
+            Value = Math.Log(SliderSpeed(Math.Log(Math.Clamp(initial, SliderMinSpeed, SliderMaxSpeed)))),
         };
+        // Las marcas, debajo de la pista: una raya por velocidad, más larga en 1×. (El pulgar mide 14: la pista empieza
+        // y acaba a 7 del borde.)
+        var marks = new Canvas { Height = 5, VerticalAlignment = VerticalAlignment.Bottom, IsHitTestVisible = false, Margin = new Thickness(0, 0, 0, -6) };
+        void DrawMarks()
+        {
+            marks.Children.Clear();
+            var width = slider.ActualWidth - 14;
+            if (width <= 0)
+                return;
+            foreach (var speed in SliderSpeeds)
+            {
+                var x = 7 + (Math.Log(speed) - slider.Minimum) / (slider.Maximum - slider.Minimum) * width;
+                var mark = new Rectangle { Width = 1, Height = speed == 1 ? 5 : 3, Fill = (Brush)FindResource("FgMuted"), Opacity = speed == 1 ? 1 : 0.5 };
+                Canvas.SetLeft(mark, Math.Round(x));
+                marks.Children.Add(mark);
+            }
+        }
+        slider.SizeChanged += (_, _) => DrawMarks();
+        var sliderHost = new Grid { Children = { slider, marks } };
         var updating = false;
         slider.ValueChanged += (_, _) =>
         {
@@ -121,14 +139,15 @@ public partial class MainWindow
             if (!updating && value is { } v)
             {
                 updating = true;
-                slider.Value = Math.Log(Math.Clamp(v, SliderMinSpeed, SliderMaxSpeed));
+                // A la marca más cercana; el campo se queda con lo escrito.
+                slider.Value = Math.Log(SliderSpeed(Math.Log(Math.Clamp(v, SliderMinSpeed, SliderMaxSpeed))));
                 updating = false;
             }
             changed();
         };
         panel.Children.Add(times);
         panel.Children.Add(box);
-        panel.Children.Add(slider);
+        panel.Children.Add(sliderHost);
         return (panel, box, slider, () => ParseSpeed(box.Text));
     }
 
@@ -180,12 +199,34 @@ public partial class MainWindow
 
         // La vista previa: el hueco (mpv pinta encima en su ventana nativa), una línea con por dónde va y el play.
         var screen = new Border { Width = 448, Height = 252, Background = Brushes.Black };
+        MpvPlayer? preview = null;
+        // La barra del tramo: por dónde va y, con clic o arrastrando, a otro momento (la zona de clic es más alta que la raya).
         var progress = new Rectangle { Height = 3, Width = 0, HorizontalAlignment = HorizontalAlignment.Left, Fill = (Brush)FindResource("Accent") };
-        var track = new Border { Height = 3, Background = (Brush)FindResource("Line"), Child = progress };
+        var line = new Border { Height = 3, Background = (Brush)FindResource("Line"), Child = progress, VerticalAlignment = VerticalAlignment.Top };
+        var track = new Grid { Height = 12, Background = Brushes.Transparent, Cursor = System.Windows.Input.Cursors.Hand, Children = { line } };
+        void Seek(double fraction)
+        {
+            fraction = Math.Clamp(fraction, 0, 1);
+            progress.Width = track.ActualWidth * fraction;
+            // Sin llegar al final exacto: ahí el bucle volvería al principio.
+            preview?.ScrubTo(start + fraction * Math.Max(0, end - start - 1e-3));
+        }
+        track.MouseLeftButtonDown += (_, e) =>
+        {
+            track.CaptureMouse();
+            Seek(e.GetPosition(track).X / Math.Max(1, track.ActualWidth));
+            e.Handled = true;
+        };
+        track.MouseMove += (_, e) =>
+        {
+            if (track.IsMouseCaptured)
+                Seek(e.GetPosition(track).X / Math.Max(1, track.ActualWidth));
+        };
+        track.MouseLeftButtonUp += (_, _) => track.ReleaseMouseCapture();
         var play = new Button
         {
             Style = (Style)FindResource("ToolButton"), FontFamily = (FontFamily)FindResource("Icons"), FontSize = 16, Content = GlyphPlay,
-            ToolTip = S.ExportPreviewTip, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0),
+            ToolTip = S.ExportPreviewTip, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, -6, 0, 0),
         };
         body.Children.Add(screen);
         body.Children.Add(track);
@@ -196,7 +237,6 @@ public partial class MainWindow
         RadioButton? light = null;
         Func<double?> speed = () => null;
         Func<bool> withSound = () => true;
-        MpvPlayer? preview = null;
         void Update()
         {
             if (speed() is not { } s)
@@ -284,7 +324,10 @@ public partial class MainWindow
                     play.Content = p ? GlyphPlay : GlyphPause;
                 });
                 player.PositionChanged += t => Dispatcher.BeginInvoke(() =>
-                    progress.Width = track.ActualWidth * Math.Clamp((t - start) / Math.Max(1e-3, end - start), 0, 1));
+                {
+                    if (!track.IsMouseCaptured)
+                        progress.Width = track.ActualWidth * Math.Clamp((t - start) / Math.Max(1e-3, end - start), 0, 1);
+                });
                 player.Start();
                 player.Load(video, start, play: false);
                 player.SetLoop((start, end));
@@ -317,7 +360,7 @@ public partial class MainWindow
         window.Content = DialogWithButtons(body, export, () => window.Close());
         window.SourceInitialized += (_, _) => Dialog.UseDarkTitleBar(window);
         window.Loaded += (_, _) => export.Focus();
-        SpeedExportDialog = (window, box, slider, length, () => preview, TogglePreview);
+        SpeedExportDialog = (window, box, slider, length, () => preview, TogglePreview, Seek);
         return (window, () => result);
     }
 

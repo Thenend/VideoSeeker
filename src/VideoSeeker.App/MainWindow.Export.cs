@@ -529,6 +529,8 @@ public partial class MainWindow
             Check(ParseSpeed(dialog.Speed.Text) == null && dialog.Length.Text == S.ExportSpeedRange, $"50× no vale: {dialog.Length.Text}");
             dialog.Slider.Value = Math.Log(0.25);
             Check(dialog.Speed.Text == "0,25", $"el slider en 0,25× pone «{dialog.Speed.Text}»");
+            dialog.Speed.Text = "0,33";
+            Check(dialog.Speed.Text == "0,33" && Math.Abs(Math.Exp(dialog.Slider.Value) - 0.3) < 1e-6, $"0,33 escrito se queda y el slider va a la marca más cercana: {Math.Exp(dialog.Slider.Value):0.###}×");
             dialog.Speed.Text = "0,5";
             Check(Math.Abs(Math.Exp(dialog.Slider.Value) - 0.5) < 1e-6, $"el campo en 0,5 mueve el slider a {Math.Exp(dialog.Slider.Value):0.###}×");
             VideoSeeker.Playback.MpvPlayer? preview = null;
@@ -537,6 +539,12 @@ public partial class MainWindow
             await Task.Delay(800);
             var shown = preview?.Position;
             Check(shown is { } p0 && Math.Abs(p0 - start) < 0.1, $"la vista previa abre el tramo en su inicio: {shown:0.000} (inicio {start:0.000})");
+            dialog.Seek(0.5);
+            await Task.Delay(600);
+            Check(preview?.Position is { } p1 && Math.Abs(p1 - (start + end) / 2) < 0.1, $"clic en la mitad de la barra: {preview?.Position:0.000} (mitad {(start + end) / 2:0.000})");
+            dialog.Seek(0);
+            await Task.Delay(600);
+            shown = preview?.Position;
             speedWindow.Activate();
             dialog.Play();
             await Task.Delay(1500);

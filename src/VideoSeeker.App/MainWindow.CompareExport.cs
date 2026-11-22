@@ -225,7 +225,7 @@ public partial class MainWindow
         window.SourceInitialized += (_, _) => Dialog.UseDarkTitleBar(window);
         window.Loaded += (_, _) => export.Focus();
         CompareExportDialog = (window, plan);
-        SpeedExportDialog = (window, speedBox, speedSlider, length, () => null, () => { });
+        SpeedExportDialog = (window, speedBox, speedSlider, length, () => null, () => { }, _ => { });
         return (window, () => result);
     }
 
