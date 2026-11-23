@@ -458,6 +458,8 @@ public sealed class GermanStrings : Strings
     public override string ComparePlaceRight => "Rechts";
     public override string ComparePlaceTop => "Oben";
     public override string ComparePlaceBottom => "Unten";
+    public override string CompareWipeMenu => "Wischblende";
+    public override string CompareWipeTip => "Wischblende (W): übereinander; die Linie ziehen, um das eine oder das andere zu sehen";
     public override string CompareLockTip => "Beide Videos synchronisieren (Strg + L): Sie bewegen sich gemeinsam, mit dem jetzigen Abstand";
     public override string CompareUnlockTip => "Synchronisierung lösen (Strg + L). Mit gedrückter Alt-Taste lässt sich jedes einzeln ziehen";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";

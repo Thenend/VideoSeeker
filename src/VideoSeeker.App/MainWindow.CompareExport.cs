@@ -102,7 +102,8 @@ public partial class MainWindow
             Compare = new CompareClip
             {
                 Source = pane.Path!, Start = start + _sync.CurrentOffset, End = pane.LastFrameStart + 1 / pane.Fps,
-                Stacked = _compareStacked, First = _compareBFirst, AudioFromB = !pane.Muted,
+                // Con la cortinilla, como se verían sin ella (B arriba o abajo, apilados).
+                Stacked = _store.Settings.ComparePlacement is "top" or "bottom", First = _compareBFirst, AudioFromB = !pane.Muted,
             },
         };
         var queued = _exporter.Busy;

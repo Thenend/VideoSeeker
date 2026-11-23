@@ -458,6 +458,8 @@ public sealed class ItalianStrings : Strings
     public override string ComparePlaceRight => "A destra";
     public override string ComparePlaceTop => "Sopra";
     public override string ComparePlaceBottom => "Sotto";
+    public override string CompareWipeMenu => "Tendina";
+    public override string CompareWipeTip => "Tendina (W): uno sopra l'altro; trascina la linea per vedere l'uno o l'altro";
     public override string CompareLockTip => "Sincronizza i due video (Ctrl + L): si muovono insieme, con la distanza attuale";
     public override string CompareUnlockTip => "Desincronizza (Ctrl + L). Tenendo premuto Alt, ognuno si trascina per conto suo";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";

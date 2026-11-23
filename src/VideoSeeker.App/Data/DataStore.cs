@@ -113,6 +113,13 @@ public sealed class Settings
     public bool AnimatePanels { get; set; } = true;
     /// <summary>Dónde va el segundo vídeo al comparar: "right" (por defecto), "left", "top" o "bottom".</summary>
     public string ComparePlacement { get; set; } = "right";
+    /// <summary>
+    /// Cortinilla: los dos vídeos en el mismo sitio, uno encima del otro, con una línea que se arrastra (vertical con B a
+    /// la derecha o a la izquierda, horizontal con B arriba o abajo).
+    /// </summary>
+    public bool CompareWipe { get; set; }
+    /// <summary>Dónde está la línea de la cortinilla: de 0 (izquierda o arriba) a 1 (derecha o abajo).</summary>
+    public double CompareWipePosition { get; set; } = 0.5;
     /// <summary>Ya se vio el aviso de cómo sincronizar los dos vídeos (sale la primera vez que se compara).</summary>
     public bool CompareHintSeen { get; set; }
 

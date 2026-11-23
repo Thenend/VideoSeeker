@@ -880,6 +880,10 @@ public abstract class Strings
     public abstract string ComparePlaceTop { get; }
     /// <summary>Abajo</summary>
     public abstract string ComparePlaceBottom { get; }
+    /// <summary>Cortinilla (opción del menú de la imagen, con marca; W)</summary>
+    public abstract string CompareWipeMenu { get; }
+    /// <summary>Cortinilla (W): uno encima del otro; arrastra la línea para ver uno u otro</summary>
+    public abstract string CompareWipeTip { get; }
     /// <summary>Sincronizar los dos vídeos (Ctrl + L): se moverán juntos, con la distancia que tienen ahora</summary>
     public abstract string CompareLockTip { get; }
     /// <summary>Desincronizar (Ctrl + L). Con Alt pulsado, cada uno se arrastra por su cuenta</summary>

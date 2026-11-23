@@ -35,6 +35,8 @@
         <Geometry x:Key="CompareMenuIcon">M1.5,3.5 H8.5 V13.5 H1.5 Z M10.5,3.5 H17.5 V13.5 H10.5 Z</Geometry>
         <!-- Otra parte del mismo vídeo: las dos imágenes unidas por una línea; cerrar: una sola imagen y la otra tachada. -->
         <Geometry x:Key="CompareSameIcon">M1.5,3.5 H8.5 V13.5 H1.5 Z M10.5,3.5 H17.5 V13.5 H10.5 Z M5,8.5 H14</Geometry>
+        <!-- Cortinilla: una sola imagen con la línea que la parte, saliendo por arriba y por abajo. -->
+        <Geometry x:Key="WipeIcon">M1.5,3.5 H17.5 V13.5 H1.5 Z M9.5,1.5 V15.5</Geometry>
         <Geometry x:Key="CompareCloseIcon">M1.5,3.5 H8.5 V13.5 H1.5 Z M11.5,6 L16.5,11 M16.5,6 L11.5,11</Geometry>
         <Geometry x:Key="LockClosedIcon">M4.5,8 H14.5 V15.5 H4.5 Z M6.75,8 V5.5 A2.75,2.75 0 0 1 12.25,5.5 V8 M9.5,10.75 V12.75</Geometry>
         <Geometry x:Key="LockOpenIcon">M4.5,8 H14.5 V15.5 H4.5 Z M6.75,8 V4.25 A2.75,2.75 0 0 1 12.25,4.25 V5.25 M9.5,10.75 V12.75</Geometry>

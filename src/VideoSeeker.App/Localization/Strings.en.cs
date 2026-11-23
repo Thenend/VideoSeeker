@@ -458,6 +458,8 @@ public sealed class EnglishStrings : Strings
     public override string ComparePlaceRight => "On the right";
     public override string ComparePlaceTop => "Above";
     public override string ComparePlaceBottom => "Below";
+    public override string CompareWipeMenu => "Wipe";
+    public override string CompareWipeTip => "Wipe (W): one on top of the other; drag the line to see one or the other";
     public override string CompareLockTip => "Sync the two videos (Ctrl + L): they move together, keeping their current distance";
     public override string CompareUnlockTip => "Unsync (Ctrl + L). Hold Alt to drag each one on its own";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";

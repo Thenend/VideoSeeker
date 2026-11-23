@@ -96,6 +96,12 @@ public partial class MainWindow
             if (_compare != null)
                 ApplyCompareLayout();
         };
+        // La cortinilla recorta las imágenes con el tamaño de la de A.
+        VideoArea.SizeChanged += (_, _) =>
+        {
+            if (_compare != null)
+                UpdateWipe();
+        };
         BuildDropZones();
     }
 
@@ -292,6 +298,7 @@ public partial class MainWindow
         _cmpCellB.Children.Add(barHost);
         _cmpCellB.Children.Add(_cmpControls);
         _cmpCellB.Children.Add(_cmpFrameB);
+        BuildCompareWipe(muted);
     }
 
     /// <summary>Coloca A y B (o vuelve a la vista de uno solo si ya no se compara).</summary>
@@ -305,11 +312,17 @@ public partial class MainWindow
             VideoGrid.Children.Remove(_cmpFrameA);
             VideoGrid.Children.Remove(_cmpCellB);
             VideoGrid.Children.Remove(_cmpLockHost);
+            VideoGrid.Children.Remove(_cmpWipe);
             if (_cmpCellB.Children.OfType<Border>().FirstOrDefault(b => b.Tag as string == "B") is { } old)
                 _cmpCellB.Children.Remove(old);
+            if (VideoGrid.Children.OfType<Border>().FirstOrDefault(b => b.Tag as string == "B") is { } oldWipe)
+                VideoGrid.Children.Remove(oldWipe);
             VideoGrid.ColumnDefinitions.Clear();
             VideoGrid.RowDefinitions.Clear();
+            Grid.SetColumnSpan(VideoArea, 1);
+            Grid.SetColumnSpan(EmptyHint, 1);
             VideoArea.Margin = new Thickness(0);
+            _surface.ClearClip();
             return;
         }
         BuildCompareUi();
@@ -318,7 +331,7 @@ public partial class MainWindow
         {
             pane.Placeholder.Tag = "B";
             pane.Placeholder.Margin = new Thickness(1, CompareHeaderHeight, 1, CompareBottomHeight + 1);
-            if (!_cmpCellB.Children.Contains(pane.Placeholder))
+            if (!_cmpCellB.Children.Contains(pane.Placeholder) && !VideoGrid.Children.Contains(pane.Placeholder))
                 _cmpCellB.Children.Insert(1, pane.Placeholder);
             VideoGrid.Children.Add(_cmpHeaderA);
             VideoGrid.Children.Add(_cmpFrameA);
@@ -326,13 +339,18 @@ public partial class MainWindow
             VideoGrid.Children.Add(_cmpLockHost);
         }
         PlaceCompareLock();
-        // Dónde va B: a la derecha (por defecto), a la izquierda, arriba o abajo.
+        // Dónde va B: a la derecha (por defecto), a la izquierda, arriba o abajo. Con la cortinilla, las cabeceras y los
+        // controles van siempre lado a lado y las dos imágenes, en el mismo sitio (la línea, vertical u horizontal).
         var placement = _store.Settings.ComparePlacement;
-        var stacked = placement is "top" or "bottom";
+        var wipe = _store.Settings.CompareWipe;
+        var stacked = !wipe && placement is ("top" or "bottom");
         var bFirst = placement is "left" or "top";
-        if (!fresh && stacked == _compareStacked && bFirst == _compareBFirst)
+        if (!fresh && stacked == _compareStacked && bFirst == _compareBFirst && wipe == _compareWipe)
+        {
+            UpdateWipe();
             return;
-        (_compareStacked, _compareBFirst) = (stacked, bFirst);
+        }
+        (_compareStacked, _compareBFirst, _compareWipe) = (stacked, bFirst, wipe);
         VideoGrid.ColumnDefinitions.Clear();
         VideoGrid.RowDefinitions.Clear();
         for (var i = 0; i < 2; i++)
@@ -359,7 +377,179 @@ public partial class MainWindow
         _cmpFrameA.Margin = aSide;
         VideoArea.Margin = new Thickness(1 + aSide.Left, CompareHeaderHeight + aSide.Top, 1 + aSide.Right, CompareBottomHeight + 1 + aSide.Bottom);
         _cmpCellB.Margin = Toward(towardsFirst: !bFirst);
+        // La cortinilla: la imagen de A ocupa las dos columnas y la de B (su hueco) pasa a estar encima, del mismo tamaño.
+        var image = new Thickness(1, CompareHeaderHeight, 1, CompareBottomHeight + 1);
+        Grid.SetColumnSpan(VideoArea, wipe ? 2 : 1);
+        Grid.SetColumnSpan(EmptyHint, wipe ? 2 : 1);
+        var holder = pane.Placeholder;
+        if (wipe)
+        {
+            Grid.SetColumn(VideoArea, 0);
+            Grid.SetColumn(EmptyHint, 0);
+            VideoArea.Margin = image;
+            _cmpCellB.Children.Remove(holder);
+            if (!VideoGrid.Children.Contains(holder))
+                VideoGrid.Children.Add(holder);
+            Grid.SetColumn(holder, 0);
+            Grid.SetRow(holder, 0);
+            Grid.SetColumnSpan(holder, 2);
+            if (!VideoGrid.Children.Contains(_cmpWipe))
+                VideoGrid.Children.Add(_cmpWipe);
+            Grid.SetColumnSpan(_cmpWipe, 2);
+            _cmpWipe.Margin = image;
+        }
+        else
+        {
+            VideoGrid.Children.Remove(holder);
+            VideoGrid.Children.Remove(_cmpWipe);
+            if (!_cmpCellB.Children.Contains(holder))
+                _cmpCellB.Children.Insert(1, holder);
+            Grid.SetColumnSpan(holder, 1);
+        }
+        holder.Margin = image;
         PlaceCompareLock();
+        UpdateWipe();
+    }
+
+    // ---- Cortinilla ----
+
+    // La línea (blanca, con un borde oscuro de 1 a cada lado) y el asa del centro, en unidades de WPF.
+    private const double WipeLine = 4, WipeHandleShort = 14, WipeHandleLong = 40;
+
+    private bool _compareWipe;
+    private Canvas _cmpWipe = null!;
+    private Border _cmpWipeLine = null!, _cmpWipeHandle = null!;
+    private System.Windows.Shapes.Path _cmpWipeGrip = null!;
+    private TextBlock _cmpWipeOutside = null!;
+    private Button _cmpWipeButton = null!;
+
+    /// <summary>
+    /// La línea de la cortinilla y su asa: las dos imágenes (ventanas nativas) dejan un hueco con su forma y ahí se ven,
+    /// pintadas por WPF. Se arrastran (la línea o el asa); doble clic, al centro.
+    /// </summary>
+    private void BuildCompareWipe(Brush muted)
+    {
+        var light = (Brush)FindResource("Fg");
+        _cmpWipeLine = new Border { Background = Brushes.Black, Child = new Border { Background = light, Margin = new Thickness(1) } };
+        _cmpWipeGrip = new System.Windows.Shapes.Path
+        {
+            // Dos flechas, una hacia cada lado, dentro de un asa de 14 × 40.
+            Data = Geometry.Parse("M5.5,15 L2.5,20 L5.5,25 M8.5,15 L11.5,20 L8.5,25"), Width = WipeHandleShort, Height = WipeHandleLong,
+            Stroke = Frozen(Color.FromRgb(0x0E, 0x0F, 0x12)), StrokeThickness = 1.5, StrokeLineJoin = PenLineJoin.Round,
+            StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round,
+        };
+        _cmpWipeHandle = new Border { Background = light, CornerRadius = new CornerRadius(3), Child = _cmpWipeGrip };
+        _cmpWipeOutside = new TextBlock { Foreground = muted, FontSize = 12, IsHitTestVisible = false, Visibility = Visibility.Collapsed };
+        _cmpWipe = new Canvas { ClipToBounds = true, SnapsToDevicePixels = true };
+        _cmpWipe.Children.Add(_cmpWipeOutside);
+        _cmpWipe.Children.Add(_cmpWipeLine);
+        _cmpWipe.Children.Add(_cmpWipeHandle);
+        Panel.SetZIndex(_cmpWipe, 3);
+        _cmpWipe.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;
+            if (e.ClickCount == 2)
+            {
+                SetWipePosition(0.5);
+                _store.SaveSettings();
+                return;
+            }
+            _cmpWipe.CaptureMouse();
+        };
+        _cmpWipe.MouseMove += (_, e) =>
+        {
+            if (!_cmpWipe.IsMouseCaptured || _cmpWipe.ActualWidth <= 0 || _cmpWipe.ActualHeight <= 0)
+                return;
+            var p = e.GetPosition(_cmpWipe);
+            SetWipePosition(WipeVertical ? p.X / _cmpWipe.ActualWidth : p.Y / _cmpWipe.ActualHeight);
+        };
+        _cmpWipe.MouseLeftButtonUp += (_, e) =>
+        {
+            if (!_cmpWipe.IsMouseCaptured)
+                return;
+            e.Handled = true;
+            _cmpWipe.ReleaseMouseCapture();
+        };
+        _cmpWipe.LostMouseCapture += (_, _) =>
+        {
+            _store.SaveSettings();
+            ReturnFocusToVideo();
+        };
+    }
+
+    // Vertical con B a la izquierda o a la derecha; horizontal con B arriba o abajo.
+    private bool WipeVertical => _store.Settings.ComparePlacement is not ("top" or "bottom");
+
+    private void SetWipePosition(double position)
+    {
+        _store.Settings.CompareWipePosition = Math.Clamp(position, 0, 1);
+        UpdateWipe();
+    }
+
+    private void ToggleCompareWipe()
+    {
+        if (_compare == null)
+            return;
+        _store.Settings.CompareWipe = !_store.Settings.CompareWipe;
+        _store.SaveSettings();
+        ApplyCompareLayout();
+        UpdateCompareUi();
+    }
+
+    /// <summary>
+    /// Con la cortinilla, cada imagen se recorta a su lado de la línea (y sin el asa); sin ella, se ven enteras. También
+    /// coloca la línea, el asa y, si B no tiene imagen ahora, su aviso en su lado.
+    /// </summary>
+    private void UpdateWipe()
+    {
+        var pane = _compare;
+        if (pane == null || !_compareWipe || !_compareUiBuilt)
+        {
+            _surface.ClearClip();
+            pane?.Surface.ClearClip();
+            return;
+        }
+        var (w, h) = (VideoArea.ActualWidth, VideoArea.ActualHeight);
+        if (w <= 0 || h <= 0)
+            return;
+        var vertical = WipeVertical;
+        var size = vertical ? w : h;
+        var at = Math.Round(_store.Settings.CompareWipePosition * size);
+        var half = WipeLine / 2;
+        Rect Side(double from, double to)
+        {
+            from = Math.Clamp(from, 0, size);
+            to = Math.Clamp(to, from, size);
+            return vertical ? new Rect(from, 0, to - from, h) : new Rect(0, from, w, to - from);
+        }
+        var (first, second) = (Side(0, at - half), Side(at + half, size));
+        var (keepA, keepB) = _compareBFirst ? (second, first) : (first, second);
+        var (along, across) = vertical ? (WipeHandleShort, WipeHandleLong) : (WipeHandleLong, WipeHandleShort);
+        var handle = vertical
+            ? new Rect(at - WipeHandleShort / 2, Math.Round((h - WipeHandleLong) / 2), along, across)
+            : new Rect(Math.Round((w - WipeHandleLong) / 2), at - WipeHandleShort / 2, along, across);
+        _surface.SetClip(keepA, handle);
+        pane.Surface.SetClip(keepB, handle);
+
+        var line = vertical ? new Rect(at - half, 0, WipeLine, h) : new Rect(0, at - half, w, WipeLine);
+        Place(_cmpWipeLine, line);
+        Place(_cmpWipeHandle, handle);
+        _cmpWipeGrip.LayoutTransform = vertical ? Transform.Identity : new RotateTransform(90);
+        _cmpWipe.Cursor = _cmpWipeLine.Cursor = _cmpWipeHandle.Cursor = vertical ? Cursors.SizeWE : Cursors.SizeNS;
+        if (_cmpWipeOutside.Visibility == Visibility.Visible)
+        {
+            _cmpWipeOutside.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(_cmpWipeOutside, keepB.X + (keepB.Width - _cmpWipeOutside.DesiredSize.Width) / 2);
+            Canvas.SetTop(_cmpWipeOutside, keepB.Y + (keepB.Height - _cmpWipeOutside.DesiredSize.Height) / 2);
+        }
+
+        static void Place(FrameworkElement element, Rect rect)
+        {
+            Canvas.SetLeft(element, rect.X);
+            Canvas.SetTop(element, rect.Y);
+            element.Width = rect.Width;
+            element.Height = rect.Height;
+        }
     }
 
     // Lo que ocupan bajo la imagen de B su barra fina (y sus controles): A deja lo mismo, para que midan igual.
@@ -614,10 +804,16 @@ public partial class MainWindow
         _cmpOffset.Text = sync.Locked ? CompareOffsetLabel() : "";
         var outside = locked && sync.Range != CompareSync.BRange.Inside;
         pane.Placeholder.Visibility = outside ? Visibility.Hidden : Visibility.Visible;
-        _cmpOutside.Visibility = outside ? Visibility.Visible : Visibility.Collapsed;
-        _cmpOutside.Text = sync.Range == CompareSync.BRange.Before
+        // Con la cortinilla, el aviso va en el lado de B (sobre la imagen; el de su columna quedaría debajo de A).
+        var wipe = _store.Settings.CompareWipe;
+        _cmpOutside.Visibility = outside && !wipe ? Visibility.Visible : Visibility.Collapsed;
+        _cmpWipeOutside.Visibility = outside && wipe ? Visibility.Visible : Visibility.Collapsed;
+        _cmpOutside.Text = _cmpWipeOutside.Text = sync.Range == CompareSync.BRange.Before
             ? S.CompareStartsAt(TimeFormat.Short(pane.FirstFrameStart - sync.Offset, Fps))
             : S.CompareEnded;
+        _cmpWipeButton.Foreground = wipe ? CompareActiveBrush : (Brush)FindResource("Fg");
+        _cmpWipeButton.Background = wipe ? CompareLockedBack : Brushes.Transparent;
+        UpdateWipe();
         UpdateCompareHeaderA();
         UpdateCompareHeaderB();
         UpdateCompareBand();
@@ -672,7 +868,15 @@ public partial class MainWindow
             Foreground = CompareActiveBrush, FontFamily = new FontFamily("Consolas"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(2, 0, 8, 0), ToolTip = S.CompareOffsetTip, Visibility = Visibility.Collapsed, Background = Brushes.Transparent,
         };
+        // A su izquierda, la cortinilla (encendida, en azul como el candado cerrado).
+        _cmpWipeButton = new Button
+        {
+            Style = (Style)FindResource("ToolButton"), Padding = new Thickness(5, 0, 5, 0), Height = CompareHeaderHeight - 2, ToolTip = S.CompareWipeTip,
+            Content = new System.Windows.Shapes.Path { Style = (Style)FindResource("IconPath"), Data = (Geometry)FindResource("WipeIcon") },
+        };
+        _cmpWipeButton.Click += (_, _) => ToggleCompareWipe();
         var row = new StackPanel { Orientation = Orientation.Horizontal };
+        row.Children.Add(_cmpWipeButton);
         row.Children.Add(button);
         row.Children.Add(_cmpOffset);
         _cmpLockHost = new Border
@@ -969,6 +1173,13 @@ public partial class MainWindow
             ToggleCompareLock();
             return true;
         }
+        // W (de «wipe»): la cortinilla.
+        if (key == Key.W && modifiers == ModifierKeys.None)
+        {
+            if (!e.IsRepeat)
+                ToggleCompareWipe();
+            return true;
+        }
         // Alt + , / Alt + .: un frame solo el activo (bloqueados, el desfase cambia en lo mismo).
         if (modifiers == ModifierKeys.Alt && key is Key.OemComma or Key.OemPeriod)
         {
@@ -1101,6 +1312,10 @@ public partial class MainWindow
             place.Items.Add(option);
         }
         menu.Items.Add(place);
+        // Con marca y sin dibujo (van en la misma columna).
+        var wipe = new MenuItem { Header = S.CompareWipeMenu, InputGestureText = "W", IsCheckable = true, IsChecked = _store.Settings.CompareWipe };
+        wipe.Click += (_, _) => ToggleCompareWipe();
+        menu.Items.Add(wipe);
         var close = WithIcon(new MenuItem { Header = S.CloseCompare }, "CompareCloseIcon");
         close.Click += (_, _) => CloseCompare();
         menu.Items.Add(close);

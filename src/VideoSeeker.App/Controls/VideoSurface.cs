@@ -114,6 +114,7 @@ public sealed partial class VideoSurface : IDisposable
             throw new InvalidOperationException($"CreateWindowEx falló: {Marshal.GetLastWin32Error()}");
         Surfaces[Handle] = this;
         Reposition();
+        ApplyClip();
         return Handle;
     }
 
@@ -139,6 +140,54 @@ public sealed partial class VideoSurface : IDisposable
         SetWindowPos(Handle, 0, placement.Item1, placement.Item2, placement.Item3, placement.Item4,
             SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
         Resized?.Invoke();
+    }
+
+    // ---- Recorte (la cortinilla al comparar) ----
+
+    private (Rect Keep, Rect Hole)? _clip;
+
+    /// <summary>
+    /// Lo que se ve de la imagen: solo "keep" y, dentro, sin "hole" (el asa de la cortinilla), en unidades de WPF desde la
+    /// esquina del hueco. Es la región de la ventana nativa: recorta también las de mpv y el motor, y el ratón fuera de
+    /// ella va a lo de debajo.
+    /// </summary>
+    public void SetClip(Rect keep, Rect hole)
+    {
+        if (_clip == (keep, hole))
+            return;
+        _clip = (keep, hole);
+        ApplyClip();
+    }
+
+    public void ClearClip()
+    {
+        if (_clip == null)
+            return;
+        _clip = null;
+        ClipBox = null;
+        if (Handle != 0)
+            SetWindowRgn(Handle, 0, true);
+    }
+
+    /// <summary>Lo que se deja ver, en píxeles físicos dentro de la ventana nativa; null sin recorte (para las autopruebas).</summary>
+    public (int X, int Y, int W, int H)? ClipBox { get; private set; }
+
+    private void ApplyClip()
+    {
+        if (Handle == 0 || _clip is not { } clip)
+            return;
+        var dpi = VisualTreeHelper.GetDpi(_placeholder);
+        int X(double v) => (int)Math.Round(v * dpi.DpiScaleX);
+        int Y(double v) => (int)Math.Round(v * dpi.DpiScaleY);
+        var (keep, hole) = clip;
+        var region = CreateRectRgn(X(keep.Left), Y(keep.Top), X(keep.Right), Y(keep.Bottom));
+        var cut = CreateRectRgn(X(hole.Left), Y(hole.Top), X(hole.Right), Y(hole.Bottom));
+        CombineRgn(region, region, cut, RGN_DIFF);
+        DeleteObject(cut);
+        ClipBox = (X(keep.Left), Y(keep.Top), X(keep.Right) - X(keep.Left), Y(keep.Bottom) - Y(keep.Top));
+        // Si la acepta, la región pasa a ser de Windows.
+        if (SetWindowRgn(Handle, region, true) == 0)
+            DeleteObject(region);
     }
 
     private static void RegisterClassOnce()
@@ -404,6 +453,21 @@ public sealed partial class VideoSurface : IDisposable
 
     [LibraryImport("gdi32.dll")]
     private static partial nint GetStockObject(int obj);
+
+    private const int RGN_DIFF = 4;
+
+    [LibraryImport("gdi32.dll")]
+    private static partial nint CreateRectRgn(int left, int top, int right, int bottom);
+
+    [LibraryImport("gdi32.dll")]
+    private static partial int CombineRgn(nint destination, nint source1, nint source2, int mode);
+
+    [LibraryImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DeleteObject(nint obj);
+
+    [LibraryImport("user32.dll")]
+    private static partial int SetWindowRgn(nint hwnd, nint region, [MarshalAs(UnmanagedType.Bool)] bool redraw);
 
     [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
     private static partial nint GetModuleHandleW(string? moduleName);

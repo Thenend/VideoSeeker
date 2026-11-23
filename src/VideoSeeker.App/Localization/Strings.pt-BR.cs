@@ -458,6 +458,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string ComparePlaceRight => "À direita";
     public override string ComparePlaceTop => "Em cima";
     public override string ComparePlaceBottom => "Embaixo";
+    public override string CompareWipeMenu => "Cortina";
+    public override string CompareWipeTip => "Cortina (W): um sobre o outro; arraste a linha para ver um ou outro";
     public override string CompareLockTip => "Sincronizar os dois vídeos (Ctrl + L): eles se movem juntos, com a distância atual";
     public override string CompareUnlockTip => "Dessincronizar (Ctrl + L). Com Alt pressionado, cada um é arrastado sozinho";
     public override string CompareOffset(string time, string frames) => $"B {time} ({frames})";

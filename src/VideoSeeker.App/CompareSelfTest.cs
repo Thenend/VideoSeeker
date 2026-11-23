@@ -46,6 +46,7 @@ public partial class MainWindow
 
         string? savedPlacement = null;
         var savedHint = true;
+        var (savedWipe, savedWipePosition) = (false, 0.5);
         try
         {
             while (_duration <= 0 || _engine == null)
@@ -59,6 +60,8 @@ public partial class MainWindow
             // Como la primera vez: B a la derecha y sin haber visto el aviso.
             savedPlacement = _store.Settings.ComparePlacement;
             savedHint = _store.Settings.CompareHintSeen;
+            (savedWipe, savedWipePosition) = (_store.Settings.CompareWipe, _store.Settings.CompareWipePosition);
+            _store.Settings.CompareWipe = false;
             _store.Settings.ComparePlacement = "right";
             _store.Settings.CompareHintSeen = false;
             var gridA = Zoom.Grid;
@@ -655,6 +658,46 @@ public partial class MainWindow
             SetComparePlacement("right");
             await Task.Delay(600);
 
+            // ---- 7b. La cortinilla: las dos imágenes en el mismo sitio, cada una recortada a su lado de la línea ----
+            {
+                _store.Settings.CompareWipePosition = 0.5;
+                PressKey(System.Windows.Input.Key.W);
+                await Task.Delay(800);
+                var a = _surface.Placement;
+                var bb = _compare!.Surface.Placement;
+                Check(_store.Settings.CompareWipe && a == bb && a.W > 100, $"W: cortinilla, las dos en el mismo sitio: A {a.X},{a.Y} {a.W}×{a.H}, B {bb.X},{bb.Y} {bb.W}×{bb.H}");
+                bool Split(double at, bool vertical, bool bFirst, out string detail)
+                {
+                    var (ca, cb) = (_surface.ClipBox, _compare!.Surface.ClipBox);
+                    detail = $"A {ca}, B {cb} en {a.W}×{a.H}";
+                    if (ca is not { } x || cb is not { } y)
+                        return false;
+                    var size = vertical ? a.W : a.H;
+                    var line = at * size;
+                    var (first, second) = bFirst ? (y, x) : (x, y);
+                    return vertical
+                        ? first.X == 0 && Math.Abs(first.W - (line - 2)) <= 2 && Math.Abs(second.X - (line + 2)) <= 2 && second.X + second.W == a.W && first.H == a.H && second.H == a.H
+                        : first.Y == 0 && Math.Abs(first.H - (line - 2)) <= 2 && Math.Abs(second.Y - (line + 2)) <= 2 && second.Y + second.H == a.H && first.W == a.W && second.W == a.W;
+                }
+                Check(Split(0.5, true, false, out var detail), $"cortinilla vertical en el centro, B a la derecha: {detail}");
+                CaptureWindowContent(Png("cortinilla"), Log);
+                SetWipePosition(0.25);
+                await Task.Delay(300);
+                Check(Split(0.25, true, false, out detail), $"línea movida al 25 %: {detail}");
+                SetComparePlacement("top");
+                await Task.Delay(800);
+                Check(Split(0.25, false, true, out detail) && _surface.Placement == _compare!.Surface.Placement, $"B arriba: cortinilla horizontal: {detail}");
+                CaptureWindowContent(Png("cortinilla-horizontal"), Log);
+                SetComparePlacement("right");
+                PressKey(System.Windows.Input.Key.W);
+                await Task.Delay(800);
+                a = _surface.Placement;
+                bb = _compare!.Surface.Placement;
+                Check(!_store.Settings.CompareWipe && _surface.ClipBox == null && _compare.Surface.ClipBox == null && a.X + a.W <= bb.X && Math.Abs(a.W - bb.W) <= 1,
+                    $"W otra vez: lado a lado y sin recortes: A {a.X},{a.Y} {a.W}×{a.H}, B {bb.X},{bb.Y} {bb.W}×{bb.H}");
+                _store.Settings.CompareWipePosition = 0.5;
+            }
+
             // ---- 8. La animación del panel redimensiona las dos imágenes ----
             var animate = Reveal.Animate;
             Reveal.Animate = true;
@@ -730,6 +773,7 @@ public partial class MainWindow
             {
                 _store.Settings.ComparePlacement = savedPlacement;
                 _store.Settings.CompareHintSeen = savedHint;
+                (_store.Settings.CompareWipe, _store.Settings.CompareWipePosition) = (savedWipe, savedWipePosition);
                 _store.SaveSettings();
             }
             Log(failures == 0 ? "TODO BIEN" : $"{failures} FALLOS");
