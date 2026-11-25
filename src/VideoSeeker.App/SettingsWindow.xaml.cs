@@ -42,6 +42,7 @@ public partial class SettingsWindow : Window
         Bind(MoveRegionsCheck, v => s.MoveWholeRegions = v);
         Bind(EdgeFrameCheck, v => s.ShowDraggedEdgeFrame = v);
         Bind(HoverPreviewCheck, v => s.HoverPreview = v);
+        Bind(FilmstripCheck, v => s.ZoomFilmstrip = v);
         Bind(CachedLineCheck, v => s.ShowCachedFrames = v);
         Bind(MarksCheck, v => s.ShowBookmarkMarks = v);
         Bind(PulseMarksCheck, v => s.PulseHiddenMarks = v);
@@ -148,6 +149,7 @@ public partial class SettingsWindow : Window
             MoveRegionsCheck.IsChecked = s.MoveWholeRegions;
             EdgeFrameCheck.IsChecked = s.ShowDraggedEdgeFrame;
             HoverPreviewCheck.IsChecked = s.HoverPreview;
+            FilmstripCheck.IsChecked = s.ZoomFilmstrip;
             CachedLineCheck.IsChecked = s.ShowCachedFrames;
             MarksCheck.IsChecked = s.ShowBookmarkMarks;
             PulseMarksCheck.IsChecked = s.PulseHiddenMarks;

@@ -92,6 +92,7 @@ public partial class MainWindow : Window
         App.Mark("hwnd");
         _thumbs = new Thumbnails(store.Folder, ffmpegReady, Dispatcher);
         _peek = new FramePeek(ffmpegReady, Dispatcher);
+        _filmstrip = new ZoomFilmstrip(ffmpegReady, Dispatcher) { FromGpu = (t, width) => _engine?.Thumbnail(t, width) };
         _nav.PositionShown += t =>
         {
             // Nunca más allá del último frame (al llegar al final, mpv puede dar el instante en que acaba).
@@ -165,6 +166,7 @@ public partial class MainWindow : Window
             {
                 _cacheDirty = false;
                 Seek.CachedRanges = Zoom.CachedRanges = _engine.CachedRanges();
+                _filmstrip.CacheChanged();
             }
         };
 
@@ -406,6 +408,8 @@ public partial class MainWindow : Window
                 _ = RunJumpSelfTest();
             if (PeekSelfTestEnabled)
                 _ = RunPeekSelfTest();
+            if (FilmstripSelfTestEnabled)
+                _ = RunFilmstripSelfTest();
             if (SettingsSelfTestEnabled)
                 _ = RunSettingsSelfTest();
             if (ClipSelfTestEnabled)
@@ -484,6 +488,7 @@ public partial class MainWindow : Window
 
         _position = start ?? 0;
         _currentPath = path;
+        _filmstrip.Path = path;
         Seek.CachedRanges = Zoom.CachedRanges = [];
         // Desde el bookmark de otro vídeo, su región pasa a ser la zona: la fila del zoom no se cierra mientras tanto
         // (cerrarla y volver a abrirla movía la barra y cambiaba el tamaño de la imagen).
@@ -1665,6 +1670,7 @@ public partial class MainWindow : Window
         CloseNaming(commit: true);
         _thumbs.Dispose();
         _peek.Dispose();
+        _filmstrip.Dispose();
         _indexing?.Cancel();
         Step("miniaturas");
         SavePosition();

@@ -44,6 +44,7 @@ public partial class MainWindow
             bar.MoveWholeRegions = s.MoveWholeRegions;
             bar.ShowCachedFrames = s.ShowCachedFrames;
         }
+        Zoom.Filmstrip = s.ZoomFilmstrip ? _filmstrip : null;
         if (Seek.ShowBookmarks != s.ShowBookmarkMarks)
             ApplyMarksVisibility();
         // Sin animar si en Windows están quitadas (Accesibilidad > Efectos visuales) y en las autopruebas, que miran
@@ -113,6 +114,7 @@ public partial class MainWindow
             Check(d.BookmarkPanelWidth == 330 && BookmarkPanel.Width == settings.BookmarkPanelWidth, $"panel de bookmarks: 330 px por defecto, ahora {BookmarkPanel.Width}");
             Check(d.ShowDraggedEdgeFrame, "por defecto se ve el frame del extremo que se arrastra");
             Check(d.HoverPreview, "por defecto se ve la miniatura al pasar el ratón por las barras");
+            Check(!d.ZoomFilmstrip, "por defecto la barra de zoom no lleva miniaturas");
             Check(!d.ShowCachedFrames, "por defecto no se ve la línea verde");
             Check(d.ShowBookmarkMarks, "por defecto se ven las marcas de los bookmarks");
             Check(d.PulseHiddenMarks, "por defecto, con las marcas ocultas, su botón late al crear un bookmark o ir a uno");

@@ -174,6 +174,8 @@ public sealed class GermanStrings : Strings
     public override string DefaultFolderPackagedTip => "Der Ordner der App in Windows. Er wird beim Deinstallieren gelöscht.";
     public override string HoverPreview => "Vorschaubild beim Überfahren der Leisten";
     public override string HoverPreviewTip => "Um zu sehen, was an einer Stelle des Videos ist, ohne hinzuspringen.";
+    public override string ZoomFilmstrip => "Vorschaubilder in der Zoomleiste";
+    public override string ZoomFilmstripTip => "Ein Streifen mit Frames des gezoomten Abschnitts entlang der Leiste.";
     public override string DataCopyIncomplete(string file) => $"Die Kopie von {file} ist unvollständig";
 
     // ---- Ventana principal: reproducción ----

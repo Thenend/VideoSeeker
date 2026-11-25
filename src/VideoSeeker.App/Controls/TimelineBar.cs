@@ -1013,7 +1013,7 @@ public abstract class TimelineBar : FrameworkElement
         }
     }
 
-    private static Pen FrozenPen(Color color, double thickness, PenLineJoin join = PenLineJoin.Miter)
+    protected static Pen FrozenPen(Color color, double thickness, PenLineJoin join = PenLineJoin.Miter)
     {
         var pen = new Pen(new SolidColorBrush(color), thickness) { LineJoin = join };
         pen.Freeze();

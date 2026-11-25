@@ -12,7 +12,8 @@ namespace VideoSeeker.App.Controls;
 /// </summary>
 public sealed class ZoomBar : TimelineBar
 {
-    private const double BarTrackHeight = 20;
+    // Alto de la pista: con la tira de miniaturas (ajuste), más alta para que se vean.
+    private const double PlainTrackHeight = 20, FilmTrackHeight = 40;
     // Separación mínima entre timecodes y entre marcas de frame para dibujarlas.
     private const double MinLabelSpacing = 90, MinFrameSpacing = 3;
     private static readonly double[] LabelSteps =
@@ -23,6 +24,15 @@ public sealed class ZoomBar : TimelineBar
     private static readonly Brush FrameTickBrush = Frozen(Color.FromRgb(0x5A, 0x62, 0x70));
     private static readonly Brush MajorTickBrush = Frozen(Color.FromRgb(0x8A, 0x92, 0x9E));
     private static readonly Brush CurrentFrameBrush = Frozen(Color.FromArgb(0xC0, 0x4C, 0x9B, 0xFF));
+    // Con miniaturas, el frame que se ve se tiñe poco y se recuadra, para no tapar su imagen.
+    private static readonly Brush CurrentFrameTintBrush = Frozen(Color.FromArgb(0x40, 0x4C, 0x9B, 0xFF));
+    private static readonly Pen CurrentFramePen = FrozenPen(Color.FromRgb(0x4C, 0x9B, 0xFF), 1.5);
+    // Separación entre miniaturas.
+    private static readonly Brush CellGapBrush = Frozen(Color.FromArgb(0xB0, 0x10, 0x12, 0x15));
+    // Frames por miniatura: 1, 2, 3, 4, 6, 8, 12, 16, 24... (de uno a otro, ×1,5 o ×1,33: la imagen casi no se recorta).
+    private static readonly int[] CellSteps = BuildCellSteps();
+    // La miniatura que tapa el hueco mientras llega la buena: atenuada.
+    private const double PlaceholderOpacity = 0.45;
 
     private double _start, _end;
     private FrameGrid _grid = new(null, 30);
@@ -37,8 +47,43 @@ public sealed class ZoomBar : TimelineBar
 
     public ZoomBar()
     {
-        // Etiqueta, pista, línea de la caché y franja de bookmarks.
-        Height = LabelHeight + 2 + BarTrackHeight + 5 + LaneHeight + 2;
+        UpdateHeight();
+    }
+
+    // Etiqueta, pista, línea de la caché y franja de bookmarks.
+    private void UpdateHeight() => Height = LabelHeight + 2 + BarTrackHeight + 5 + LaneHeight + 2;
+
+    private ZoomFilmstrip? _filmstrip;
+
+    /// <summary>De dónde salen las miniaturas de la tira; null sin tira (ajuste desactivado).</summary>
+    public ZoomFilmstrip? Filmstrip
+    {
+        get => _filmstrip;
+        set
+        {
+            if (_filmstrip == value)
+                return;
+            if (_filmstrip != null)
+                _filmstrip.Changed -= InvalidateVisual;
+            _filmstrip = value;
+            if (_filmstrip != null)
+                _filmstrip.Changed += InvalidateVisual;
+            UpdateHeight();
+            InvalidateVisual();
+        }
+    }
+
+    private double BarTrackHeight => _filmstrip != null ? FilmTrackHeight : PlainTrackHeight;
+
+    private static int[] BuildCellSteps()
+    {
+        var steps = new List<int> { 1 };
+        for (var n = 2; n < 50_000_000; n *= 2)
+        {
+            steps.Add(n);
+            steps.Add(n * 3 / 2);
+        }
+        return [.. steps];
     }
 
     // Animación del tramo (SetRange con "animate"): de dónde sale, adónde va y desde cuándo.
@@ -160,6 +205,9 @@ public sealed class ZoomBar : TimelineBar
         var pixelsPerSecond = TrackWidth / span;
         var fps = _grid.Fps > 0 ? _grid.Fps : 30;
         var frameSpacing = pixelsPerSecond / fps;
+        var film = _filmstrip != null;
+        if (_filmstrip is { } strip)
+            DrawFilmstrip(dc, strip, left, right, top, fps / pixelsPerSecond);
 
         // Celda del frame que se ve.
         var shown = ShownTime;
@@ -167,12 +215,18 @@ public sealed class ZoomBar : TimelineBar
         var cellStart = XAt(_grid.TimeOf(current));
         var cellEnd = XAt(_grid.TimeOf(current + 1));
         if (cellEnd - cellStart >= 2)
-            dc.DrawRectangle(CurrentFrameBrush, null, new Rect(cellStart, top, cellEnd - cellStart, BarTrackHeight));
+        {
+            if (film)
+                dc.DrawRectangle(CurrentFrameTintBrush, CurrentFramePen,
+                    new Rect(cellStart + 0.75, top + 0.75, cellEnd - cellStart - 1.5, BarTrackHeight - 1.5));
+            else
+                dc.DrawRectangle(CurrentFrameBrush, null, new Rect(cellStart, top, cellEnd - cellStart, BarTrackHeight));
+        }
 
-        // Una marca por frame, si caben.
+        // Una marca por frame, si caben (sobre las miniaturas, solo abajo, para no cortarlas).
         if (frameSpacing >= MinFrameSpacing)
         {
-            var tickHeight = frameSpacing >= 8 ? BarTrackHeight : 6;
+            var tickHeight = frameSpacing >= 8 && !film ? BarTrackHeight : 6;
             var first = _grid.FrameAt(_start);
             for (var f = first; f < first + 10000; f++)
             {
@@ -222,6 +276,71 @@ public sealed class ZoomBar : TimelineBar
             dc.DrawGeometry(HeadBrush, null, head);
         }
         dc.Pop();
+    }
+
+    /// <summary>
+    /// La tira: una miniatura cada N frames (N de CellSteps, el que deja la celda más parecida al ancho de la imagen),
+    /// alineadas a los frames, cada una el frame que hay en su borde izquierdo. La imagen llena la celda recortando lo
+    /// que sobra por el centro; si una celda de un frame es mucho más ancha que la imagen, se repite. Lo que falta se
+    /// tapa con la más cercana ya hecha, atenuada, y se pide.
+    /// </summary>
+    private void DrawFilmstrip(DrawingContext dc, ZoomFilmstrip strip, double left, double right, double top, double framesPerPixel)
+    {
+        var height = BarTrackHeight;
+        var imageWidth = height * strip.Aspect;
+        var ideal = imageWidth * framesPerPixel;
+        var step = CellSteps[0];
+        foreach (var s in CellSteps)
+            if (Math.Abs(Math.Log(s / ideal)) < Math.Abs(Math.Log(step / ideal)))
+                step = s;
+        var cellSeconds = step / (_grid.Fps > 0 ? _grid.Fps : 30);
+        var end = Duration > 0 ? Math.Min(right, XAt(Duration)) : right;
+        var times = new List<double>();
+        for (var f = _grid.FrameAt(_start) / step * step; times.Count < 400; f += step)
+        {
+            var t = _grid.TimeOf(f);
+            var x0 = XAt(t);
+            if (x0 >= end)
+                break;
+            var x1 = Math.Min(XAt(_grid.TimeOf(f + step)), end);
+            times.Add(t);
+            var cell = new Rect(Math.Max(x0, left), top, Math.Max(0, x1 - Math.Max(x0, left)), height);
+            if (cell.Width <= 0)
+                continue;
+            var image = strip.Get(t);
+            var exact = image != null;
+            image ??= strip.Nearest(t, cellSeconds * 4);
+            if (image is { Width: > 0, Height: > 0 })
+            {
+                dc.PushClip(new RectangleGeometry(cell));
+                if (!exact)
+                    dc.PushOpacity(PlaceholderOpacity);
+                var aspect = image.Width / image.Height;
+                var natural = height * aspect;
+                var cellWidth = x1 - x0;
+                if (cellWidth > natural * 1.25)
+                {
+                    // Un frame muy ancho: la imagen entera, repetida.
+                    for (var x = x0; x < x1; x += natural)
+                        if (x + natural > left)
+                            dc.DrawImage(image, new Rect(x, top, natural, height));
+                }
+                else
+                {
+                    var w = Math.Max(cellWidth, natural);
+                    var h = w / aspect;
+                    dc.DrawImage(image, new Rect(x0 + (cellWidth - w) / 2, top + (height - h) / 2, w, h));
+                }
+                if (!exact)
+                    dc.Pop();
+                dc.Pop();
+            }
+            if (x0 >= left)
+                dc.DrawRectangle(CellGapBrush, null, new Rect(Math.Round(x0), top, 1, height));
+        }
+        var scale = VisualTreeHelper.GetDpi(this).DpiScaleX;
+        var pixels = (int)Math.Clamp(Math.Ceiling(imageWidth * scale / 16) * 16, 32, 480);
+        strip.Want(times, pixels);
     }
 
     private void DrawTick(DrawingContext dc, double time, string text, double top, double right)

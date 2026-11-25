@@ -11,13 +11,20 @@ public sealed unsafe class Thumbnailer : IDisposable
 {
     private AVFormatContext* _format;
     private AVCodecContext* _codec;
-    private AVFrame* _frame, _kept;
+    private AVFrame* _frame, _kept, _ahead;
     private AVPacket* _packet;
     private SwsContext* _sws;
     private readonly int _stream;
     private readonly AVRational _timeBase;
     private readonly double _startOffset;
     private readonly double _frameDuration;
+    // Modo seguido (Grab con "sequential"): el decodificador se quedó justo después del instante pedido, con el primer
+    // frame que ya pasaba de él guardado en _ahead. Un instante poco más adelante se saca siguiendo, sin buscar desde
+    // un keyframe. NaN si no se puede seguir (otra búsqueda, cancelada, final del archivo).
+    private double _lastTarget = double.NaN;
+    private bool _aheadValid, _eof;
+    // Hasta cuánto más adelante sale a cuenta seguir decodificando en vez de buscar (que vuelve a un keyframe).
+    private const double ContinueWithin = 2.0;
 
     public string Path { get; }
 
@@ -44,6 +51,7 @@ public sealed unsafe class Thumbnailer : IDisposable
 
         _frame = ffmpeg.av_frame_alloc();
         _kept = ffmpeg.av_frame_alloc();
+        _ahead = ffmpeg.av_frame_alloc();
         _packet = ffmpeg.av_packet_alloc();
         _timeBase = stream->time_base;
         // Los mismos instantes que mpv y FrameDecoder: desde el inicio del archivo.
@@ -54,30 +62,57 @@ public sealed unsafe class Thumbnailer : IDisposable
 
     /// <summary>
     /// El frame que se ve en "time", escalado a "width" de ancho (el alto sigue la proporción de pantalla).
-    /// Null si no se pudo decodificar.
+    /// Null si no se pudo decodificar. Con "sequential" (varios instantes en orden, como la tira de la barra de zoom),
+    /// uno poco después del anterior se saca siguiendo la decodificación, sin volver a buscar.
     /// </summary>
-    public (byte[] Pixels, int Width, int Height)? Grab(double time, int width, CancellationToken token)
+    public (byte[] Pixels, int Width, int Height)? Grab(double time, int width, CancellationToken token, bool sequential = false)
     {
-        var ts = (long)Math.Floor((Math.Max(0, time) + _startOffset) / ffmpeg.av_q2d(_timeBase));
-        ffmpeg.av_seek_frame(_format, _stream, ts, ffmpeg.AVSEEK_FLAG_BACKWARD);
-        ffmpeg.avcodec_flush_buffers(_codec);
-
         // Desde el keyframe, el último frame que empieza en o antes del instante (con medio frame de margen).
         // Los frames salen en orden de presentación; el candidato se guarda aparte porque el siguiente
         // reutiliza _frame.
         var target = time + _frameDuration / 2;
+        var resume = sequential && !_eof && !double.IsNaN(_lastTarget)
+            && target - _lastTarget >= _frameDuration * 0.9 && target - _lastTarget <= ContinueWithin;
+        _lastTarget = double.NaN;
+        if (!resume)
+        {
+            var ts = (long)Math.Floor((Math.Max(0, time) + _startOffset) / ffmpeg.av_q2d(_timeBase));
+            ffmpeg.av_seek_frame(_format, _stream, ts, ffmpeg.AVSEEK_FLAG_BACKWARD);
+            ffmpeg.avcodec_flush_buffers(_codec);
+            ffmpeg.av_frame_unref(_ahead);
+            _aheadValid = false;
+            _eof = false;
+        }
+
         var have = false;
         ffmpeg.av_frame_unref(_kept);
         while (true)
         {
             token.ThrowIfCancellationRequested();
-            var result = ffmpeg.avcodec_receive_frame(_codec, _frame);
+            int result;
+            if (_aheadValid)
+            {
+                // Siguiendo: el frame que ya se leyó tras el instante anterior es el primero.
+                ffmpeg.av_frame_unref(_frame);
+                ffmpeg.av_frame_move_ref(_frame, _ahead);
+                _aheadValid = false;
+                result = 0;
+            }
+            else
+                result = ffmpeg.avcodec_receive_frame(_codec, _frame);
             if (result == 0)
             {
                 var pts = _frame->best_effort_timestamp != ffmpeg.AV_NOPTS_VALUE ? _frame->best_effort_timestamp : _frame->pts;
                 var frameTime = pts == ffmpeg.AV_NOPTS_VALUE ? time : pts * ffmpeg.av_q2d(_timeBase) - _startOffset;
                 if (frameTime > target && have)
+                {
+                    if (sequential)
+                    {
+                        ffmpeg.av_frame_move_ref(_ahead, _frame);
+                        _aheadValid = true;
+                    }
                     break;
+                }
                 ffmpeg.av_frame_unref(_kept);
                 ffmpeg.av_frame_move_ref(_kept, _frame);
                 have = true;
@@ -90,6 +125,7 @@ public sealed unsafe class Thumbnailer : IDisposable
 
             if (ffmpeg.av_read_frame(_format, _packet) < 0)
             {
+                _eof = true;
                 ffmpeg.avcodec_send_packet(_codec, null); // vaciar lo que quede dentro del decodificador
                 continue;
             }
@@ -97,6 +133,8 @@ public sealed unsafe class Thumbnailer : IDisposable
                 ffmpeg.avcodec_send_packet(_codec, _packet);
             ffmpeg.av_packet_unref(_packet);
         }
+        if (have && sequential)
+            _lastTarget = target;
         return have ? Convert(_kept, width) : null;
     }
 
@@ -128,6 +166,8 @@ public sealed unsafe class Thumbnailer : IDisposable
         ffmpeg.av_frame_free(&frame);
         var kept = _kept;
         ffmpeg.av_frame_free(&kept);
+        var ahead = _ahead;
+        ffmpeg.av_frame_free(&ahead);
         var packet = _packet;
         ffmpeg.av_packet_free(&packet);
         var codec = _codec;
@@ -137,6 +177,7 @@ public sealed unsafe class Thumbnailer : IDisposable
         ffmpeg.sws_freeContext(_sws);
         _frame = null;
         _kept = null;
+        _ahead = null;
         _packet = null;
         _codec = null;
         _format = null;

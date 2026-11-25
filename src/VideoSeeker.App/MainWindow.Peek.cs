@@ -9,6 +9,8 @@ namespace VideoSeeker.App;
 public partial class MainWindow
 {
     private readonly FramePeek _peek;
+    // Miniaturas de la tira de la barra de zoom (ajuste ZoomFilmstrip).
+    private readonly ZoomFilmstrip _filmstrip;
     // Instante del frame que se quiere ver (null sin vistazo) y si la imagen que se ve es ya la suya.
     private double? _peekTime;
     private bool _peekExact;

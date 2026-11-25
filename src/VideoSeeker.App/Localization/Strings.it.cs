@@ -174,6 +174,8 @@ public sealed class ItalianStrings : Strings
     public override string DefaultFolderPackagedTip => "La cartella dell'app in Windows. Viene eliminata quando si disinstalla l'app.";
     public override string HoverPreview => "Miniatura al passaggio del mouse sulle barre";
     public override string HoverPreviewTip => "Per vedere cosa c'è in un punto del video senza andarci.";
+    public override string ZoomFilmstrip => "Miniature nella barra dello zoom";
+    public override string ZoomFilmstripTip => "Una striscia con i fotogrammi dell'intervallo ingrandito lungo la barra.";
     public override string DataCopyIncomplete(string file) => $"La copia di {file} non è completa";
 
     // ---- Ventana principal: reproducción ----

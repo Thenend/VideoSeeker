@@ -174,6 +174,8 @@ public sealed class SpanishStrings : Strings
     public override string DefaultFolderPackagedTip => "La carpeta de la app en Windows. Se borra al desinstalarla.";
     public override string HoverPreview => "Miniatura al pasar el ratón por las barras";
     public override string HoverPreviewTip => "Para ver qué hay en un punto del vídeo sin ir a él.";
+    public override string ZoomFilmstrip => "Miniaturas en la barra del zoom";
+    public override string ZoomFilmstripTip => "Una tira con los frames del tramo ampliado a lo largo de la barra.";
     public override string DataCopyIncomplete(string file) => $"La copia de {file} no salió entera";
 
     // ---- Ventana principal: reproducción ----

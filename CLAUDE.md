@@ -26,6 +26,7 @@ Pruebas por parte:
 | Zona ampliada, región seleccionada, arrastrar extremos | `zona`, `drag`, `zoom` |
 | Ir a un bookmark (panel, `[` `]`, números) | `saltar` |
 | Miniatura al pasar por las barras | `vistazo` |
+| Tira de miniaturas de la barra de zoom | `tira` |
 | Exportar clips | `clips` |
 | Historial de vídeos (atrás / adelante) | `historial` |
 | Pasos de frame, caché, marcha atrás, bucles | `1`, `resume`, `reverse`, `loop`, `longdrag` |

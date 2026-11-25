@@ -174,6 +174,8 @@ public sealed class EnglishStrings : Strings
     public override string DefaultFolderPackagedTip => "The app's folder in Windows. It's deleted when the app is uninstalled.";
     public override string HoverPreview => "Thumbnail when hovering over the bars";
     public override string HoverPreviewTip => "See what's at any point in the video without going there.";
+    public override string ZoomFilmstrip => "Thumbnails in the zoom bar";
+    public override string ZoomFilmstripTip => "A strip of frames from the zoomed range along the bar.";
     public override string DataCopyIncomplete(string file) => $"The copy of {file} was incomplete";
 
     // ---- Ventana principal: reproducción ----

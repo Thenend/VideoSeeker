@@ -174,6 +174,8 @@ public sealed class FrenchStrings : Strings
     public override string DefaultFolderPackagedTip => "Le dossier de l'application dans Windows. Il est supprimé à la désinstallation.";
     public override string HoverPreview => "Miniature au survol des barres";
     public override string HoverPreviewTip => "Pour voir ce qu'il y a à un endroit de la vidéo sans y aller.";
+    public override string ZoomFilmstrip => "Miniatures dans la barre du zoom";
+    public override string ZoomFilmstripTip => "Une bande d'images de la plage zoomée le long de la barre.";
     public override string DataCopyIncomplete(string file) => $"La copie de {file} est incomplète";
 
     // ---- Ventana principal: reproducción ----

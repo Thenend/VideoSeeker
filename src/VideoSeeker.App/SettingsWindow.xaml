@@ -280,6 +280,11 @@
                         </DockPanel>
                         <Rectangle Style="{StaticResource Divider}" />
                         <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" x:Name="FilmstripCheck" Style="{StaticResource Switch}" />
+                            <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr ZoomFilmstripTip}" Text="{l:Tr ZoomFilmstrip}" />
+                        </DockPanel>
+                        <Rectangle Style="{StaticResource Divider}" />
+                        <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" x:Name="CachedLineCheck" Style="{StaticResource Switch}" />
                             <TextBlock Style="{StaticResource Label}" ToolTip="{l:Tr CachedLineTip}" Text="{l:Tr CachedLine}" />
                         </DockPanel>

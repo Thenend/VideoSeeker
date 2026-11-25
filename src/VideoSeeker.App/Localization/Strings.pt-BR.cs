@@ -174,6 +174,8 @@ public sealed class PortugueseBrazilStrings : Strings
     public override string DefaultFolderPackagedTip => "A pasta do app no Windows. É apagada ao desinstalar o app.";
     public override string HoverPreview => "Miniatura ao passar o mouse pelas barras";
     public override string HoverPreviewTip => "Para ver o que há em um ponto do vídeo sem ir até ele.";
+    public override string ZoomFilmstrip => "Miniaturas na barra do zoom";
+    public override string ZoomFilmstripTip => "Uma tira com os quadros do trecho ampliado ao longo da barra.";
     public override string DataCopyIncomplete(string file) => $"A cópia de {file} ficou incompleta";
 
     // ---- Ventana principal: reproducción ----

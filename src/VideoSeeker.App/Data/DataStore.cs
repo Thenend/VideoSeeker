@@ -43,6 +43,8 @@ public sealed class Settings
     public bool ShowDraggedEdgeFrame { get; set; } = true;
     /// <summary>Al pasar el ratón por las barras, el frame que hay bajo el cursor en miniatura (sin ir a él).</summary>
     public bool HoverPreview { get; set; } = true;
+    /// <summary>Tira de miniaturas (frames del tramo) dentro de la barra de zoom, que se hace más alta.</summary>
+    public bool ZoomFilmstrip { get; set; }
     /// <summary>Línea verde de la caché de frames bajo las barras (la caché funciona igual sin ella).</summary>
     public bool ShowCachedFrames { get; set; }
     /// <summary>Con las marcas ocultas, al crear un bookmark o ir a uno, su botón late unas veces (para ver por qué no salen).</summary>
@@ -133,6 +135,7 @@ public sealed class Settings
         MoveWholeRegions = d.MoveWholeRegions;
         ShowDraggedEdgeFrame = d.ShowDraggedEdgeFrame;
         HoverPreview = d.HoverPreview;
+        ZoomFilmstrip = d.ZoomFilmstrip;
         ShowCachedFrames = d.ShowCachedFrames;
         ShowBookmarkMarks = d.ShowBookmarkMarks;
         PulseHiddenMarks = d.PulseHiddenMarks;

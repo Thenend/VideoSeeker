@@ -339,6 +339,10 @@ public abstract class Strings
     public abstract string HoverPreview { get; }
     /// <summary>Para ver qué hay en un punto del vídeo sin ir a él.</summary>
     public abstract string HoverPreviewTip { get; }
+    /// <summary>Miniaturas en la barra del zoom</summary>
+    public abstract string ZoomFilmstrip { get; }
+    /// <summary>Una tira con los frames del tramo ampliado a lo largo de la barra.</summary>
+    public abstract string ZoomFilmstripTip { get; }
     /// <summary>La copia de {file} no salió entera</summary>
     public abstract string DataCopyIncomplete(string file);
 
